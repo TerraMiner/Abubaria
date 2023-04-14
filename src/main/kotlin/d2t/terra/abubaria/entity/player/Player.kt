@@ -7,6 +7,7 @@ import d2t.terra.abubaria.GamePanel.world
 import d2t.terra.abubaria.entity.Entity
 import d2t.terra.abubaria.location.Direction
 import d2t.terra.abubaria.location.Location
+import scaleImage
 import java.awt.Color
 import java.awt.image.BufferedImage
 import java.io.File
@@ -51,10 +52,10 @@ class Player : Entity(Location()) {
             val width = (tileSize * width + 4).toInt()
             val height = (tileSize * height + 1).toInt()
 
-            leftIdle = UtilityTool.scaleImage(ImageIO.read(File("${path}leftIdle.png"))/*.negative()*/, width, height)
-            leftJump = UtilityTool.scaleImage(ImageIO.read(File("${path}leftJump.png"))/*.negative()*/, width, height)
-            rightIdle = UtilityTool.scaleImage(ImageIO.read(File("${path}rightIdle.png"))/*.negative()*/, width, height)
-            rightJump = UtilityTool.scaleImage(ImageIO.read(File("${path}rightJump.png"))/*.negative()*/, width, height)
+            leftIdle = scaleImage(ImageIO.read(File("${path}leftIdle.png"))/*.negative()*/, width, height)
+            leftJump = scaleImage(ImageIO.read(File("${path}leftJump.png"))/*.negative()*/, width, height)
+            rightIdle = scaleImage(ImageIO.read(File("${path}rightIdle.png"))/*.negative()*/, width, height)
+            rightJump = scaleImage(ImageIO.read(File("${path}rightJump.png"))/*.negative()*/, width, height)
 
         }.getOrElse {
             it.printStackTrace()
@@ -76,26 +77,24 @@ class Player : Entity(Location()) {
         }
 
         autoClimb = !KeyHandler.downPressed
-//        a.check("80")
+
         hitBox.keepInBounds(world.worldBorder)
-//        a.check("82")
+
         chunks = hitBox.intersectionChunks()
-//        a.check("84")
+
         jump()
-//        a.check("86")
+
         checkIfOnGround()
-//        a.check("88")
+
         fall()
-//        a.check("90")
+
         applyMovement()
-//        a.check("92")
+
         checkCollision()
-//        a.check("94")
+
         location.x += dx
-//        a.check("96")
+
         hitBox.setLocation(location)
-//        a.check("98")
-//        a.debug("Player Updating")
 
     }
 

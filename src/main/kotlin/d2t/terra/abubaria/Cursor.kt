@@ -24,7 +24,7 @@ class Cursor(private var x: Int,private var y: Int) {
 
     private val player = GamePanel.player
 
-    private var image: BufferedImage = UtilityTool.scaleImage(ImageIO.read(File("res/cursor/cursor.png")),30,30)
+    private var image: BufferedImage = scaleImage(ImageIO.read(File("res/cursor/cursor.png")),30,30)
 
     val world = GamePanel.world
 

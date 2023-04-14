@@ -43,6 +43,8 @@ class Chunk(
 const val chunkSize = 8
 
 class World {
+    var redraw = false
+
     val worldSizeX = 12
     val worldSizeY = 12
 

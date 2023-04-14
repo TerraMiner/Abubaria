@@ -14,7 +14,6 @@ import java.awt.Graphics2D
 import java.awt.GraphicsEnvironment
 import java.awt.image.BufferedImage
 import javax.swing.JPanel
-
 import kotlin.concurrent.thread
 
 object GamePanel : JPanel() {
@@ -72,18 +71,19 @@ object GamePanel : JPanel() {
 
     fun startGameThread() {
 
+        val a = Any()
 
-        physicsThread = thread (true) {
+        physicsThread = thread(true) {
 //            draw()
+
+//            synchronized(a) {
             tick()
+//            }
         }
 
-//        graphicsThread = Thread {
+//        synchronized(a) {
+//            draw()
 //        }
-
-//        graphicsThread!!.start()
-
-        draw()
     }
 
     //    @Synchronized
@@ -105,8 +105,8 @@ object GamePanel : JPanel() {
             lastTime = currentTime
 
             if (delta >= 1) {
-                drawToTempScreen()
                 drawToScreen()
+                drawToTempScreen()
                 delta--
                 drawCount++
             }
@@ -119,16 +119,16 @@ object GamePanel : JPanel() {
         }
     }
 
-    //    @Synchronized
     fun tick() {
         val tickInterval = 1000000000 / 256.0
 
-        var delta = .0
+        var delta = 0.0
         var lastTime = System.nanoTime()
         var currentTime: Long
 
         var timer = 0L
         var drawCount = 0
+        var tickCount = 0
 
         while (physicsThread != null) {
             currentTime = System.nanoTime()
@@ -136,21 +136,62 @@ object GamePanel : JPanel() {
             timer += (currentTime - lastTime)
             lastTime = currentTime
 
-            if (delta >= 1) {
+            while (delta >= 1.0) {
                 cursor.update()
                 player.update()
-
-                delta = .0
-                drawCount++
+                delta -= 1.0
+                tickCount++
             }
 
+            drawToTempScreen()
+            drawToScreen()
+
+            drawCount++
+
             if (timer >= 1000000000) {
-                display.tps = drawCount
+                display.fps = drawCount
+                display.tps = tickCount
                 drawCount = 0
+                tickCount = 0
                 timer = 0
             }
         }
     }
+
+//    fun tick() {
+//        val tickInterval = 1000000000 / 256.0
+//
+//        var delta = .0
+//        var lastTime = System.nanoTime()
+//        var currentTime: Long
+//
+//        var timer = 0L
+//        var drawCount = 0
+//
+//        while (physicsThread != null) {
+//            currentTime = System.nanoTime()
+//            delta += (currentTime - lastTime) / tickInterval
+//            timer += (currentTime - lastTime)
+//            lastTime = currentTime
+//
+//            if (delta >= 1) {
+//                cursor.update()
+//                player.update()
+//
+//                drawToTempScreen()
+//                drawToScreen()
+//
+//                delta = .0
+//                drawCount++
+//            }
+//
+//            if (timer >= 1000000000) {
+//                display.tps = drawCount
+//                drawCount = 0
+//                timer = 0
+//            }
+//        }
+//    }
 
     fun setFullScreen() {
         //
@@ -192,8 +233,13 @@ object GamePanel : JPanel() {
         val start = System.currentTimeMillis()
 
         g2.color = bgColor
+//        g2.clearRect(0, 0, window.width, window.height)
         g2.fillRect(0, 0, window.width, window.height)
         g2.color = Color.BLACK
+
+//        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+//        g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+//        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
         world.draw(g2)
 

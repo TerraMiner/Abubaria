@@ -39,9 +39,9 @@ object CollisionHandler {
 
             val futureBox = hitBox.clone
             futureBox.x += dx
-            futureBox.y -= block.hitBox.height + 1
+            futureBox.y -= (block.hitBox.height + 1)/10
 
-            if (futureBox.intersectionChunks().any { it.blocks.flatten().any { b -> b.material.collideable && b.hitBox.intersects(futureBox) } }) return
+            if (futureBox.intersectionChunks().any { it.blocks.flatten().any { b -> b != block && b.material.collideable && b.hitBox.intersects(futureBox) } }) return
 
             location.x = futureBox.x
             location.y = futureBox.y

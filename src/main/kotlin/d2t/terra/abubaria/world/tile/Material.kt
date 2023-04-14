@@ -4,6 +4,8 @@ import d2t.terra.abubaria.GamePanel.tileSize
 
 import d2t.terra.abubaria.world.tile.MaterialState.BOTTOM
 import d2t.terra.abubaria.world.tile.MaterialState.FULL
+import padTexture
+import scaleImage
 
 import java.awt.image.BufferedImage
 import java.io.File
@@ -27,8 +29,8 @@ enum class Material(
     DIRT(3, "dirt"),
     STONE_HALF_DOWN(4, "stone_half_down", BOTTOM, true, tileSize / 2);
 
-    val texture: BufferedImage? = if (path == null) null else UtilityTool.scaleImage(
+    val texture: BufferedImage? = if (path == null) null else scaleImage(
         ImageIO.read(File("res/block/$path.png")),
         tileSize, height
-    )
+    )//.padTexture()
 }
