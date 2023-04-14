@@ -1,0 +1,84 @@
+buildscript {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        google()
+        gradlePluginPortal()
+        maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+        maven { url "https://oss.sonatype.org/content/repositories/releases/" }
+        maven { url "https://jitpack.io" }
+    }
+}
+
+plugins {
+    id 'java'
+    id 'org.jetbrains.kotlin.jvm' version '1.8.20'
+    id 'eclipse'
+}
+
+group 'd2t.terra'
+version '1.0'
+
+ext {
+    appName = 'Abubaria'
+    mainClassName = 'd2t.terra.abubaria.Main'
+
+    assetsDir = new File('assets')
+
+    gdxVersion = '1.11.0'
+    roboVMVersion = '2.3.19'
+    box2DLightsVersion = '1.5'
+    ashleyVersion = '1.7.4'
+    aiVersion = '1.8.2'
+    gdxControllersVersion = '2.2.1'
+}
+
+repositories.addAll(buildscript.repositories)
+
+dependencies {
+    api "com.badlogicgames.gdx:gdx:$gdxVersion"
+
+    api "com.badlogicgames.gdx:gdx-backend-lwjgl3:$gdxVersion"
+    api "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
+    api 'org.jetbrains.kotlin:kotlin-stdlib'
+}
+
+sourceSets.main.resources.srcDirs = ['assets']
+[compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
+
+task run(dependsOn: classes, type: JavaExec) {
+    mainClass = project.mainClassName
+    classpath = sourceSets.main.runtimeClasspath
+    standardInput = System.in
+    workingDir = project.assetsDir
+    ignoreExitValue = true
+
+    if (org.gradle.internal.os.OperatingSystem.current() == org.gradle.internal.os.OperatingSystem.MAC_OS) {
+        // Required to run on macOS
+        jvmArgs += "-XstartOnFirstThread"
+    }
+}
+
+task debug(dependsOn: classes, type: JavaExec) {
+    mainClass = project.mainClassName
+    classpath = sourceSets.main.runtimeClasspath
+    standardInput = System.in
+    workingDir = project.assetsDir
+    ignoreExitValue = true
+    debug = true
+}
+
+task dist(type: Jar) {
+    duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
+    manifest {
+        attributes 'Main-Class': project.mainClassName
+    }
+    dependsOn configurations.runtimeClasspath
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    with jar
+}
+
+
+dist.dependsOn classes
