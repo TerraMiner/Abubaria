@@ -1,4 +1,5 @@
 import d2t.terra.abubaria.GamePanel
+import d2t.terra.abubaria.GamePanel.inFullScreen
 import d2t.terra.abubaria.entity.player.Camera
 import java.awt.Dimension
 import java.awt.Point
@@ -16,7 +17,7 @@ val window = JFrame()
 fun main() {
     window.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
 
-    window.title = "Game"
+    window.title = "Abubaria"
 
     val cursorImg = BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB)
 
@@ -32,33 +33,26 @@ fun main() {
 
     window.isVisible = true
 
-    GamePanel.setupGame()
+    GamePanel.setupScreen()
 
     window.addComponentListener(object : ComponentListener {
         override fun componentResized(e: ComponentEvent?) {
-            GamePanel.screenWidth2 = window.rootPane.width
-            GamePanel.screenHeight2 = window.rootPane.height
-            GamePanel.preferredSize = Dimension(window.width,window.height)
-            GamePanel.tempScreen = BufferedImage(GamePanel.screenWidth2, GamePanel.screenHeight2,BufferedImage.TYPE_INT_ARGB)
-            GamePanel.g2 = GamePanel.tempScreen.createGraphics()
-            Camera.initialize()
+            GamePanel.setupScreen()
         }
 
         override fun componentMoved(e: ComponentEvent?) {
-
+            GamePanel.setupScreen()
         }
 
         override fun componentShown(e: ComponentEvent?) {
-
+            GamePanel.setupScreen()
         }
 
         override fun componentHidden(e: ComponentEvent?) {
-
+            GamePanel.setupScreen()
         }
 
     })
-
-
 
     GamePanel.startGameThread()
 }

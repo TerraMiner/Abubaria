@@ -2,12 +2,13 @@ package d2t.terra.abubaria.entity.player
 
 import d2t.terra.abubaria.Client
 import d2t.terra.abubaria.GamePanel
-import d2t.terra.abubaria.GamePanel.player
 import d2t.terra.abubaria.GamePanel.screenHeight2
 import d2t.terra.abubaria.GamePanel.screenWidth2
 import d2t.terra.abubaria.GamePanel.tileSize
 import d2t.terra.abubaria.GamePanel.world
 import d2t.terra.abubaria.location.Direction
+import d2t.terra.abubaria.location.Location
+import java.awt.Color
 import java.awt.Graphics2D
 import java.awt.image.BufferedImage
 
@@ -27,36 +28,35 @@ object Camera {
     private var centerY = (screenHeight2 / 2 - (tileSize / 2))
 
     fun interpolate() {
-        screenX = centerX - cameraDx.toInt()
-        screenY = centerY - cameraDy.toInt()
+        screenX = centerX/* - cameraDx.toInt()*/
+        screenY = centerY/* - cameraDy.toInt()*/
 
-        val distX = centerX - screenX
-        val distY = centerY - screenY
+//        val distX = centerX - screenX
+//        val distY = centerY - screenY
 
-        if (screenX != centerX) cameraDx -= distX*0.001
-        if (screenY != centerY) cameraDy -= distY*0.001
+//        if (screenX != centerX) cameraDx -= distX * 0.001
+//        if (screenY != centerY) cameraDy -= distY * 0.001
     }
 
 
     fun initialize() {
 
-        targetX = player.location.x.toDouble()
-        targetY = player.location.y.toDouble()
+        targetX = ClientPlayer.location.x
+        targetY = ClientPlayer.location.y
         centerX = (screenWidth2 / 2 - (tileSize / 2))
         centerY = (screenHeight2 / 2 - (tileSize / 2))
     }
 
-    fun offsetX(player: Player) = player.location.x + screenX
+    fun offsetX(location: Location) = location.x + screenX
 
-    fun offsetY(player: Player) = player.location.y + screenY
+    fun offsetY(location: Location) = location.y + screenY
 
-    fun onsetX(player: Player) = player.location.x - screenX
+    fun onsetX(location: Location) = location.x - screenX
 
-    fun onsetY(player: Player) = player.location.y - screenY
+    fun onsetY(location: Location) = location.y - screenY
 
-    fun worldScreenPosX(defaultX: Int): Int {
-        var offX = defaultX - onsetX(player).toInt()
-        val location = player.location
+    fun worldScreenPosX(defaultX: Int, location: Location): Int {
+        var offX = defaultX - onsetX(location).toInt()
         val world = GamePanel.world
 
         if (screenX > location.x)
@@ -66,9 +66,9 @@ object Camera {
         return offX
     }
 
-    fun worldScreenPosY(defaultY: Int): Int {
-        var offY = defaultY - onsetY(player).toInt()
-        val location = player.location
+    fun worldScreenPosY(defaultY: Int, location: Location): Int {
+
+        var offY = defaultY - onsetY(location).toInt()
         val world = GamePanel.world
 
         if (screenY > location.y)
@@ -79,11 +79,10 @@ object Camera {
         return offY
     }
 
-    fun playerScreenPosX(): Int {
+    fun playerScreenPosX(location: Location): Int {
         var offX = screenX
-        val location = player.location
 
-        if (screenX > player.location.x) offX = player.location.x.toInt()
+        if (screenX > location.x) offX = location.x.toInt()
 
         if (screenWidth2 - screenX > world.worldWidth - location.x) offX =
             (screenWidth2 - (world.worldWidth - location.x)).toInt()
@@ -91,11 +90,10 @@ object Camera {
         return offX
     }
 
-    fun playerScreenPosY(): Int {
+    fun playerScreenPosY(location: Location): Int {
         var offY = screenY
-        val location = player.location
 
-        if (screenY > player.location.y) offY = player.location.y.toInt()
+        if (screenY > location.y) offY = location.y.toInt()
 
         if (screenHeight2 - screenY > world.worldHeight - location.y) offY =
             (screenHeight2 - (world.worldHeight - location.y)).toInt()
@@ -103,9 +101,9 @@ object Camera {
         return offY
     }
 
-    fun draw(g2: Graphics2D) {
-        player.apply {
-            val image: BufferedImage? = when (player.location.direction) {
+    fun draw(g2: Graphics2D, location: Location) {
+        ClientPlayer.apply {
+            val image: BufferedImage? = when (this.location.direction) {
 
                 Direction.LEFT -> {
                     if (onGround || onWorldBorder) leftIdle
@@ -118,8 +116,8 @@ object Camera {
                 }
             }
 
-            val offX = playerScreenPosX()
-            val offY = playerScreenPosY()
+            val offX = playerScreenPosX(location)
+            val offY = playerScreenPosY(location)
 
             g2.drawImage(
                 image,
@@ -128,9 +126,9 @@ object Camera {
                 null
             )
 
-            if (Client.debugMode) player.hitBox.apply {
+            if (Client.debugMode) ClientPlayer.hitBox.apply {
                 val prevColor = g2.color
-                g2.color = color
+                g2.color = Color.BLACK
                 g2.drawRect(offX, offY, width.toInt(), height.toInt())
                 g2.color = prevColor
             }

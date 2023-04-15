@@ -5,16 +5,16 @@ import DebugDisplay
 import KeyHandler
 import MouseHandler
 import d2t.terra.abubaria.entity.player.Camera
-import d2t.terra.abubaria.entity.player.Player
+import d2t.terra.abubaria.entity.player.ClientPlayer
 import d2t.terra.abubaria.world.World
+import d2t.terra.abubaria.world.WorldGenerator
 import window
-import java.awt.Color
-import java.awt.Dimension
-import java.awt.Graphics2D
-import java.awt.GraphicsEnvironment
+import java.awt.*
 import java.awt.image.BufferedImage
+import java.io.File
 import javax.swing.JPanel
 import kotlin.concurrent.thread
+
 
 object GamePanel : JPanel() {
 
@@ -37,21 +37,29 @@ object GamePanel : JPanel() {
     lateinit var tempScreen: BufferedImage
     lateinit var g2: Graphics2D
 
-    var physicsThread: Thread? = null
+    val ge: GraphicsEnvironment = GraphicsEnvironment.getLocalGraphicsEnvironment()
+    val gd: GraphicsDevice = ge.defaultScreenDevice
 
-    val world = World().apply { generate() }
+    var gameThread: Thread? = null
+    var graphThread: Thread? = null
 
-    val player = Player().apply { initialize() }
+    val world = World().apply { /*generate()*/
+        WorldGenerator(this).generateWorld()
+    }
 
     val cursor = Cursor(0, 0)
 
+    var drawLocation = ClientPlayer.location
+
     var videoLag = .0
 
-    val display = DebugDisplay(player)
+    val display = DebugDisplay()
 
     var inFullScreen = false
 
     val bgColor = Color(170, 255, 255)
+
+    lateinit var defaultGameFont: Font
 
     init {
         preferredSize = Dimension(screenWidth2, screenHeight2)
@@ -63,43 +71,45 @@ object GamePanel : JPanel() {
         Camera.initialize()
     }
 
-    fun setupGame() {
+    fun setupScreen() {
+
+        screenPosX = window.location.x
+        screenPosY = window.location.y
+        screenWidth2 = window.rootPane.width
+        screenHeight2 = window.rootPane.height
+        GamePanel.preferredSize = Dimension(window.width,window.height)
         tempScreen = BufferedImage(screenWidth2, screenHeight2, BufferedImage.TYPE_INT_ARGB)
-        g2 = tempScreen.graphics as Graphics2D
+        g2 = tempScreen.createGraphics()
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
+        ge.registerFont(Font.createFont(Font.TRUETYPE_FONT, File("res/fonts/Comic Sans MS.ttf")))
+        defaultGameFont = Font("Comic Sans MS", Font.PLAIN, 16)
+        g2.font = defaultGameFont
+
+        Camera.initialize()
+
     }
 
     fun startGameThread() {
-
-        physicsThread = thread(true) {
+        gameThread = thread(true) {
             tick()
         }
 
+        graphThread = thread(true) {
+            draw()
+        }
     }
 
 
-    fun tick() {
-        val tickInterval = 1000000000 / 256.0
-
-        var delta = 0.0
+    fun draw() {
         var lastTime = System.nanoTime()
         var currentTime: Long
-
         var timer = 0L
         var drawCount = 0
-        var tickCount = 0
 
-        while (physicsThread != null) {
+        while (graphThread != null) {
             currentTime = System.nanoTime()
-            delta += (currentTime - lastTime) / tickInterval
             timer += (currentTime - lastTime)
             lastTime = currentTime
-
-            while (delta >= 1.0) {
-                cursor.update()
-                player.update()
-                delta -= 1.0
-                tickCount++
-            }
 
             drawToTempScreen()
             drawToScreen()
@@ -108,20 +118,44 @@ object GamePanel : JPanel() {
 
             if (timer >= 1000000000) {
                 display.fps = drawCount
-                display.tps = tickCount
                 drawCount = 0
+                timer = 0
+            }
+        }
+    }
+
+
+    fun tick() {
+        val tickInterval = 1e9 / 256.0
+        var deltaTicks = .0
+        var lastTime = System.nanoTime()
+        var currentTime: Long
+        var timer = 0L
+        var tickCount = 0
+        while (gameThread != null) {
+            currentTime = System.nanoTime()
+            deltaTicks += (currentTime - lastTime) / tickInterval
+            timer += (currentTime - lastTime)
+            lastTime = currentTime
+            while (deltaTicks >= 1.0) {
+                cursor.update()
+                Camera.interpolate()
+                ClientPlayer.update()
+                deltaTicks -= 1.0
+                tickCount++
+            }
+
+            if (timer >= 1000000000) {
+                display.tps = tickCount
                 tickCount = 0
                 timer = 0
             }
         }
     }
 
-    fun setFullScreen() {
+    fun setFullScreen(screen: Boolean) {
         //
-        inFullScreen = !inFullScreen
-
-        val ge = GraphicsEnvironment.getLocalGraphicsEnvironment()
-        val gd = ge.defaultScreenDevice
+        inFullScreen = screen
 
         if (inFullScreen) {
             screenPosX = window.location.x
@@ -130,8 +164,9 @@ object GamePanel : JPanel() {
             screenWidth2 = window.width
             screenHeight2 = window.height
 
-
+            window.setSize(screenWidth2, screenHeight2)
             gd.fullScreenWindow = window
+
         } else {
             gd.fullScreenWindow = null
 
@@ -141,14 +176,13 @@ object GamePanel : JPanel() {
             screenHeight2 = screenHeight
 
             window.setSize(screenWidth2, screenHeight2)
-        }
 
-        Camera.initialize()
+        }
     }
 
     fun drawToScreen() {
         val g = graphics
-        g.drawImage(tempScreen, 0, 0, screenWidth2, screenHeight2, null)
+        g.drawImage(tempScreen, 0, 0, null)
         g.dispose()
     }
 
@@ -159,18 +193,18 @@ object GamePanel : JPanel() {
         g2.fillRect(0, 0, window.width, window.height)
         g2.color = Color.BLACK
 
-        Camera.interpolate()
+        val loc = ClientPlayer.location.clone
 
-        world.draw(g2)
+        world.draw(g2, loc)
 
-        Camera.draw(g2)
+        Camera.draw(g2, loc)
 
-        cursor.draw(g2)
+        cursor.draw(g2, loc)
 
         if (Client.debugMode) display.text.apply {
             split("\n").forEachIndexed { index, text ->
                 val y = index * 20 + 20
-                g2.drawString(text, 4, y)
+                g2.drawString(text,4, y)
             }
         }
 

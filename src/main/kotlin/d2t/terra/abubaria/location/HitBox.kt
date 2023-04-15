@@ -127,14 +127,17 @@ class EntityHitBox(val entity: Entity) :
 }
 
 class BlockHitBox(val block: Block) :
-    HitBox(block.x * tileSize, block.y * tileSize + block.material.state.offset, tileSize -1, block.material.height -1 ) {
+    HitBox(
+        block.x * tileSize,
+        block.y * tileSize + block.material.state.offset,
+        tileSize - 1,
+        block.material.height - 1
+    ) {
     val clone get() = BlockHitBox(block)
 }
 
 
 open class HitBox(var x: Double, var y: Double, var width: Double, var height: Double) {
-
-    var color: Color? = null
 
     val bottom get() = y + height
     val top get() = y
@@ -167,45 +170,21 @@ open class HitBox(var x: Double, var y: Double, var width: Double, var height: D
         }
     }
 
-    fun intersectsX(other: HitBox) = (x < other.x + other.width && x + width > other.x).apply {
-//        other.color = if (this) Color.BLUE else Color.BLACK
-    }
-
-    fun intersectsY(other: HitBox) = (y < other.y + other.height && y + height > other.y).apply {
-        other.color = if (this) Color.BLUE else Color.WHITE
-    }
-
     fun move(dx: Double, dy: Double): HitBox {
         x += dx
         y += dy
         return this
     }
 
-//    fun intersects(other: HitBox) = intersectsX(other) && intersectsY(other)
-
-    fun intersects(other: HitBox): Boolean {
-        val bool = (x < other.x + other.width
-                && x + width > other.x
-                && y < other.y + other.height
-                && y + height > other.y)
-//        other.color = if (bool) Color.GREEN else Color.BLACK
-        return bool
-    }
-
-    fun touches(other: HitBox): Boolean {
-        return (x + width + 1 >= other.x && x + width <= other.x + 1
-                || x + 1 <= other.x + other.width && x >= other.x + other.width - 1)
-                && (y + height + 1 >= other.y && y + height <= other.y + 1
-                || y + 1 <= other.y + other.height && y >= other.y + other.height - 1).apply {
-            other.color = if (this) Color.RED else Color.WHITE
-        }
-    }
-
-    fun intersectsLeft(other: HitBox) =
-        intersects(other) && (x - other.width) <= other.x
+    fun intersects(other: HitBox) =
+        (x < other.x + other.width && x + width > other.x)
+        &&
+        (y < other.y + other.height && y + height > other.y)
 
 
-    fun intersectsRight(other: HitBox) =
-        intersects(other) && (x + other.width) >= other.x + other.width
+    fun touches(other: HitBox) =
+        (x + width + 1 >= other.x && x + width <= other.x + 1 || x + 1 <= other.x + other.width && x >= other.x + other.width - 1)
+        &&
+        (y + height + 1 >= other.y && y + height <= other.y + 1 || y + 1 <= other.y + other.height && y >= other.y + other.height - 1)
 
 }

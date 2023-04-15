@@ -1,4 +1,5 @@
-import java.awt.Graphics2D
+
+import java.awt.*
 import java.awt.image.BufferedImage
 import java.awt.image.DataBufferInt
 
@@ -12,6 +13,7 @@ fun scaleImage(original: BufferedImage, width: Int, height: Int): BufferedImage 
 
     return scaledImage
 }
+
 
 fun BufferedImage.padTexture(): BufferedImage {
     val oldWidth = this.width
@@ -50,6 +52,19 @@ fun BufferedImage.padTexture(): BufferedImage {
     pixels[(newHeight - 1) * newWidth] = this.getRGB(0, oldHeight - 1)
 
     return paddedImg
+}
+
+fun BufferedImage.negative(): BufferedImage {
+    val negativeImage = BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
+
+    for (x in 0 until width) {
+        for (y in 0 until height) {
+            val color = Color(getRGB(x, y), true)
+            val negativeColor = Color(255 - color.red, 255 - color.green, 255 - color.blue, color.alpha)
+            negativeImage.setRGB(x, y, negativeColor.rgb)
+        }
+    }
+    return negativeImage
 }
 
 

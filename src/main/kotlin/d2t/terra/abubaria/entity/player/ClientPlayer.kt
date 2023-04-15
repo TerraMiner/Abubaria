@@ -15,13 +15,13 @@ import java.io.File
 import javax.imageio.ImageIO
 
 
-class Player : Entity(Location()) {
+object ClientPlayer : Entity(Location()) {
 
-
-    fun initialize() {
+    init {
         setDefaultValues()
         getPlayerImage()
     }
+
 
     private fun setDefaultValues() {
 
@@ -32,19 +32,6 @@ class Player : Entity(Location()) {
         location.y = 0 + tileSize * 10.0
 
         location.direction = Direction.LEFT
-    }
-
-    private fun BufferedImage.negative(): BufferedImage {
-        val negativeImage = BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
-
-        for (x in 0 until width) {
-            for (y in 0 until height) {
-                val color = Color(getRGB(x, y), true)
-                val negativeColor = Color(255 - color.red, 255 - color.green, 255 - color.blue, color.alpha)
-                negativeImage.setRGB(x, y, negativeColor.rgb)
-            }
-        }
-        return negativeImage
     }
 
     private fun getPlayerImage() {
@@ -67,8 +54,6 @@ class Player : Entity(Location()) {
 
     fun update() {
 
-//        val a = LagDebugger()
-
         if (KeyHandler.leftPressed) {
             location.direction = Direction.LEFT
         }
@@ -83,8 +68,6 @@ class Player : Entity(Location()) {
 
         chunks = hitBox.intersectionChunks()
 
-//        if (dy != .0) Camera.cameraDy = -dy * 10.0
-
         jump()
 
         checkIfOnGround()
@@ -93,17 +76,11 @@ class Player : Entity(Location()) {
 
         applyMovement()
 
-//        if (dx != .0) Camera.cameraDx = -dx * 10.0
-
         checkCollision()
-
-
-
 
         location.x += dx
 
         hitBox.setLocation(location)
-
     }
 
 

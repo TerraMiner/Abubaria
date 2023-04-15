@@ -53,7 +53,7 @@ object KeyHandler : KeyListener {
             }
 
             KeyEvent.VK_F11 -> {
-                GamePanel.setFullScreen()
+                GamePanel.setFullScreen(!GamePanel.inFullScreen)
             }
         }
     }

@@ -1,8 +1,6 @@
 package d2t.terra.abubaria.entity
 
 import KeyHandler
-import d2t.terra.abubaria.GamePanel.player
-import d2t.terra.abubaria.entity.player.Camera
 import java.awt.image.BufferedImage
 import d2t.terra.abubaria.location.Direction
 import d2t.terra.abubaria.location.EntityHitBox
@@ -102,7 +100,7 @@ open class Entity(val location: Location) {
         var isOnGround = false
 
         if (dy == .0)
-            player.chunks.forEach chunks@{ chunk ->
+            chunks.forEach chunks@{ chunk ->
                 chunk.blocks.forEach blocksCols@{ blockCols ->
                     blockCols.forEach blocks@{
                         if (it.hitBox.top <= hitBox.bottom && hitBox.bottom - it.hitBox.top == .0 && it.material.collideable
