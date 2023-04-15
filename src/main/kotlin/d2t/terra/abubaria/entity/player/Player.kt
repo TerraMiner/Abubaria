@@ -2,6 +2,7 @@ package d2t.terra.abubaria.entity.player
 
 
 import CollisionHandler.checkCollision
+import KeyHandler
 import d2t.terra.abubaria.GamePanel.tileSize
 import d2t.terra.abubaria.GamePanel.world
 import d2t.terra.abubaria.entity.Entity
@@ -28,7 +29,7 @@ class Player : Entity(Location()) {
         hitBox.width = width * tileSize.toDouble()
 
         location.x = world.worldWidth / 2.0
-        location.y = 0 + tileSize*10.0
+        location.y = 0 + tileSize * 10.0
 
         location.direction = Direction.LEFT
     }
@@ -82,6 +83,8 @@ class Player : Entity(Location()) {
 
         chunks = hitBox.intersectionChunks()
 
+//        if (dy != .0) Camera.cameraDy = -dy * 10.0
+
         jump()
 
         checkIfOnGround()
@@ -90,7 +93,12 @@ class Player : Entity(Location()) {
 
         applyMovement()
 
+//        if (dx != .0) Camera.cameraDx = -dx * 10.0
+
         checkCollision()
+
+
+
 
         location.x += dx
 
@@ -108,8 +116,9 @@ class Player : Entity(Location()) {
         if (onJump && KeyHandler.spacePressed) {
             val mod = (System.currentTimeMillis() - jumpStart) / 17.0
 
-            if (dy < 0 && onJump || onGround || onWorldBorder) dy -= (jumpHeight / if (mod < 1.0) 1.0 else mod)
-            else if (onJump) {
+            if (dy < 0 && onJump || onGround || onWorldBorder) {
+                dy -= (jumpHeight / if (mod < 1.0) 1.0 else mod)
+            } else if (onJump) {
                 onJump = false
                 KeyHandler.timeSpaceReleased = System.currentTimeMillis()
             }

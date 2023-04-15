@@ -2,6 +2,7 @@ package d2t.terra.abubaria.entity
 
 import KeyHandler
 import d2t.terra.abubaria.GamePanel.player
+import d2t.terra.abubaria.entity.player.Camera
 import java.awt.image.BufferedImage
 import d2t.terra.abubaria.location.Direction
 import d2t.terra.abubaria.location.EntityHitBox
@@ -47,10 +48,12 @@ open class Entity(val location: Location) {
 
     fun moveLeft() {
         dx -= dxModifier
+//        Camera.cameraDx += dxModifier*6
     }
 
     fun moveRight() {
         dx += dxModifier
+//        Camera.cameraDx -= dxModifier*6
     }
 
 
@@ -87,6 +90,8 @@ open class Entity(val location: Location) {
         }
 
         dy += dyModifier
+
+//        Camera.cameraDy -= dyModifier*5
 
         if (dy > maxYspeed) dy = maxYspeed
 

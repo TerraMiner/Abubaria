@@ -15,12 +15,35 @@ object Camera {
     var screenX = 0
     var screenY = 0
 
-    fun initialize() {
-        screenX = screenWidth2 / 2 - (tileSize / 2)
-        screenY = screenHeight2 / 2 - (tileSize / 2)
+    var cameraDx = .0
+    var cameraDy = .0
 
-//        println(screenX)
-//        println(screenWidth2 / 2.0 - (tileSize / 2.0))
+    private var interpolationFactor = 0.2
+
+    private var targetX = 0.0
+    private var targetY = 0.0
+
+    private var centerX = (screenWidth2 / 2 - (tileSize / 2))
+    private var centerY = (screenHeight2 / 2 - (tileSize / 2))
+
+    fun interpolate() {
+        screenX = centerX - cameraDx.toInt()
+        screenY = centerY - cameraDy.toInt()
+
+        val distX = centerX - screenX
+        val distY = centerY - screenY
+
+        if (screenX != centerX) cameraDx -= distX*0.001
+        if (screenY != centerY) cameraDy -= distY*0.001
+    }
+
+
+    fun initialize() {
+
+        targetX = player.location.x.toDouble()
+        targetY = player.location.y.toDouble()
+        centerX = (screenWidth2 / 2 - (tileSize / 2))
+        centerY = (screenHeight2 / 2 - (tileSize / 2))
     }
 
     fun offsetX(player: Player) = player.location.x + screenX

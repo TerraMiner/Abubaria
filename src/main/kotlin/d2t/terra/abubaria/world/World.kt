@@ -43,10 +43,9 @@ class Chunk(
 const val chunkSize = 8
 
 class World {
-    var redraw = false
 
-    val worldSizeX = 12
-    val worldSizeY = 12
+    val worldSizeX = 32
+    val worldSizeY = 32
 
     val worldWidth = tileSize * chunkSize * worldSizeX
     val worldHeight = tileSize * chunkSize * worldSizeY
@@ -68,7 +67,7 @@ class World {
 
     fun setBlock(material: Material, x: Int, y: Int) {
         val chunk = getChunkAt(x, y) ?: return
-        chunk.blocks[x - chunk.x * chunkSize][y - chunk.y * chunkSize] = Block(material, x, y)
+        chunk.blocks[x - chunk.x * chunkSize][y - chunk.y * chunkSize].material = material
     }
 
 
@@ -82,10 +81,6 @@ class World {
                 val halfChunkHeight = worldSizeY / 2
                 kotlin.runCatching {
                     when {
-
-                        Random.nextInt(0, worldSizeY - (y - halfChunkHeight)) == 0 -> {
-                            blocks.forEach { it.material = DIRT }
-                        }
 
                         y == halfChunkHeight -> {
                             blocks.forEach { it.material = DIRT }
@@ -114,7 +109,9 @@ class World {
             }
         }
 
-
+        chunks.flatten().map { it.blocks.flatten() }.flatten().forEach {
+            if (it.material === DIRT && getBlockAt(it.x,it.y-1)?.material === AIR) it.material = GRASS
+        }
     }
 
     fun draw(g2: Graphics2D) {
