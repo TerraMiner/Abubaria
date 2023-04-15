@@ -23,7 +23,7 @@ class WorldGenerator(private val world: World) {
     // высота земли и слоя камня
     private val worldHeight = world.worldHeight / tileSize
     private val groundLevel = worldHeight / 5
-    private val groundHeight = worldHeight / 5
+    private val groundHeight = 10
 
     // шанс появления пещеры в каждом блоке (чем ниже, тем больше шанс)
     private val caveChance = 0.002
@@ -67,14 +67,14 @@ class WorldGenerator(private val world: World) {
 
         chunk.applyForBlocks { x, y ->
             val height = getHeight(x)
-            if (y in (height + 1) until groundLevel + groundHeight) {
+            if (y in (height + 1) until groundLevel + groundHeight*2) {
                 world.setBlock(Material.DIRT, x, y)
             }
         }
 
         chunk.applyForBlocks { x, y ->
             val height = getHeight(x)
-            val stoneLevel = height + groundHeight / 2
+            val stoneLevel = height + groundHeight
 
             if (y >= stoneLevel) {
                 world.setBlock(Material.STONE, x, y)
@@ -84,7 +84,7 @@ class WorldGenerator(private val world: World) {
         chunk.applyForBlocks { x, y ->
 
             val height = getHeight(x)
-            val stoneLevel = height + groundHeight / 2
+            val stoneLevel = height + groundHeight
             val currentBlock = world.getBlockAt(x, y) ?: return@applyForBlocks
 
             if (y in stoneLevel - 4..stoneLevel + 4) {
