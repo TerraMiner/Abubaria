@@ -23,6 +23,7 @@ class Cursor(private var x: Int, private var y: Int) {
     var mouseInWindow = false
     var cursorText = ""
 
+    var selectedType: Material = Material.values().random()
     var currentBlock: Block? = null
 
     private var image: BufferedImage = scaleImage(ImageIO.read(File("res/cursor/cursor.png")), 30, 30)
@@ -79,7 +80,7 @@ class Cursor(private var x: Int, private var y: Int) {
 
                         g2.drawRect(
                             screenX,
-                            screenY + block.material.state.offset,
+                            screenY + material.state.offset,
                             hitBox.width.toInt(),
                             hitBox.height.toInt()
                         )
@@ -92,6 +93,7 @@ class Cursor(private var x: Int, private var y: Int) {
                 g2.color = prevColor
             }
             g2.drawImage(image, x, y, null)
+            g2.drawImage(selectedType.texture,x+5,y+15,15,15,null)
         }
     }
 
@@ -105,8 +107,13 @@ class Cursor(private var x: Int, private var y: Int) {
             }
         }
 
-        if (leftClick) currentBlock?.material = Material.AIR
-        if (rightClick) currentBlock?.material = Material.GRASS
-        if (midClick) currentBlock?.material = Material.STONE
+        currentBlock?.apply {
+            if (leftClick) material = Material.AIR
+            if (rightClick) {
+                if (!this.hitBox.intersects(ClientPlayer.hitBox))
+                material = selectedType
+            }
+            if (midClick) selectedType = material
+        }
     }
 }

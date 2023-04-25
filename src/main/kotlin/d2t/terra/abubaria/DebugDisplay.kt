@@ -2,7 +2,7 @@ import d2t.terra.abubaria.GamePanel
 import d2t.terra.abubaria.entity.player.ClientPlayer
 import java.util.*
 
-class DebugDisplay() {
+class DebugDisplay {
     var fps = 0
     var tps = 0
 
@@ -14,7 +14,6 @@ class DebugDisplay() {
         .add("dX: ${ClientPlayer.dx}")
         .add("dY: ${ClientPlayer.dy}")
         .add("ground: ${ClientPlayer.ground}")
-//        .add("onWorldBorder: ${player.onWorldBorder}")
         .add("onGround: ${ClientPlayer.onGround}")
         .add("onJump: ${ClientPlayer.onJump}")
         .add("videoLag: ${GamePanel.videoLag}")

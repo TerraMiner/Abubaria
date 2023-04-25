@@ -3,6 +3,7 @@ package d2t.terra.abubaria
 import Cursor
 import DebugDisplay
 import KeyHandler
+import LagDebugger
 import MouseHandler
 import d2t.terra.abubaria.entity.player.Camera
 import d2t.terra.abubaria.entity.player.ClientPlayer
@@ -23,8 +24,8 @@ object GamePanel : JPanel() {
     val scale = 3
 
     var tileSize = originalTileSize * scale
-    val maxScreenCol = 1600
-    val maxScreenRow = 900
+    val maxScreenCol = 1280
+    val maxScreenRow = 720
     val screenWidth = /*tileSize **/ maxScreenCol
     val screenHeight = /*tileSize **/ maxScreenRow
 
@@ -48,8 +49,6 @@ object GamePanel : JPanel() {
     }
 
     val cursor = Cursor(0, 0)
-
-    var drawLocation = ClientPlayer.location
 
     var videoLag = .0
 
@@ -78,9 +77,12 @@ object GamePanel : JPanel() {
         screenWidth2 = window.rootPane.width
         screenHeight2 = window.rootPane.height
         GamePanel.preferredSize = Dimension(window.width,window.height)
+
         tempScreen = BufferedImage(screenWidth2, screenHeight2, BufferedImage.TYPE_INT_ARGB)
         g2 = tempScreen.createGraphics()
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
+
+        g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED)
+
         ge.registerFont(Font.createFont(Font.TRUETYPE_FONT, File("res/fonts/Comic Sans MS.ttf")))
         defaultGameFont = Font("Comic Sans MS", Font.PLAIN, 16)
         g2.font = defaultGameFont
@@ -97,6 +99,7 @@ object GamePanel : JPanel() {
         graphThread = thread(true) {
             draw()
         }
+
     }
 
 
@@ -188,9 +191,8 @@ object GamePanel : JPanel() {
 
     fun drawToTempScreen() {
         val start = System.currentTimeMillis()
-
         g2.color = bgColor
-        g2.fillRect(0, 0, window.width, window.height)
+        g2.fillRect(0,0, screenWidth2, screenHeight2)
         g2.color = Color.BLACK
 
         val loc = ClientPlayer.location.clone
@@ -202,16 +204,18 @@ object GamePanel : JPanel() {
         cursor.draw(g2, loc)
 
         if (Client.debugMode) display.text.apply {
+            val oldc = g2.color
+            g2.color = Color.GRAY
             split("\n").forEachIndexed { index, text ->
                 val y = index * 20 + 20
                 g2.drawString(text,4, y)
             }
+            g2.color = oldc
         }
 
         val end = System.currentTimeMillis()
 
         videoLag = (end - start) / 1000.0
-
     }
 }
 

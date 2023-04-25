@@ -69,17 +69,17 @@ fun BufferedImage.negative(): BufferedImage {
 
 
 class LagDebugger {
-    private var startTime = System.currentTimeMillis()
+    private var startTime = System.nanoTime()
     private val list = mutableMapOf<String, Long>()
     fun check(info: String) {
-        list[info] = System.currentTimeMillis() - startTime
-        startTime = System.currentTimeMillis()
+        list[info] = System.nanoTime() - startTime
+        startTime = System.nanoTime()
     }
 
     fun debug(string: String) {
         println("===========================")
-        list.entries.sortedBy { it.value }.reversed().forEach {
-            println("§e$string§f:§6 ${it.key} §f-§c ${it.value}")
+        list.entries.sortedBy { it.value / 1000000.0 }.reversed().forEach {
+            println("§e$string§f:§6 ${it.key} §f-§c ${it.value / 1000000.0}")
         }
     }
 }

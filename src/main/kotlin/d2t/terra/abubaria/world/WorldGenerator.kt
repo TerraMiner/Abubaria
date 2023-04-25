@@ -60,7 +60,6 @@ class WorldGenerator(private val world: World) {
                 action.invoke(worldX, worldY)
             }
         }
-
     }
 
     private fun fillChunkWithTerrain(chunk: Chunk) {
@@ -104,7 +103,7 @@ class WorldGenerator(private val world: World) {
 
         chunk.applyForBlocks { x, y ->
             if (y >= groundLevel + groundHeight + 10) {
-                if (abs(Random.nextInt().toDouble()) < caveChance) {
+                if (Random.nextDouble() < caveChance) {
                     generateCave(x, y)
                 }
             }
@@ -121,24 +120,23 @@ class WorldGenerator(private val world: World) {
     // высота блока на заданной координате
     val seed = Random.nextLong(0L..999999L)
     private fun getHeight(x: Int): Int {
-        val noise = (SimplexNoise.noise2(seed, (startX + x) / 40.0, 0.5) + 1) * 0.5
+        val noise = (SimplexNoise.noise2(seed, (startX + x) / 40.0, 5.0) + 1) * 0.5
         return (groundLevel + noise * 10).toInt()
     }
 
     // генерация пещеры в блоке с заданными координатами
     private fun generateCave(x: Int, y: Int) {
-        val caveLength = Random.nextInt(5, 10)
+        val caveLength = Random.nextInt(5, 20)
         val direction = DoubleArray(caveLength) { Random.nextDouble() * 2 * Math.PI }
 
         for (i in 1..caveLength) {
-            val currentX = x + (i * cos(direction[i - 1])).toInt()
-            val currentY = y - (i * sin(direction[i - 1])).toInt()
+            val currentX = x + (i * sin(direction[i - 1])).toInt()
+            val currentY = y - (i * cos(direction[i - 1])).toInt()
 
-            if (world.getBlockAt(currentX, currentY)?.material != Material.AIR) {
-                break
-            }
+//            if (world.getBlockAt(currentX, currentY)?.material != Material.AIR) continue
 
             world.setBlock(Material.AIR, currentX, currentY)
+//            println("${currentX / chunkSize} $currentY")
         }
     }
 

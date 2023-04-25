@@ -93,7 +93,6 @@ open class Entity(val location: Location) {
 
         if (dy > maxYspeed) dy = maxYspeed
 
-        location.y += dy
     }
 
     fun checkIfOnGround() {

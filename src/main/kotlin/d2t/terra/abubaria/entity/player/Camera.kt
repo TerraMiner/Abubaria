@@ -28,14 +28,14 @@ object Camera {
     private var centerY = (screenHeight2 / 2 - (tileSize / 2))
 
     fun interpolate() {
-        screenX = centerX/* - cameraDx.toInt()*/
-        screenY = centerY/* - cameraDy.toInt()*/
+        screenX = centerX /*- cameraDx.toInt()*/
+        screenY = centerY /*- cameraDy.toInt()*/
 
 //        val distX = centerX - screenX
 //        val distY = centerY - screenY
-
-//        if (screenX != centerX) cameraDx -= distX * 0.001
-//        if (screenY != centerY) cameraDy -= distY * 0.001
+//
+//        if (screenX != centerX) cameraDx -= distX * 0.05
+//        if (screenY != centerY) cameraDy -= distY * 0.05
     }
 
 

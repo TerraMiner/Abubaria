@@ -1,10 +1,9 @@
 package d2t.terra.abubaria.world
 
 import d2t.terra.abubaria.Client
-import d2t.terra.abubaria.GamePanel.bgColor
+import d2t.terra.abubaria.GamePanel
 import d2t.terra.abubaria.GamePanel.tileSize
 import d2t.terra.abubaria.entity.player.Camera
-import d2t.terra.abubaria.entity.player.ClientPlayer
 import d2t.terra.abubaria.location.BlockHitBox
 import d2t.terra.abubaria.location.HitBox
 import d2t.terra.abubaria.location.Location
@@ -13,10 +12,42 @@ import d2t.terra.abubaria.world.tile.Material.*
 import java.awt.Color
 import java.awt.Graphics2D
 import kotlin.math.abs
+import kotlin.math.floor
 
+enum class BlockFace {
+    DOWN, UP, LEFT, RIGHT
+}
 
-class Block(var material: Material = AIR, var x: Int = 0, var y: Int = 0, var chunkX: Int = 0, var chunkY: Int = 0) {
+class Block(private var material_: Material = AIR, var x: Int = 0, var y: Int = 0, var chunkX: Int = 0, var chunkY: Int = 0) {
     var hitBox = BlockHitBox(this)
+    val world = GamePanel.world
+
+    var material get() = material_
+        set(value) {
+            material_ = value
+            hitBox = BlockHitBox(this)
+        }
+
+    fun relative(blockFace: BlockFace): Block? {
+
+        return when (blockFace) {
+            BlockFace.DOWN -> {
+                world.getBlockAt(x, y + 1)
+            }
+
+            BlockFace.UP -> {
+                world.getBlockAt(x, y - 1)
+            }
+
+            BlockFace.LEFT -> {
+                world.getBlockAt(x - 1, y)
+            }
+
+            BlockFace.RIGHT -> {
+                world.getBlockAt(x + 1, y)
+            }
+        }
+    }
 }
 
 class Chunk(
@@ -66,7 +97,10 @@ class World {
     }
 
     fun setBlock(material: Material, x: Int, y: Int) {
-        getBlockAt(x,y)?.material = material
+        getBlockAt(x, y)?.also {
+            it.material = material
+            it.hitBox = BlockHitBox(it)
+        }
     }
 
 
@@ -111,33 +145,42 @@ class World {
 
     fun draw(g2: Graphics2D, location: Location) {
 
-        val offsetX = Camera.offsetX(location)
-        val offsetY = Camera.offsetY(location)
-        val onsetX = Camera.onsetX(location)
-        val onsetY = Camera.onsetY(location)
+        val extraDrawDistX = abs((Camera.playerScreenPosX(location) - Camera.screenX) / tileSize / chunkSize) + 1
+        val extraDrawDistY = abs((Camera.playerScreenPosY(location) - Camera.screenY) / tileSize / chunkSize) + 1
 
-        val extraDrawDistX = abs((Camera.playerScreenPosX(location) - Camera.screenX) / tileSize / chunkSize) + 2
-        val extraDrawDistY = abs((Camera.playerScreenPosY(location) - Camera.screenY) / tileSize / chunkSize) + 2
+        var rightCorner = (Camera.offsetX(location) / tileSize / chunkSize).toInt() + extraDrawDistX
+        var leftCorner = (Camera.onsetX(location) / tileSize / chunkSize).toInt() - extraDrawDistX
+        var bottomCorner = (Camera.offsetY(location) / tileSize / chunkSize).toInt() + extraDrawDistY
+        var topCorner = (Camera.onsetY(location) / tileSize / chunkSize).toInt() - extraDrawDistY
 
-        g2.color = Color.BLACK
+        leftCorner = if (leftCorner < 0) 0 else if (leftCorner >= worldSizeX) worldSizeX - 1 else leftCorner
+        rightCorner = if (rightCorner < 0) 0 else if (rightCorner >= worldSizeX) worldSizeX - 1 else rightCorner
+        bottomCorner = if (bottomCorner < 0) 0 else if (bottomCorner >= worldSizeY) worldSizeY - 1 else bottomCorner
+        topCorner = if (topCorner < 0) 0 else if (topCorner >= worldSizeY) worldSizeY - 1 else topCorner
 
-        chunks.forEachIndexed { chunkX, chunkCols ->
-
-            val cwx = chunkX * chunkSize * tileSize
-
-            chunkCols.forEachIndexed { chunkY, chunk ->
-
-                val cwy = chunkY * chunkSize * tileSize
-
-                if (cwx + extraDrawDistX * chunkSize * tileSize > onsetX &&
-                    cwx - extraDrawDistX * chunkSize * tileSize < offsetX &&
-                    cwy + extraDrawDistY * chunkSize * tileSize > onsetY &&
-                    cwy - extraDrawDistY * chunkSize * tileSize < offsetY
-                ) {
-                    chunk.draw(g2, location)
-                }
+        for (chunkX in leftCorner..rightCorner) {
+            for (chunkY in topCorner..bottomCorner) {
+                chunks[chunkX][chunkY].draw(g2, location)
             }
         }
+
+//        chunks.forEachIndexed { chunkX, chunkCols ->
+//
+//            val cwx = chunkX * chunkSize * tileSize
+//
+//            chunkCols.forEachIndexed { chunkY, chunk ->
+//
+//                val cwy = chunkY * chunkSize * tileSize
+//
+//                if (cwx + extraDrawDistX * chunkSize * tileSize > onsetX &&
+//                    cwx - extraDrawDistX * chunkSize * tileSize < offsetX &&
+//                    cwy + extraDrawDistY * chunkSize * tileSize > onsetY &&
+//                    cwy - extraDrawDistY * chunkSize * tileSize < offsetY
+//                ) {
+//                    chunk.draw(g2, location)
+//                }
+//            }
+//        }
     }
 
     private fun Chunk.draw(g2: Graphics2D, location: Location) {
@@ -171,7 +214,7 @@ class World {
 //        val pipette = g2.color
 //        g2.color = bgColor
 //        if (material === AIR) g2.fillRect(screenX, screenY, tileSize, tileSize)
-       /* else */g2.drawImage(material.texture, screenX, screenY + material.state.offset, null)
+        /* else */g2.drawImage(material.texture, screenX, screenY + material.state.offset, null)
 //        g2.color = pipette
     }
 }

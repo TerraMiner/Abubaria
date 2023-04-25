@@ -2,6 +2,7 @@ package d2t.terra.abubaria.entity.player
 
 
 import CollisionHandler.checkCollision
+import CollisionHandler.checkIfStuck
 import KeyHandler
 import d2t.terra.abubaria.GamePanel.tileSize
 import d2t.terra.abubaria.GamePanel.world
@@ -76,11 +77,20 @@ object ClientPlayer : Entity(Location()) {
 
         applyMovement()
 
+        val prevHitBox = hitBox.clone
+
         checkCollision()
 
+        if (checkIfStuck(prevHitBox)) {
+            dx = .0
+            dy = .0
+        }
+
         location.x += dx
+        location.y += dy
 
         hitBox.setLocation(location)
+
     }
 
 
