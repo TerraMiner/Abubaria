@@ -5,7 +5,6 @@ import d2t.terra.abubaria.GamePanel.world
 import d2t.terra.abubaria.entity.Entity
 import d2t.terra.abubaria.world.Block
 import d2t.terra.abubaria.world.Chunk
-import java.awt.Color
 import kotlin.math.min
 
 
@@ -129,16 +128,15 @@ class EntityHitBox(val entity: Entity) :
 class BlockHitBox(val block: Block) :
     HitBox(
         block.x * tileSize,
-        block.y * tileSize + block.material.state.offset,
+        block.y * tileSize + block.type.state.offset,
         tileSize - 1,
-        block.material.height - 1
+        block.type.height - 1
     ) {
     val clone get() = BlockHitBox(block)
 }
 
 
 open class HitBox(var x: Double, var y: Double, var width: Double, var height: Double) {
-
     val bottom get() = y + height
     val top get() = y
     val right get() = x + width
@@ -173,6 +171,14 @@ open class HitBox(var x: Double, var y: Double, var width: Double, var height: D
     fun move(dx: Double, dy: Double): HitBox {
         x += dx
         y += dy
+        return this
+    }
+
+    fun transform(x: Double,y: Double,width: Double,height: Double): HitBox {
+        this.x += x
+        this.y += y
+        this.width += width
+        this.height += height
         return this
     }
 

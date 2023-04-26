@@ -1,6 +1,7 @@
 import d2t.terra.abubaria.Client
 import d2t.terra.abubaria.GamePanel
 import d2t.terra.abubaria.entity.player.Camera
+import d2t.terra.abubaria.entity.player.ClientPlayer
 import java.awt.event.KeyEvent
 import java.awt.event.KeyListener
 
@@ -54,6 +55,10 @@ object KeyHandler : KeyListener {
 
             KeyEvent.VK_F11 -> {
                 GamePanel.setFullScreen(!GamePanel.inFullScreen)
+            }
+
+            KeyEvent.VK_E -> {
+                ClientPlayer.inventory.opened = !ClientPlayer.inventory.opened
             }
         }
     }

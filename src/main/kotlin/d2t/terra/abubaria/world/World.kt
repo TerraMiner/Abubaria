@@ -12,7 +12,6 @@ import d2t.terra.abubaria.world.tile.Material.*
 import java.awt.Color
 import java.awt.Graphics2D
 import kotlin.math.abs
-import kotlin.math.floor
 
 enum class BlockFace {
     DOWN, UP, LEFT, RIGHT
@@ -22,7 +21,7 @@ class Block(private var material_: Material = AIR, var x: Int = 0, var y: Int = 
     var hitBox = BlockHitBox(this)
     val world = GamePanel.world
 
-    var material get() = material_
+    var type get() = material_
         set(value) {
             material_ = value
             hitBox = BlockHitBox(this)
@@ -98,7 +97,7 @@ class World {
 
     fun setBlock(material: Material, x: Int, y: Int) {
         getBlockAt(x, y)?.also {
-            it.material = material
+            it.type = material
             it.hitBox = BlockHitBox(it)
         }
     }
@@ -116,19 +115,19 @@ class World {
                     when {
 
                         y == halfChunkHeight -> {
-                            blocks.forEach { it.material = DIRT }
+                            blocks.forEach { it.type = DIRT }
                         }
 
                         y + 1 == halfChunkHeight -> {
-                            blocks.forEach { it.material = DIRT }
+                            blocks.forEach { it.type = DIRT }
                         }
 
                         y + 2 == halfChunkHeight -> {
-                            blocks.forEach { it.material = DIRT }
+                            blocks.forEach { it.type = DIRT }
                         }
 
                         y + 2 > halfChunkHeight -> {
-                            blocks.forEach { it.material = STONE }
+                            blocks.forEach { it.type = STONE }
                         }
                     }
                 }
@@ -214,7 +213,7 @@ class World {
 //        val pipette = g2.color
 //        g2.color = bgColor
 //        if (material === AIR) g2.fillRect(screenX, screenY, tileSize, tileSize)
-        /* else */g2.drawImage(material.texture, screenX, screenY + material.state.offset, null)
+        /* else */g2.drawImage(type.texture, screenX, screenY + type.state.offset, null)
 //        g2.color = pipette
     }
 }

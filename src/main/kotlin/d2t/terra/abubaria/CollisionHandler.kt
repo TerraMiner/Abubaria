@@ -1,8 +1,6 @@
 import d2t.terra.abubaria.entity.Entity
-import d2t.terra.abubaria.entity.player.Camera
 import d2t.terra.abubaria.location.HitBox
 import d2t.terra.abubaria.world.Block
-import d2t.terra.abubaria.world.BlockFace
 
 object CollisionHandler {
 
@@ -10,7 +8,7 @@ object CollisionHandler {
         chunks.forEach chunks@{ chunk ->
             chunk.blocks.forEach blockCols@{ blockCols ->
                 blockCols.forEach blocks@{ block ->
-                    if (hitBox.intersects(block.hitBox) && block.material.collideable) {
+                    if (block.hitBox.clone.transform(1.0,1.0,-1.0,-1.0).intersects(hitBox) && block.type.collideable) {
                         return true
                     }
                 }
@@ -26,19 +24,17 @@ object CollisionHandler {
 
                     //Horizontal
 
-                    if (hitBox.clone.apply { move(dx, dy) }
-                            .intersects(block.hitBox) && block.material.collideable) {
+                    if (hitBox.clone.move(dx, dy)
+                            .intersects(block.hitBox) && block.type.collideable) {
                         climb(block)
                     }
 
-                    if (hitBox.clone.apply { move(dx, .0) }
-                            .intersects(block.hitBox) && block.material.collideable) {
+                    if (hitBox.clone.move(dx, .0).intersects(block.hitBox) && block.type.collideable) {
                         hitBox.pushOutX(block.hitBox)
                     }
 
                     //Vertical
-                    if (hitBox.clone.apply { move(.0, dy) }
-                            .intersects(block.hitBox) && block.material.collideable) {
+                    if (hitBox.clone.move(.0, dy).intersects(block.hitBox) && block.type.collideable) {
                         hitBox.pushOutY(block.hitBox)
                     }
 
@@ -55,7 +51,7 @@ object CollisionHandler {
             futureBox.x += dx
             futureBox.y = block.hitBox.top - hitBox.height
 
-            if (futureBox.intersectionChunks().any { it.blocks.flatten().any { b -> b != block && b.material.collideable && b.hitBox.intersects(futureBox) } }) return
+            if (futureBox.intersectionChunks().any { it.blocks.flatten().any { b -> b != block && b.type.collideable && b.hitBox.intersects(futureBox) } }) return
 
             location.x = futureBox.x
             location.y = futureBox.y

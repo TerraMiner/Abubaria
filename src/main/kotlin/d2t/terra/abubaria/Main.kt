@@ -1,3 +1,5 @@
+package d2t.terra.abubaria
+
 import d2t.terra.abubaria.GamePanel
 import d2t.terra.abubaria.GamePanel.inFullScreen
 import d2t.terra.abubaria.entity.player.Camera
@@ -10,9 +12,6 @@ import java.awt.image.BufferedImage
 import javax.swing.JFrame
 
 val window = JFrame()
-
-
-//fun main() {}
 
 fun main() {
     window.defaultCloseOperation = JFrame.EXIT_ON_CLOSE

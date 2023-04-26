@@ -1,15 +1,13 @@
 package d2t.terra.abubaria
 
-import Cursor
 import DebugDisplay
 import KeyHandler
-import LagDebugger
 import MouseHandler
 import d2t.terra.abubaria.entity.player.Camera
 import d2t.terra.abubaria.entity.player.ClientPlayer
+import d2t.terra.abubaria.hud.Hud
 import d2t.terra.abubaria.world.World
 import d2t.terra.abubaria.world.WorldGenerator
-import window
 import java.awt.*
 import java.awt.image.BufferedImage
 import java.io.File
@@ -66,6 +64,7 @@ object GamePanel : JPanel() {
         isDoubleBuffered = true
         addKeyListener(KeyHandler)
         addMouseListener(MouseHandler)
+        addMouseWheelListener(MouseHandler)
         isFocusable = true
         Camera.initialize()
     }
@@ -76,14 +75,18 @@ object GamePanel : JPanel() {
         screenPosY = window.location.y
         screenWidth2 = window.rootPane.width
         screenHeight2 = window.rootPane.height
-        GamePanel.preferredSize = Dimension(window.width,window.height)
+        GamePanel.preferredSize = Dimension(window.width, window.height)
 
         tempScreen = BufferedImage(screenWidth2, screenHeight2, BufferedImage.TYPE_INT_ARGB)
         g2 = tempScreen.createGraphics()
 
-        g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED)
+        val hints = RenderingHints(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON)
+        hints.add(RenderingHints(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY))
+        hints.add(RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON))
+        hints.add(RenderingHints(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY))
+        g2.setRenderingHints(hints)
 
-        ge.registerFont(Font.createFont(Font.TRUETYPE_FONT, File("res/fonts/Comic Sans MS.ttf")))
+        ge.registerFont(Font.createFont(Font.TRUETYPE_FONT, File("fonts/Comic Sans MS.ttf")))
         defaultGameFont = Font("Comic Sans MS", Font.PLAIN, 16)
         g2.font = defaultGameFont
 
@@ -97,6 +100,7 @@ object GamePanel : JPanel() {
         }
 
         graphThread = thread(true) {
+
             draw()
         }
 
@@ -114,6 +118,7 @@ object GamePanel : JPanel() {
             timer += (currentTime - lastTime)
             lastTime = currentTime
 
+            cursor.update()
             drawToTempScreen()
             drawToScreen()
 
@@ -141,7 +146,6 @@ object GamePanel : JPanel() {
             timer += (currentTime - lastTime)
             lastTime = currentTime
             while (deltaTicks >= 1.0) {
-                cursor.update()
                 Camera.interpolate()
                 ClientPlayer.update()
                 deltaTicks -= 1.0
@@ -192,25 +196,31 @@ object GamePanel : JPanel() {
     fun drawToTempScreen() {
         val start = System.currentTimeMillis()
         g2.color = bgColor
-        g2.fillRect(0,0, screenWidth2, screenHeight2)
+        g2.fillRect(0, 0, screenWidth2, screenHeight2)
         g2.color = Color.BLACK
 
         val loc = ClientPlayer.location.clone
 
-        world.draw(g2, loc)
+        kotlin.runCatching {
+            world.draw(g2, loc)
 
-        Camera.draw(g2, loc)
+            Camera.draw(g2, loc)
 
-        cursor.draw(g2, loc)
+            Hud.draw(g2)
 
-        if (Client.debugMode) display.text.apply {
-            val oldc = g2.color
-            g2.color = Color.GRAY
-            split("\n").forEachIndexed { index, text ->
-                val y = index * 20 + 20
-                g2.drawString(text,4, y)
+            cursor.draw(g2, loc)
+
+            if (Client.debugMode) display.text.apply {
+                val oldc = g2.color
+                g2.color = Color.GRAY
+                split("\n").forEachIndexed { index, text ->
+                    val y = index * 20 + 20
+                    g2.drawString(text, 4, y)
+                }
+                g2.color = oldc
             }
-            g2.color = oldc
+        }.getOrElse {
+            println(it.message)
         }
 
         val end = System.currentTimeMillis()

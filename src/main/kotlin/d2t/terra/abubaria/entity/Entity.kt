@@ -40,6 +40,9 @@ open class Entity(val location: Location) {
 
     var ground = Material.AIR
 
+    var health = 100.0
+    var maxHealth = 100.0
+
     var hitBox = EntityHitBox(this)
 
     var chunks = mutableListOf<Chunk>()
@@ -102,11 +105,11 @@ open class Entity(val location: Location) {
             chunks.forEach chunks@{ chunk ->
                 chunk.blocks.forEach blocksCols@{ blockCols ->
                     blockCols.forEach blocks@{
-                        if (it.hitBox.top <= hitBox.bottom && hitBox.bottom - it.hitBox.top == .0 && it.material.collideable
+                        if (it.hitBox.top <= hitBox.bottom && hitBox.bottom - it.hitBox.top == .0 && it.type.collideable
                             && hitBox.run { x < it.hitBox.x + it.hitBox.width && x + width - 1 > it.hitBox.x }
                         ) {
                             isOnGround = true
-                            ground = it.material
+                            ground = it.type
                             return@blocks
                         }
                     }

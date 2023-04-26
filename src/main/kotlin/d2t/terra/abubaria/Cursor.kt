@@ -1,32 +1,41 @@
-import d2t.terra.abubaria.Client
-import d2t.terra.abubaria.GamePanel
+package d2t.terra.abubaria
+
 import d2t.terra.abubaria.GamePanel.screenHeight2
 import d2t.terra.abubaria.GamePanel.screenWidth2
 import d2t.terra.abubaria.GamePanel.tileSize
 import d2t.terra.abubaria.entity.player.Camera
 import d2t.terra.abubaria.entity.player.ClientPlayer
+import d2t.terra.abubaria.entity.player.inventory.Item
+import d2t.terra.abubaria.entity.player.inventory.maxStackSize
 import d2t.terra.abubaria.location.Location
 import d2t.terra.abubaria.world.Block
 import d2t.terra.abubaria.world.tile.Material
+import readImage
+import scaleImage
 import java.awt.Color
 import java.awt.Graphics2D
 import java.awt.MouseInfo
 import java.awt.image.BufferedImage
-import java.io.File
-import javax.imageio.ImageIO
 import kotlin.math.floor
 
 class Cursor(private var x: Int, private var y: Int) {
+
+    var leftPress = false
+    var rightPress = false
+    var midPress = false
+
     var leftClick = false
     var rightClick = false
     var midClick = false
+
     var mouseInWindow = false
     var cursorText = ""
+    var mouseOnHud = false
 
-    var selectedType: Material = Material.values().random()
+    var selectedItem: Item = Item()
     var currentBlock: Block? = null
 
-    private var image: BufferedImage = scaleImage(ImageIO.read(File("res/cursor/cursor.png")), 30, 30)
+    private var image: BufferedImage = scaleImage(readImage("cursor/cursor.png"), 30, 30)
 
     val world = GamePanel.world
 
@@ -65,14 +74,13 @@ class Cursor(private var x: Int, private var y: Int) {
         if (mouseInWindow) {
             getBlockPosition().also { block ->
                 currentBlock = block
-                cursorText = block?.material?.name ?: "null"
 
                 val prevColor = g2.color
                 g2.color = Color.GREEN
 
-                g2.drawString(cursorText,x,y - 3)
+                g2.drawString(cursorText, x, y - 3)
 
-                if (Client.debugMode) {
+                if (Client.debugMode && !mouseOnHud) {
 
                     block?.apply {
                         val screenX = Camera.worldScreenPosX(x * tileSize, location)
@@ -80,20 +88,19 @@ class Cursor(private var x: Int, private var y: Int) {
 
                         g2.drawRect(
                             screenX,
-                            screenY + material.state.offset,
+                            screenY + type.state.offset,
                             hitBox.width.toInt(),
                             hitBox.height.toInt()
                         )
 
-                        g2.drawString("$x $y",screenX,screenY + block.material.state.offset)
+                        g2.drawString("$x $y", screenX, screenY + block.type.state.offset)
                     }
-
                 }
 
                 g2.color = prevColor
             }
             g2.drawImage(image, x, y, null)
-            g2.drawImage(selectedType.texture,x+5,y+15,15,15,null)
+            g2.drawImage(selectedItem.type.texture, x + 5, y + 15, 15, 15, null)
         }
     }
 
@@ -105,15 +112,73 @@ class Cursor(private var x: Int, private var y: Int) {
                 this@Cursor.x = x - window.rootPane.x - window.locationOnScreen.x /*- 9*/
                 this@Cursor.y = y - window.rootPane.y - window.locationOnScreen.y /*- 32*/
             }
+
+            val bound = ClientPlayer.inventory.inventoryBound
+            mouseOnHud = (x >= bound.x && y >= bound.y && x < bound.x + bound.width && y < bound.y + bound.height)
+
+            ClientPlayer.inventory.updateMouseSlot(x, y)
+
+            if (mouseOnHud) handleMouseHud()
+            else handleMouseWorld()
+            endMousehandle()
         }
 
-        currentBlock?.apply {
-            if (leftClick) material = Material.AIR
-            if (rightClick) {
-                if (!this.hitBox.intersects(ClientPlayer.hitBox))
-                material = selectedType
+    }
+
+    fun endMousehandle() {
+        leftClick = false
+        rightClick = false
+        midClick = false
+    }
+
+    fun handleMouseHud() {
+
+        val hoveredItem = ClientPlayer.inventory.getItemMouse(x, y)
+
+        cursorText = if (hoveredItem?.type !== Material.AIR)
+            (hoveredItem?.run { "$display $amount" }) ?: ""
+        else ""
+
+        if (ClientPlayer.inventory.opened) {
+            if (leftClick) {
+
+                ClientPlayer.inventory.setItemMouse(x, y, selectedItem)
+
+                selectedItem = hoveredItem ?: run {
+                    println("ERROR")
+                    return
+                }
             }
-            if (midClick) selectedType = material
+        } else {
+            if (leftClick) ClientPlayer.selectedHotBar = ClientPlayer.inventory.hoveredSlot.first
+        }
+    }
+
+    fun handleMouseWorld() {
+
+        cursorText = if (currentBlock?.type !== Material.AIR)
+            currentBlock?.type?.display ?: ""
+        else ""
+
+        if (!leftPress && !rightPress && !midPress) return
+
+        currentBlock?.apply {
+            when {
+                leftPress -> {
+                    if (!this.hitBox.clone.transform(1.0, 1.0, -1.0, -1.0).intersects(ClientPlayer.hitBox))
+                        type = if (selectedItem.type !== Material.AIR) selectedItem.type else ClientPlayer.run {
+                            inventory.getItem(selectedHotBar,0)?.type ?: Material.AIR
+                        }
+                }
+
+                rightPress -> {
+                    //Drop item
+                }
+
+                midPress -> {
+                    selectedItem = Item(type, maxStackSize)
+                }
+            }
         }
     }
 }

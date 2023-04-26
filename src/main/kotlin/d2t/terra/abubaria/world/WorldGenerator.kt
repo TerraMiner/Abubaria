@@ -3,7 +3,6 @@ package d2t.terra.abubaria.world
 import d2t.terra.abubaria.GamePanel.tileSize
 import d2t.terra.abubaria.SimplexNoise
 import d2t.terra.abubaria.world.tile.Material
-import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.random.Random
@@ -90,11 +89,11 @@ class WorldGenerator(private val world: World) {
                 for (dy in -4..4) {
                     if (dy >= 0) {
                         val chance = runCatching { Random.nextInt(0..stoneLevel - dy) }.getOrElse { 0 }
-                        if (chance == 0 && currentBlock.material !== Material.STONE
+                        if (chance == 0 && currentBlock.type !== Material.STONE
                         ) world.setBlock(Material.STONE, x, y)
                     } else {
                         val chance = runCatching { Random.nextInt(0..stoneLevel + dy) }.getOrElse { 0 }
-                        if (chance == 0 && currentBlock.material !== Material.DIRT
+                        if (chance == 0 && currentBlock.type !== Material.DIRT
                         ) world.setBlock(Material.DIRT, x, y)
                     }
                 }
@@ -111,9 +110,9 @@ class WorldGenerator(private val world: World) {
 
         chunk.applyForBlocks { x, y ->
             val block = world.getBlockAt(x, y) ?: return@applyForBlocks
-            if (block.material === Material.DIRT
-                && world.getBlockAt(x, y - 1)?.material === Material.AIR
-            ) block.material = Material.GRASS
+            if (block.type === Material.DIRT
+                && world.getBlockAt(x, y - 1)?.type === Material.AIR
+            ) block.type = Material.GRASS
         }
     }
 

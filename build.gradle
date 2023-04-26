@@ -21,9 +21,9 @@ version '1.0'
 
 ext {
     appName = 'Abubaria'
-    mainClassName = 'd2t.terra.abubaria.Main'
+    mainClassName = 'd2t.terra.abubaria.MainKt'
 
-    assetsDir = new File('assets')
+    assetsDir = new File('res')
 
     gdxVersion = '1.11.0'
     roboVMVersion = '2.3.19'
@@ -32,6 +32,8 @@ ext {
     aiVersion = '1.8.2'
     gdxControllersVersion = '2.2.1'
 }
+
+
 
 repositories.addAll(buildscript.repositories)
 
@@ -45,7 +47,7 @@ dependencies {
 //    implementation("com.github.KdotJPG:OpenSimplex2:1.0.1")
 }
 
-sourceSets.main.resources.srcDirs = ['assets']
+sourceSets.main.resources.srcDirs = ['res']
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 
 task run(dependsOn: classes, type: JavaExec) {
