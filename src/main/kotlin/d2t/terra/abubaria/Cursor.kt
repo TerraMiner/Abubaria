@@ -32,7 +32,7 @@ class Cursor(private var x: Int, private var y: Int) {
     var cursorText = ""
     var mouseOnHud = false
 
-    var selectedItem: Item = Item()
+    var cursorItem: Item = Item()
     var currentBlock: Block? = null
 
     private var image: BufferedImage = scaleImage(readImage("cursor/cursor.png"), 30, 30)
@@ -100,7 +100,7 @@ class Cursor(private var x: Int, private var y: Int) {
                 g2.color = prevColor
             }
             g2.drawImage(image, x, y, null)
-            g2.drawImage(selectedItem.type.texture, x + 5, y + 15, 15, 15, null)
+            g2.drawImage(cursorItem.type.texture, x + 5, y + 15, 15, 15, null)
         }
     }
 
@@ -142,9 +142,9 @@ class Cursor(private var x: Int, private var y: Int) {
         if (ClientPlayer.inventory.opened) {
             if (leftClick) {
 
-                ClientPlayer.inventory.setItemMouse(x, y, selectedItem)
+                ClientPlayer.inventory.setItemMouse(x, y, cursorItem)
 
-                selectedItem = hoveredItem ?: run {
+                cursorItem = hoveredItem ?: run {
                     println("ERROR")
                     return
                 }
@@ -163,12 +163,18 @@ class Cursor(private var x: Int, private var y: Int) {
         if (!leftPress && !rightPress && !midPress) return
 
         currentBlock?.apply {
+
+            val hotBarItem = ClientPlayer.run {
+                inventory.getItem(selectedHotBar, 0)
+            }
+
             when {
                 leftPress -> {
-                    if (!this.hitBox.clone.transform(1.0, 1.0, -1.0, -1.0).intersects(ClientPlayer.hitBox))
-                        type = if (selectedItem.type !== Material.AIR) selectedItem.type else ClientPlayer.run {
-                            inventory.getItem(selectedHotBar,0)?.type ?: Material.AIR
-                        }
+                    if (cursorItem.type === Material.AIR && hotBarItem?.type === Material.AIR) {
+                        destroy()
+                    } else if (!this.hitBox.clone.transform(1.0, 1.0, -1.0, -1.0).intersects(ClientPlayer.hitBox))
+                        type = if (cursorItem.type !== Material.AIR) cursorItem.type
+                        else hotBarItem?.type ?: Material.AIR
                 }
 
                 rightPress -> {
@@ -176,7 +182,7 @@ class Cursor(private var x: Int, private var y: Int) {
                 }
 
                 midPress -> {
-                    selectedItem = Item(type, maxStackSize)
+                    cursorItem = Item(type, maxStackSize)
                 }
             }
         }

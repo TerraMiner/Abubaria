@@ -3,6 +3,9 @@ package d2t.terra.abubaria.world
 import d2t.terra.abubaria.Client
 import d2t.terra.abubaria.GamePanel
 import d2t.terra.abubaria.GamePanel.tileSize
+import d2t.terra.abubaria.entity.Entity
+import d2t.terra.abubaria.entity.Particle
+import d2t.terra.abubaria.entity.ParticleDestroy
 import d2t.terra.abubaria.entity.player.Camera
 import d2t.terra.abubaria.location.BlockHitBox
 import d2t.terra.abubaria.location.HitBox
@@ -11,21 +14,27 @@ import d2t.terra.abubaria.world.tile.Material
 import d2t.terra.abubaria.world.tile.Material.*
 import java.awt.Color
 import java.awt.Graphics2D
+import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.math.abs
 
 enum class BlockFace {
     DOWN, UP, LEFT, RIGHT
 }
 
-class Block(private var material_: Material = AIR, var x: Int = 0, var y: Int = 0, var chunkX: Int = 0, var chunkY: Int = 0) {
+class Block(private var material: Material = AIR, var x: Int = 0, var y: Int = 0, var chunkX: Int = 0, var chunkY: Int = 0) {
     var hitBox = BlockHitBox(this)
     val world = GamePanel.world
 
-    var type get() = material_
+    var type get() = material
         set(value) {
-            material_ = value
+            material = value
             hitBox = BlockHitBox(this)
         }
+
+    fun destroy() {
+        ParticleDestroy(this)
+        type = AIR
+    }
 
     fun relative(blockFace: BlockFace): Block? {
 
@@ -84,6 +93,8 @@ class World {
 
     val chunks = Array(worldSizeX) { Array(worldSizeY) { Chunk() } }
 
+    val entities = ConcurrentLinkedQueue<Entity>()
+
     fun getChunkAt(x: Int, y: Int): Chunk? {
         return chunks.getOrNull(x / chunkSize)
             ?.getOrNull(y / chunkSize)
@@ -99,46 +110,6 @@ class World {
         getBlockAt(x, y)?.also {
             it.type = material
             it.hitBox = BlockHitBox(it)
-        }
-    }
-
-
-    fun generate() {
-        for (x in 0 until worldSizeX) {
-            for (y in 0 until worldSizeY) {
-                val chunk = Chunk(x, y).apply { initBlocks() }
-
-                val blocks = chunk.blocks.flatten()
-
-                val halfChunkHeight = worldSizeY / 2
-                kotlin.runCatching {
-                    when {
-
-                        y == halfChunkHeight -> {
-                            blocks.forEach { it.type = DIRT }
-                        }
-
-                        y + 1 == halfChunkHeight -> {
-                            blocks.forEach { it.type = DIRT }
-                        }
-
-                        y + 2 == halfChunkHeight -> {
-                            blocks.forEach { it.type = DIRT }
-                        }
-
-                        y + 2 > halfChunkHeight -> {
-                            blocks.forEach { it.type = STONE }
-                        }
-                    }
-                }
-
-
-
-                chunks[x][y] = chunk
-
-                /*if (y > worldSizeY / 2) setBlock(Material.values().drop(1).random(), x, y)
-                else *//*setBlock(AIR, x, y)*/
-            }
         }
     }
 
@@ -160,6 +131,9 @@ class World {
         for (chunkX in leftCorner..rightCorner) {
             for (chunkY in topCorner..bottomCorner) {
                 chunks[chunkX][chunkY].draw(g2, location)
+                entities.forEach {
+                    it.draw(g2, location)
+                }
             }
         }
 
@@ -209,11 +183,26 @@ class World {
     private fun Block.draw(worldX: Int, worldY: Int, g2: Graphics2D, location: Location) {
         val screenX = Camera.worldScreenPosX(worldX, location)
         val screenY = Camera.worldScreenPosY(worldY, location)
+        g2.drawImage(type.texture, screenX, screenY + type.state.offset, null)
+    }
 
-//        val pipette = g2.color
-//        g2.color = bgColor
-//        if (material === AIR) g2.fillRect(screenX, screenY, tileSize, tileSize)
-        /* else */g2.drawImage(type.texture, screenX, screenY + type.state.offset, null)
-//        g2.color = pipette
+    fun update() {
+        entities.forEach {
+
+            when {
+                it is ParticleDestroy -> {
+
+                    if (it.removed) {
+                        entities.remove(it)
+                    }
+
+                    it.update()
+                }
+
+                it is Particle -> {
+                    if (it.removed) entities.remove(it)
+                }
+            }
+        }
     }
 }

@@ -61,7 +61,7 @@ object ClientPlayer : Entity(Location()) {
     }
 
 
-    fun update() {
+    override fun update() {
 
         if (KeyHandler.leftPressed) {
             location.direction = Direction.LEFT

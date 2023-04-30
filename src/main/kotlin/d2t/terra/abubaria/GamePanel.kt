@@ -118,7 +118,6 @@ object GamePanel : JPanel() {
             timer += (currentTime - lastTime)
             lastTime = currentTime
 
-            cursor.update()
             drawToTempScreen()
             drawToScreen()
 
@@ -148,6 +147,9 @@ object GamePanel : JPanel() {
             while (deltaTicks >= 1.0) {
                 Camera.interpolate()
                 ClientPlayer.update()
+                cursor.update()
+                world.update()
+
                 deltaTicks -= 1.0
                 tickCount++
             }

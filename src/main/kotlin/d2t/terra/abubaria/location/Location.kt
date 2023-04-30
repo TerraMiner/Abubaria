@@ -5,19 +5,19 @@ open class Location(var x: Double = .0, var y: Double = .0, var direction: Direc
 
     val clone get() = Location(x,y,direction)
 
-//    fun setLocation(location: Location) {
-//        this.x = location.x
-//        this.y = location.y
-//    }
-//
-//    fun setLocation(x: Double, y: Double) {
-//        this.x = x
-//        this.y = y
-//    }
-//
-//    fun move(x: Double, y: Double) {
-//        this.x += x
-//        this.y += y
-//    }
+    fun setLocation(location: Location) {
+        this.x = location.x
+        this.y = location.y
+    }
+
+    fun setLocation(x: Double, y: Double) {
+        this.x = x
+        this.y = y
+    }
+
+    fun move(x: Double, y: Double) {
+        this.x += x
+        this.y += y
+    }
 
 }

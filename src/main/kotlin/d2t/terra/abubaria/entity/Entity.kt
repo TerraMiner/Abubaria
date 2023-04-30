@@ -7,8 +7,11 @@ import d2t.terra.abubaria.location.EntityHitBox
 import d2t.terra.abubaria.location.Location
 import d2t.terra.abubaria.world.Chunk
 import d2t.terra.abubaria.world.tile.Material
+import java.awt.Graphics2D
 
 open class Entity(val location: Location) {
+
+    var removed = false
 
     var dxModifier = 0.05
     var dyModifier = 0.03
@@ -58,7 +61,7 @@ open class Entity(val location: Location) {
     }
 
 
-    fun applyMovement() {
+    open fun applyMovement() {
 
         when (location.direction) {
             Direction.LEFT -> if (KeyHandler.leftPressed) moveLeft()
@@ -70,7 +73,6 @@ open class Entity(val location: Location) {
             if (dx < 0) dx += ground.friction
             if (dx > 0) dx = .0
             if (dx < -maxXspeed) dx = -maxXspeed
-
         }
 
         if (location.direction === Direction.RIGHT) {
@@ -78,7 +80,6 @@ open class Entity(val location: Location) {
             if (dx > 0) dx -= ground.friction
             if (dx < 0) dx = .0
             if (dx > maxXspeed) dx = maxXspeed
-
         }
 
     }
@@ -95,6 +96,14 @@ open class Entity(val location: Location) {
 //        Camera.cameraDy -= dyModifier*5
 
         if (dy > maxYspeed) dy = maxYspeed
+
+    }
+
+    open fun update() {
+
+    }
+
+    open fun draw(g2: Graphics2D, location: Location) {
 
     }
 
@@ -124,4 +133,5 @@ open class Entity(val location: Location) {
         onGround = isOnGround
         if (!isOnGround) ground = Material.AIR
     }
+
 }
