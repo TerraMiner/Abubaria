@@ -53,9 +53,9 @@ object KeyHandler : KeyListener {
                 Client.debugMode = !Client.debugMode
             }
 
-            KeyEvent.VK_F11 -> {
-                GamePanel.setFullScreen(!GamePanel.inFullScreen)
-            }
+//            KeyEvent.VK_F11 -> {
+//                GamePanel.setFullScreen(!GamePanel.inFullScreen)
+//            }
 
             KeyEvent.VK_E -> {
                 ClientPlayer.inventory.opened = !ClientPlayer.inventory.opened

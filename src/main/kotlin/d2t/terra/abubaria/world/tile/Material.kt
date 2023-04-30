@@ -4,7 +4,8 @@ import d2t.terra.abubaria.GamePanel.tileSize
 
 import d2t.terra.abubaria.world.tile.MaterialState.BOTTOM
 import d2t.terra.abubaria.world.tile.MaterialState.FULL
-import padTexture
+import lwjgl.Image
+import lwjgl.loadImage
 import readImage
 import scaleImage
 
@@ -31,6 +32,7 @@ enum class Material(
     DIRT(3, "dirt","Dirt"),
     STONE_HALF_DOWN(4, "stone_half_down", "Stone Slab", BOTTOM, true, tileSize / 2);
 
-    val texture: BufferedImage? = if (path == null) null else scaleImage(
-        readImage("block/$path.png"), tileSize, height)
+//    val texture: BufferedImage? = if (path == null) null else scaleImage(
+//        readImage("block/$path.png"), tileSize, height)
+    val texture: Image? = if (path == null) null else loadImage("block/$path.png")
 }

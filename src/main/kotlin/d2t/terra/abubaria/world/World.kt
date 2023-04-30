@@ -4,14 +4,15 @@ import d2t.terra.abubaria.Client
 import d2t.terra.abubaria.GamePanel
 import d2t.terra.abubaria.GamePanel.tileSize
 import d2t.terra.abubaria.entity.Entity
-import d2t.terra.abubaria.entity.Particle
-import d2t.terra.abubaria.entity.ParticleDestroy
+//import d2t.terra.abubaria.entity.Particle
+//import d2t.terra.abubaria.entity.ParticleDestroy
 import d2t.terra.abubaria.entity.player.Camera
 import d2t.terra.abubaria.location.BlockHitBox
 import d2t.terra.abubaria.location.HitBox
 import d2t.terra.abubaria.location.Location
 import d2t.terra.abubaria.world.tile.Material
 import d2t.terra.abubaria.world.tile.Material.*
+import lwjgl.drawTexture
 import java.awt.Color
 import java.awt.Graphics2D
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -32,7 +33,7 @@ class Block(private var material: Material = AIR, var x: Int = 0, var y: Int = 0
         }
 
     fun destroy() {
-        ParticleDestroy(this)
+//        ParticleDestroy(this)
         type = AIR
     }
 
@@ -113,7 +114,7 @@ class World {
         }
     }
 
-    fun draw(g2: Graphics2D, location: Location) {
+    fun draw(location: Location) {
 
         val extraDrawDistX = abs((Camera.playerScreenPosX(location) - Camera.screenX) / tileSize / chunkSize) + 1
         val extraDrawDistY = abs((Camera.playerScreenPosY(location) - Camera.screenY) / tileSize / chunkSize) + 1
@@ -130,79 +131,62 @@ class World {
 
         for (chunkX in leftCorner..rightCorner) {
             for (chunkY in topCorner..bottomCorner) {
-                chunks[chunkX][chunkY].draw(g2, location)
-                entities.forEach {
-                    it.draw(g2, location)
-                }
+                chunks[chunkX][chunkY].draw(location)
+//                entities.forEach {
+//                    it.draw(location)
+//                }
             }
         }
-
-//        chunks.forEachIndexed { chunkX, chunkCols ->
-//
-//            val cwx = chunkX * chunkSize * tileSize
-//
-//            chunkCols.forEachIndexed { chunkY, chunk ->
-//
-//                val cwy = chunkY * chunkSize * tileSize
-//
-//                if (cwx + extraDrawDistX * chunkSize * tileSize > onsetX &&
-//                    cwx - extraDrawDistX * chunkSize * tileSize < offsetX &&
-//                    cwy + extraDrawDistY * chunkSize * tileSize > onsetY &&
-//                    cwy - extraDrawDistY * chunkSize * tileSize < offsetY
-//                ) {
-//                    chunk.draw(g2, location)
-//                }
-//            }
-//        }
     }
 
-    private fun Chunk.draw(g2: Graphics2D, location: Location) {
+    private fun Chunk.draw(location: Location) {
         blocks.forEachIndexed { x, blockCols ->
             val worldX = (this.x * chunkSize + x) * tileSize
             blockCols.forEachIndexed { y, block ->
                 val worldY = (this.y * chunkSize + y) * tileSize
-                block.draw(worldX, worldY, g2, location)
+                block.draw(worldX, worldY, location)
             }
         }
 
-        if (Client.debugMode) {
-            val prevColor = g2.color
-            g2.color = Color.BLACK
-
-            val screenX = Camera.worldScreenPosX(x * tileSize * chunkSize, location)
-            val screenY = Camera.worldScreenPosY(y * tileSize * chunkSize, location)
-
-            g2.drawRect(screenX, screenY, hitBox.width.toInt(), hitBox.height.toInt())
-
-            g2.drawString("x: $x, y: $y", screenX + 3, screenY + 14)
-            g2.color = prevColor
-        }
+//        if (Client.debugMode) {
+//            val prevColor = g2.color
+//            g2.color = Color.BLACK
+//
+//            val screenX = Camera.worldScreenPosX(x * tileSize * chunkSize, location)
+//            val screenY = Camera.worldScreenPosY(y * tileSize * chunkSize, location)
+//
+//            g2.drawRect(screenX, screenY, hitBox.width.toInt(), hitBox.height.toInt())
+//
+//            g2.drawString("x: $x, y: $y", screenX + 3, screenY + 14)
+//            g2.color = prevColor
+//        }
     }
 
 
-    private fun Block.draw(worldX: Int, worldY: Int, g2: Graphics2D, location: Location) {
+    private fun Block.draw(worldX: Int, worldY: Int, location: Location) {
         val screenX = Camera.worldScreenPosX(worldX, location)
         val screenY = Camera.worldScreenPosY(worldY, location)
-        g2.drawImage(type.texture, screenX, screenY + type.state.offset, null)
+        drawTexture(type.texture, screenX, screenY + type.state.offset, tileSize, tileSize)
+//        g2.drawImage(type.texture, screenX, screenY + type.state.offset, null)
     }
 
-    fun update() {
-        entities.forEach {
-
-            when {
-                it is ParticleDestroy -> {
-
-                    if (it.removed) {
-                        entities.remove(it)
-                    }
-
-                    it.update()
-                }
-
-                it is Particle -> {
-                    if (it.removed) entities.remove(it)
-                }
-            }
-        }
-    }
+//    fun update() {
+//        entities.forEach {
+//
+//            when {
+//                it is ParticleDestroy -> {
+//
+//                    if (it.removed) {
+//                        entities.remove(it)
+//                    }
+//
+//                    it.update()
+//                }
+//
+//                it is Particle -> {
+//                    if (it.removed) entities.remove(it)
+//                }
+//            }
+//        }
+//    }
 }

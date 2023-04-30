@@ -8,24 +8,30 @@ import d2t.terra.abubaria.entity.player.ClientPlayer
 import d2t.terra.abubaria.hud.Hud
 import d2t.terra.abubaria.world.World
 import d2t.terra.abubaria.world.WorldGenerator
+import org.lwjgl.glfw.GLFW.*
+import org.lwjgl.opengl.GL11
+import org.lwjgl.opengl.GL11.*
 import java.awt.*
 import java.awt.image.BufferedImage
-import java.io.File
+import java.nio.file.Files
+import java.nio.file.Paths
 import javax.swing.JPanel
 import kotlin.concurrent.thread
+import org.lwjgl.stb.*
+import java.nio.ByteBuffer
 
 
-object GamePanel : JPanel() {
+object GamePanel {
 
-    const val originalTileSize = 8
+    private const val originalTileSize = 8
 
-    val scale = 3
+    private const val scale = 3
 
     var tileSize = originalTileSize * scale
     val maxScreenCol = 1280
     val maxScreenRow = 720
-    val screenWidth = /*tileSize **/ maxScreenCol
-    val screenHeight = /*tileSize **/ maxScreenRow
+    val screenWidth = maxScreenCol
+    val screenHeight = maxScreenRow
 
     var screenWidth2 = screenWidth
     var screenHeight2 = screenHeight
@@ -33,14 +39,7 @@ object GamePanel : JPanel() {
     var screenPosX = 0
     var screenPosY = 0
 
-    lateinit var tempScreen: BufferedImage
-    lateinit var g2: Graphics2D
-
-    val ge: GraphicsEnvironment = GraphicsEnvironment.getLocalGraphicsEnvironment()
-    val gd: GraphicsDevice = ge.defaultScreenDevice
-
     var gameThread: Thread? = null
-    var graphThread: Thread? = null
 
     val world = World().apply { /*generate()*/
         WorldGenerator(this).generateWorld()
@@ -56,39 +55,34 @@ object GamePanel : JPanel() {
 
     val bgColor = Color(170, 255, 255)
 
-    lateinit var defaultGameFont: Font
-
     init {
-        preferredSize = Dimension(screenWidth2, screenHeight2)
-        background = Color.BLACK
-        isDoubleBuffered = true
-        addKeyListener(KeyHandler)
-        addMouseListener(MouseHandler)
-        addMouseWheelListener(MouseHandler)
-        isFocusable = true
+
         Camera.initialize()
+    }
+
+    fun getWindowPos(window: Long): Pair<Int, Int> {
+        val arrX = IntArray(1)
+        val arrY = IntArray(1)
+        glfwGetWindowPos(window, arrX, arrY)
+        return arrX[0] to arrY[0]
+    }
+
+    fun getWindowSize(window: Long): Pair<Int, Int> {
+        val arrX = IntArray(1)
+        val arrY = IntArray(1)
+        glfwGetWindowSize(window, arrX, arrY)
+        return arrX[0] to arrY[0]
     }
 
     fun setupScreen() {
 
-        screenPosX = window.location.x
-        screenPosY = window.location.y
-        screenWidth2 = window.rootPane.width
-        screenHeight2 = window.rootPane.height
-        GamePanel.preferredSize = Dimension(window.width, window.height)
+        val pos = getWindowPos(window)
+        val size = getWindowSize(window)
 
-        tempScreen = BufferedImage(screenWidth2, screenHeight2, BufferedImage.TYPE_INT_ARGB)
-        g2 = tempScreen.createGraphics()
-
-        val hints = RenderingHints(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON)
-        hints.add(RenderingHints(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY))
-        hints.add(RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON))
-        hints.add(RenderingHints(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY))
-        g2.setRenderingHints(hints)
-
-        ge.registerFont(Font.createFont(Font.TRUETYPE_FONT, File("fonts/Comic Sans MS.ttf")))
-        defaultGameFont = Font("Comic Sans MS", Font.PLAIN, 16)
-        g2.font = defaultGameFont
+        screenPosX = pos.first
+        screenPosY = pos.second
+        screenWidth2 = size.first
+        screenHeight2 = size.second
 
         Camera.initialize()
 
@@ -99,27 +93,34 @@ object GamePanel : JPanel() {
             tick()
         }
 
-        graphThread = thread(true) {
-
-            draw()
-        }
+//        graphThread = thread(true) {
+        draw()
+//        }
 
     }
 
 
-    fun draw() {
+    private fun draw() {
+
         var lastTime = System.nanoTime()
         var currentTime: Long
         var timer = 0L
         var drawCount = 0
 
-        while (graphThread != null) {
+        while (!glfwWindowShouldClose(window)) {
+
             currentTime = System.nanoTime()
             timer += (currentTime - lastTime)
             lastTime = currentTime
 
+            glClear(GL_COLOR_BUFFER_BIT)
+
+            glEnable(GL_TEXTURE_2D)
+
             drawToTempScreen()
-            drawToScreen()
+
+            glfwSwapBuffers(window)
+            glfwPollEvents()
 
             drawCount++
 
@@ -129,17 +130,20 @@ object GamePanel : JPanel() {
                 timer = 0
             }
         }
+
+        glfwDestroyWindow(window)
+        glfwTerminate()
     }
 
 
-    fun tick() {
+    private fun tick() {
         val tickInterval = 1e9 / 256.0
         var deltaTicks = .0
         var lastTime = System.nanoTime()
         var currentTime: Long
         var timer = 0L
         var tickCount = 0
-        while (gameThread != null) {
+        while (!glfwWindowShouldClose(window)) {
             currentTime = System.nanoTime()
             deltaTicks += (currentTime - lastTime) / tickInterval
             timer += (currentTime - lastTime)
@@ -148,7 +152,7 @@ object GamePanel : JPanel() {
                 Camera.interpolate()
                 ClientPlayer.update()
                 cursor.update()
-                world.update()
+//                world.update()
 
                 deltaTicks -= 1.0
                 tickCount++
@@ -162,67 +166,33 @@ object GamePanel : JPanel() {
         }
     }
 
-    fun setFullScreen(screen: Boolean) {
-        //
-        inFullScreen = screen
 
-        if (inFullScreen) {
-            screenPosX = window.location.x
-            screenPosY = window.location.y
-
-            screenWidth2 = window.width
-            screenHeight2 = window.height
-
-            window.setSize(screenWidth2, screenHeight2)
-            gd.fullScreenWindow = window
-
-        } else {
-            gd.fullScreenWindow = null
-
-            window.setLocation(screenPosX, screenPosY)
-
-            screenWidth2 = screenWidth
-            screenHeight2 = screenHeight
-
-            window.setSize(screenWidth2, screenHeight2)
-
-        }
-    }
-
-    fun drawToScreen() {
-        val g = graphics
-        g.drawImage(tempScreen, 0, 0, null)
-        g.dispose()
-    }
-
-    fun drawToTempScreen() {
+    private fun drawToTempScreen() {
         val start = System.currentTimeMillis()
-        g2.color = bgColor
-        g2.fillRect(0, 0, screenWidth2, screenHeight2)
-        g2.color = Color.BLACK
+//        g2.color = bgColor
+//        g2.fillRect(0, 0, screenWidth2, screenHeight2)
+//        g2.color = Color.BLACK
 
         val loc = ClientPlayer.location.clone
 
-        kotlin.runCatching {
-            world.draw(g2, loc)
+//        kotlin.runCatching {
 
-            Camera.draw(g2, loc)
+        glEnable(GL_BLEND)
+        glBegin(GL_QUADS)
 
-            Hud.draw(g2)
+        world.draw(loc)
 
-            cursor.draw(g2, loc)
+        Camera.draw(loc)
 
-            if (Client.debugMode) display.text.apply {
-                val oldc = g2.color
-                g2.color = Color.GRAY
-                split("\n").forEachIndexed { index, text ->
-                    val y = index * 20 + 20
-                    g2.drawString(text, 4, y)
-                }
-                g2.color = oldc
+        Hud.draw()
+
+        cursor.draw(loc)
+
+        /*if (Client.debugMode)*/ display.text.apply {
+            split("\n").forEachIndexed { index, text ->
+                val y = index * 20 + 20f
+//                    drawString(text, 4f, y, 5f,1f)
             }
-        }.getOrElse {
-            println(it.message)
         }
 
         val end = System.currentTimeMillis()

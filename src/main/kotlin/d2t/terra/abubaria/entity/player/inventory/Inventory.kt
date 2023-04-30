@@ -4,6 +4,7 @@ import d2t.terra.abubaria.entity.player.ClientPlayer
 import d2t.terra.abubaria.hud.Hud
 import d2t.terra.abubaria.location.HitBox
 import d2t.terra.abubaria.world.tile.Material
+import lwjgl.drawTexture
 import java.awt.Color
 import java.awt.Graphics2D
 
@@ -49,7 +50,7 @@ data class Inventory(val xSize: Int, val ySize: Int) {
 
     val inventoryBound get() = if (opened) openBound else closeBound
 
-    fun draw(g2: Graphics2D) {
+    fun draw() {
         if (Hud.inventory.opened) {
             for (x in 0 until Hud.inventory.xSize) {
                 for (y in 0 until Hud.inventory.ySize) {
@@ -60,19 +61,24 @@ data class Inventory(val xSize: Int, val ySize: Int) {
                     if (ClientPlayer.selectedHotBar == x && y == 0) {
 //                        if (hoveredSlot.first == x && hoveredSlot.second == y)
 //                            g2.drawImage(Hud.hoveredSlot,invX, invY, slotSize, slotSize, null)
-/*                        else */g2.drawImage(Hud.selectedSlot, invX, invY, slotSize, slotSize, null)
+                        drawTexture(Hud.selectedSlot, invX, invY, slotSize, slotSize)
+///*                        else */g2.drawImage(Hud.selectedSlot, invX, invY, slotSize, slotSize, null)
                     } else {
 //                        if (hoveredSlot.first == x && hoveredSlot.second == y)
 //                            g2.drawImage(Hud.hoveredSlot,invX, invY, slotSize, slotSize, null)
-/*                        else */g2.drawImage(Hud.slot, invX, invY, slotSize, slotSize, null)
+                        drawTexture(Hud.slot, invX, invY, slotSize, slotSize)
+
+//                        /*                        else */g2.drawImage(Hud.slot, invX, invY, slotSize, slotSize, null)
                     }
 
-                    g2.drawImage(
-                        Hud.inventory.getItem(x, y)?.type?.texture,
-                        invX + 8, invY + 8,
-                        slotSize - 16, slotSize - 16,
-                        null
-                    )
+                    drawTexture(Hud.inventory.getItem(x, y)?.type?.texture, invX + 8, invY + 8,
+                        slotSize - 16, slotSize - 16)
+//                    g2.drawImage(
+//                        Hud.inventory.getItem(x, y)?.type?.texture,
+//                        invX + 8, invY + 8,
+//                        slotSize - 16, slotSize - 16,
+//                        null
+//                    )
                 }
             }
         } else {
@@ -85,19 +91,20 @@ data class Inventory(val xSize: Int, val ySize: Int) {
                 if (ClientPlayer.selectedHotBar == x) {
 //                    if (hoveredSlot.first == x && hoveredSlot.second == 0)
 //                        g2.drawImage(Hud.hoveredSlot,invX, invY, slotSize, slotSize, null)
-/*                    else */g2.drawImage(Hud.selectedSlot, invX, invY, slotSize, slotSize, null)
+/*                    else */drawTexture(Hud.selectedSlot, invX, invY, slotSize, slotSize)
                 } else {
 //                    if (hoveredSlot.first == x && hoveredSlot.second == 0)
 //                        g2.drawImage(Hud.hoveredSlot,invX, invY, slotSize, slotSize, null)
-/*                    else */g2.drawImage(Hud.slot, invX, invY, slotSize, slotSize, null)
+/*                    else */drawTexture(Hud.slot, invX, invY, slotSize, slotSize)
                 }
-
-                g2.drawImage(
-                    Hud.inventory.getItem(x, 0)?.type?.texture,
-                    invX + 8, invY + 8,
-                    slotSize - 16, slotSize - 16,
-                    null
-                )
+                drawTexture(Hud.inventory.getItem(x, 0)?.type?.texture, invX + 8, invY + 8,
+                    slotSize - 16, slotSize - 16)
+//                g2.drawImage(
+//                    Hud.inventory.getItem(x, 0)?.type?.texture,
+//                    invX + 8, invY + 8,
+//                    slotSize - 16, slotSize - 16,
+//                    null
+//                )
 
             }
         }

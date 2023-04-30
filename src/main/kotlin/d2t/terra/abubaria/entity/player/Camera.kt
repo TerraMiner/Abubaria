@@ -8,6 +8,7 @@ import d2t.terra.abubaria.GamePanel.tileSize
 import d2t.terra.abubaria.GamePanel.world
 import d2t.terra.abubaria.location.Direction
 import d2t.terra.abubaria.location.Location
+import lwjgl.drawTexture
 import java.awt.Color
 import java.awt.Graphics2D
 import java.awt.image.BufferedImage
@@ -101,9 +102,9 @@ object Camera {
         return offY
     }
 
-    fun draw(g2: Graphics2D, location: Location) {
+    fun draw(location: Location) {
         ClientPlayer.apply {
-            val image: BufferedImage? = when (this.location.direction) {
+            val image = when (this.location.direction) {
 
                 Direction.LEFT -> {
                     if (onGround || onWorldBorder) leftIdle
@@ -119,19 +120,19 @@ object Camera {
             val offX = playerScreenPosX(location)
             val offY = playerScreenPosY(location)
 
-            g2.drawImage(
-                image,
-                offX - 1,
-                offY,
-                null
-            )
+            val width = (tileSize * width + 4).toInt()
+            val height = (tileSize * height + 1).toInt()
 
-            if (Client.debugMode) ClientPlayer.hitBox.apply {
-                val prevColor = g2.color
-                g2.color = Color.BLACK
-                g2.drawRect(offX, offY, width.toInt(), height.toInt())
-                g2.color = prevColor
-            }
+            drawTexture(image, offX - 1, offY, width, height)
+
+//            g2.drawImage(image, offX - 1, offY, null)
+
+//            if (Client.debugMode) ClientPlayer.hitBox.apply {
+//                val prevColor = g2.color
+//                g2.color = Color.BLACK
+//                g2.drawRect(offX, offY, width.toInt(), height.toInt())
+//                g2.color = prevColor
+//            }
         }
     }
 }

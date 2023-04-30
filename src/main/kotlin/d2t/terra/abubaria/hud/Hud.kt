@@ -3,6 +3,7 @@ package d2t.terra.abubaria.hud
 import d2t.terra.abubaria.GamePanel.screenWidth2
 import d2t.terra.abubaria.entity.player.ClientPlayer
 import d2t.terra.abubaria.entity.player.inventory.slotSize
+import lwjgl.loadImage
 import readImage
 import scaleImage
 import java.awt.Graphics2D
@@ -14,16 +15,16 @@ object Hud {
     var inventory = ClientPlayer.inventory
 
     val path = "hud/inventory/"
-    val selectedSlot = readImage("${path}selectedSlot.png")
-    val hoveredSlot = readImage("${path}hoveredSlot.png")
-    val slot = readImage("${path}slot.png")
+    val selectedSlot = /*readImage(*/loadImage("${path}selectedSlot.png")/*)*/
+    val hoveredSlot = /*readImage(*/loadImage("${path}hoveredSlot.png")/*)*/
+    val slot = /*readImage(*/loadImage("${path}slot.png")/*)*/
 
-    fun draw(g2: Graphics2D) {
+    fun draw() {
 
-        healthBar = ClientPlayer.run { "$health / $maxHealth" }
+//        healthBar = ClientPlayer.run { "$health / $maxHealth" }
 
-        g2.drawString(healthBar,screenWidth2 - healthBar.length * 8, 15)
-        inventory.draw(g2)
+//        g2.drawString(healthBar,screenWidth2 - healthBar.length * 8, 15)
+        inventory.draw()
 
 
     }
