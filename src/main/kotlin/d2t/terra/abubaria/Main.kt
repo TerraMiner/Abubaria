@@ -1,57 +1,87 @@
 package d2t.terra.abubaria
 
-import d2t.terra.abubaria.GamePanel
-import d2t.terra.abubaria.GamePanel.inFullScreen
-import d2t.terra.abubaria.entity.player.Camera
-import java.awt.Dimension
-import java.awt.Point
-import java.awt.Toolkit
-import java.awt.event.ComponentEvent
-import java.awt.event.ComponentListener
-import java.awt.image.BufferedImage
-import javax.swing.JFrame
+import org.lwjgl.glfw.GLFW.*
+import org.lwjgl.opengl.GL
+import org.lwjgl.opengl.GL11.*
+import org.lwjgl.system.MemoryUtil.NULL
 
-val window = JFrame()
+var window: Long = 0
 
 fun main() {
-    window.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
+    val width = 640
+    val height = 480
 
-    window.title = "Abubaria"
+    if (!glfwInit()) {
+        throw IllegalStateException("Failed to initialize GLFW")
+    }
 
-    val cursorImg = BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB)
+    window = glfwCreateWindow(width, height, "Abubaria", NULL, NULL)
+    if (window == NULL) {
+        throw RuntimeException("Failed to create the GLFW window")
+    }
 
-    window.contentPane.cursor = Toolkit.getDefaultToolkit().createCustomCursor(
-        cursorImg, Point(0, 0), "blank cursor"
-    )
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN)
 
-    window.add(GamePanel)
+    glfwMakeContextCurrent(window)
 
-    window.pack()
+    GL.createCapabilities()
 
-    window.setLocationRelativeTo(null)
+    glClearColor(0.5f, 0.5f, 1.0f, 0.0f)
 
-    window.isVisible = true
+    glViewport(0, 0, width, height)
+
+    glMatrixMode(GL_PROJECTION)
+    glLoadIdentity()
+    glOrtho(0.0, width.toDouble(), height.toDouble(), 0.0, 0.0, 1.0)
+    glMatrixMode(GL_MODELVIEW)
 
     GamePanel.setupScreen()
 
-    window.addComponentListener(object : ComponentListener {
-        override fun componentResized(e: ComponentEvent?) {
-            GamePanel.setupScreen()
-        }
+    GamePanel.startGameThread()
 
-        override fun componentMoved(e: ComponentEvent?) {
-            GamePanel.setupScreen()
-        }
+//    glfwDestroyWindow(window)
+//    glfwTerminate()
+}
 
-        override fun componentShown(e: ComponentEvent?) {
-            GamePanel.setupScreen()
-        }
+fun main1() {
+//    window.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
+//
+//    window.title = "Abubaria"
 
-        override fun componentHidden(e: ComponentEvent?) {
-            GamePanel.setupScreen()
-        }
+//    val cursorImg = BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB)
 
-    })
+//    window.contentPane.cursor = Toolkit.getDefaultToolkit().createCustomCursor(
+//        cursorImg, Point(0, 0), "blank cursor"
+//    )
+
+//    window.add(GamePanel)
+
+//    window.pack()
+
+//    window.setLocationRelativeTo(null)
+
+//    window.isVisible = true
+
+//    GamePanel.setupScreen()
+
+//    window.addComponentListener(object : ComponentListener {
+//        override fun componentResized(e: ComponentEvent?) {
+//            GamePanel.setupScreen()
+//        }
+
+//        override fun componentMoved(e: ComponentEvent?) {
+//            GamePanel.setupScreen()
+//        }
+
+//        override fun componentShown(e: ComponentEvent?) {
+//            GamePanel.setupScreen()
+//        }
+
+//        override fun componentHidden(e: ComponentEvent?) {
+//            GamePanel.setupScreen()
+//        }
+
+//    })
 
     GamePanel.startGameThread()
 }

@@ -7,7 +7,9 @@ import d2t.terra.abubaria.location.EntityHitBox
 import d2t.terra.abubaria.location.Location
 import d2t.terra.abubaria.world.Chunk
 import d2t.terra.abubaria.world.tile.Material
+import lwjgl.Image
 import java.awt.Graphics2D
+import java.nio.ByteBuffer
 
 open class Entity(val location: Location) {
 
@@ -21,10 +23,10 @@ open class Entity(val location: Location) {
 
     var height: Double = 2.9
     var width: Double = 1.4
-    var leftIdle: BufferedImage? = null
-    var leftJump: BufferedImage? = null
-    var rightIdle: BufferedImage? = null
-    var rightJump: BufferedImage? = null
+    var leftIdle: Image? = null
+    var leftJump: Image? = null
+    var rightIdle: Image? = null
+    var rightJump: Image? = null
 
     var dx = .0
     var dy = .0

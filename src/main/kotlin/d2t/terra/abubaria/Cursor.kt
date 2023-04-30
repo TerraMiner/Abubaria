@@ -10,6 +10,8 @@ import d2t.terra.abubaria.entity.player.inventory.maxStackSize
 import d2t.terra.abubaria.location.Location
 import d2t.terra.abubaria.world.Block
 import d2t.terra.abubaria.world.tile.Material
+import lwjgl.drawTexture
+import lwjgl.loadImage
 import readImage
 import scaleImage
 import java.awt.Color
@@ -35,7 +37,7 @@ class Cursor(private var x: Int, private var y: Int) {
     var cursorItem: Item = Item()
     var currentBlock: Block? = null
 
-    private var image: BufferedImage = scaleImage(readImage("cursor/cursor.png"), 30, 30)
+    private var image =/*: BufferedImage = scaleImage(readImage(*/loadImage("cursor/cursor.png")/*), 30, 30)*/
 
     val world = GamePanel.world
 
@@ -70,15 +72,15 @@ class Cursor(private var x: Int, private var y: Int) {
         return world.getBlockAt(getGamePositionX(), getGamePositionY())
     }
 
-    fun draw(g2: Graphics2D, location: Location) {
+    fun draw(location: Location) {
         if (mouseInWindow) {
             getBlockPosition().also { block ->
                 currentBlock = block
 
-                val prevColor = g2.color
-                g2.color = Color.GREEN
+//                val prevColor = g2.color
+//                g2.color = Color.GREEN
 
-                g2.drawString(cursorText, x, y - 3)
+//                g2.drawString(cursorText, x, y - 3)
 
                 if (Client.debugMode && !mouseOnHud) {
 
@@ -86,21 +88,25 @@ class Cursor(private var x: Int, private var y: Int) {
                         val screenX = Camera.worldScreenPosX(x * tileSize, location)
                         val screenY = Camera.worldScreenPosY(y * tileSize, location)
 
-                        g2.drawRect(
-                            screenX,
-                            screenY + type.state.offset,
-                            hitBox.width.toInt(),
-                            hitBox.height.toInt()
-                        )
+//                        g2.drawRect(
+//                            screenX,
+//                            screenY + type.state.offset,
+//                            hitBox.width.toInt(),
+//                            hitBox.height.toInt()
+//                        )
 
-                        g2.drawString("$x $y", screenX, screenY + block.type.state.offset)
+//                        g2.drawString("$x $y", screenX, screenY + block.type.state.offset)
                     }
                 }
 
-                g2.color = prevColor
+//                g2.color = prevColor
             }
-            g2.drawImage(image, x, y, null)
-            g2.drawImage(cursorItem.type.texture, x + 5, y + 15, 15, 15, null)
+
+            drawTexture(image, x, y, 30, 30)
+            drawTexture(cursorItem.type.texture, x + 5, y + 15, 15, 15)
+
+//            g2.drawImage(image, x, y, null)
+//            g2.drawImage(cursorItem.type.texture, x + 5, y + 15, 15, 15, null)
         }
     }
 
@@ -109,8 +115,8 @@ class Cursor(private var x: Int, private var y: Int) {
 
         if (mouseInWindow) {
             info.location.apply {
-                this@Cursor.x = x - window.rootPane.x - window.locationOnScreen.x /*- 9*/
-                this@Cursor.y = y - window.rootPane.y - window.locationOnScreen.y /*- 32*/
+                this@Cursor.x = x - GamePanel.screenPosX /*- 9*/
+                this@Cursor.y = y - GamePanel.screenPosY /*- 32*/
             }
 
             val bound = ClientPlayer.inventory.inventoryBound

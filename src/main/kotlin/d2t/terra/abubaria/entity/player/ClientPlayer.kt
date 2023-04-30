@@ -10,6 +10,7 @@ import d2t.terra.abubaria.entity.Entity
 import d2t.terra.abubaria.entity.player.inventory.Inventory
 import d2t.terra.abubaria.location.Direction
 import d2t.terra.abubaria.location.Location
+import lwjgl.loadImage
 import readImage
 import scaleImage
 import java.io.File
@@ -49,10 +50,10 @@ object ClientPlayer : Entity(Location()) {
             val width = (tileSize * width + 4).toInt()
             val height = (tileSize * height + 1).toInt()
 
-            leftIdle = scaleImage(readImage("${path}leftIdle.png")/*.negative()*/, width, height)
-            leftJump = scaleImage(readImage("${path}leftJump.png")/*.negative()*/, width, height)
-            rightIdle = scaleImage(readImage("${path}rightIdle.png")/*.negative()*/, width, height)
-            rightJump = scaleImage(readImage("${path}rightJump.png")/*.negative()*/, width, height)
+            leftIdle = /*scaleImage(readImage(*/loadImage("${path}leftIdle.png")/*)*//*.negative()*//*, width, height)*/
+            leftJump = /*scaleImage(readImage(*/loadImage("${path}leftJump.png")/*)*//*.negative()*//*, width, height)*/
+            rightIdle = /*scaleImage(readImage(*/loadImage("${path}rightIdle.png")/*)*//*.negative()*//*, width, height)*/
+            rightJump = /*scaleImage(readImage(*/loadImage("${path}rightJump.png")/*)*//*.negative()*//*, width, height)*/
 
         }.getOrElse {
             it.printStackTrace()
