@@ -1,5 +1,6 @@
 package d2t.terra.abubaria.world
 
+import LagDebugger
 import d2t.terra.abubaria.Client
 import d2t.terra.abubaria.GamePanel
 import d2t.terra.abubaria.GamePanel.tileSize
@@ -116,6 +117,9 @@ class World {
 
     fun draw(location: Location) {
 
+        val a = LagDebugger()
+        a.enabled = false
+        a.check(121)
         val extraDrawDistX = abs((Camera.playerScreenPosX(location) - Camera.screenX) / tileSize / chunkSize) + 1
         val extraDrawDistY = abs((Camera.playerScreenPosY(location) - Camera.screenY) / tileSize / chunkSize) + 1
 
@@ -128,6 +132,7 @@ class World {
         rightCorner = if (rightCorner < 0) 0 else if (rightCorner >= worldSizeX) worldSizeX - 1 else rightCorner
         bottomCorner = if (bottomCorner < 0) 0 else if (bottomCorner >= worldSizeY) worldSizeY - 1 else bottomCorner
         topCorner = if (topCorner < 0) 0 else if (topCorner >= worldSizeY) worldSizeY - 1 else topCorner
+        a.check(134)
 
         for (chunkX in leftCorner..rightCorner) {
             for (chunkY in topCorner..bottomCorner) {
@@ -137,6 +142,8 @@ class World {
 //                }
             }
         }
+        a.check(144)
+        a.debug("world")
     }
 
     private fun Chunk.draw(location: Location) {

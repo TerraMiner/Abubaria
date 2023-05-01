@@ -1,14 +1,14 @@
-package d2t.terra.abubaria
+package d2t.terra.abubaria.io
 
-import KeyListener
-import org.lwjgl.glfw.Callbacks.glfwFreeCallbacks
+import KeyHandler
+import d2t.terra.abubaria.GamePanel
+import d2t.terra.abubaria.MouseHandler
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWErrorCallback
+import org.lwjgl.glfw.GLFWWindowPosCallback
 import org.lwjgl.glfw.GLFWWindowSizeCallback
 import org.lwjgl.opengl.GL
-import org.lwjgl.opengl.GL11.*
 import org.lwjgl.system.MemoryUtil.NULL
-import java.awt.Color
 
 
 var window: Long = 0
@@ -34,21 +34,9 @@ fun main() {
 
     GL.createCapabilities()
 
-    val bgColor = Color(170, 255, 255)
-
-    glClearColor(bgColor.red/255f, bgColor.green/255f, bgColor.blue/255f, bgColor.alpha/255f)
-
-    glViewport(0, 0, width, height)
-
-    glMatrixMode(GL_PROJECTION)
-    glLoadIdentity()
-    glOrtho(0.0, width.toDouble(), height.toDouble(), 0.0, 0.0, 1.0)
-    glMatrixMode(GL_MODELVIEW)
-
-    setCallbacks()
-
     GamePanel.setupScreen()
 
+    setCallbacks()
 
     GamePanel.startGameThread()
 
@@ -63,17 +51,22 @@ private fun setCallbacks() {
     glfwSetCursorPosCallback(window, MouseHandler::mousePosCallback)
     glfwSetMouseButtonCallback(window, MouseHandler::mouseButtonCallback)
     glfwSetScrollCallback(window, MouseHandler::mouseScrollCallback)
-    glfwSetKeyCallback(window, KeyListener::keyCallback)
+    glfwSetKeyCallback(window, KeyHandler::keyCallback)
 
     glfwSetWindowSizeCallback(window, object : GLFWWindowSizeCallback() {
         override fun invoke(argWindow: Long, argWidth: Int, argHeight: Int) {
 
-//            GamePanel.setupScreen()
+            GamePanel.setupScreen()
 
 //            println("WORK")
-            GamePanel.screenWidth2 = argWidth
-            GamePanel.screenHeight2 = argHeight
+//            GamePanel.screenWidth2 = argWidth
+//            GamePanel.screenHeight2 = argHeight
 //            GamePanel.hasResized = true
+        }
+    })
+    glfwSetWindowPosCallback(window, object : GLFWWindowPosCallback() {
+        override fun invoke(window: Long, xpos: Int, ypos: Int) {
+//            GamePanel.setupScreen()
         }
     })
 }

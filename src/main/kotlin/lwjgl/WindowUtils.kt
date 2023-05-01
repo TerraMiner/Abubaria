@@ -1,5 +1,6 @@
 package lwjgl
 
+import LagDebugger
 import org.lwjgl.BufferUtils
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL
@@ -65,32 +66,32 @@ class Image(texturePath: String) {
     private var imageHeight = IntArray(1)
     private var imageChannels = IntArray(1)
 
-    var width = 0
-    var height = 0
-    var channel = 0
 
-    var image: ByteBuffer? = null
+
+    var image: ByteBuffer? = stbi_load(texturePath, imageWidth, imageHeight, imageChannels, STBI_rgb_alpha)
+
+    var width = imageWidth[0]
+    var height = imageHeight[0]
+    var channel = imageChannels[0]
+    val textureId = glGenTextures()
+
     init {
-        image = stbi_load(texturePath, imageWidth, imageHeight, imageChannels, STBI_rgb_alpha)
-        width = imageWidth[0]
-        height = imageHeight[0]
-        channel = imageChannels[0]
+        glBindTexture(GL_TEXTURE_2D,textureId)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image)
     }
 }
 
 fun drawTexture(image: Image?, x: Int, y: Int, width: Int, height: Int) {
-    if (image?.image == null) return
-    val textureId = glGenTextures()
-    glBindTexture(GL_TEXTURE_2D, textureId)
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width, image.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image.image)
+    if (image?.image == null) return
+
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
 
     glEnable(GL_TEXTURE_2D)
-    glBindTexture(GL_TEXTURE_2D, textureId)
+    glBindTexture(GL_TEXTURE_2D, image.textureId)
 
     glEnable(GL_BLEND)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
@@ -99,17 +100,12 @@ fun drawTexture(image: Image?, x: Int, y: Int, width: Int, height: Int) {
 
     glTexCoord2f(0.0f, 1.0f)
     glVertex2i(x, y + height)
-
     glTexCoord2f(1.0f, 1.0f)
     glVertex2i(x + width, y + height)
-
     glTexCoord2f(1.0f, 0.0f)
     glVertex2i(x + width, y)
-
     glTexCoord2f(0.0f, 0.0f)
     glVertex2i(x, y)
 
     glEnd()
-
-    glDeleteTextures(textureId)
 }

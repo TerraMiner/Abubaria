@@ -1,5 +1,6 @@
 package d2t.terra.abubaria
 
+import d2t.terra.abubaria.entity.player.ClientPlayer
 import org.lwjgl.glfw.GLFW.GLFW_PRESS
 import org.lwjgl.glfw.GLFW.GLFW_RELEASE
 
@@ -49,8 +50,6 @@ object MouseHandler {
     val y get() = yPos.toFloat()
     val dx get() = (lastX - xPos).toFloat()
     val dy get() = (lastY - yPos).toFloat()
-    val xScroll get() = scrollX.toFloat()
-    val yScroll get() = scrollY.toFloat()
 
     fun buttonIsPressed(button: Int): Boolean {
         if (button >= mouseButtonPressed.size) return false
@@ -58,30 +57,30 @@ object MouseHandler {
     }
 
     fun update() {
-        println("$xScroll, $yScroll, $x, $y")
+
+        if (scrollY != .0) {
+            ClientPlayer.scrollHotBar(-scrollY.toInt())
+            scrollY = .0
+        }
+
         mouseButtonPressed.forEachIndexed { index, b ->
 
-            if (b)
+
+
             when (index) {
+                0 -> {
+                    cursor.leftPress = b
+                    if (b) cursor.leftClick = true
+                }
+
                 1 -> {
-                    cursor.leftPress = true
-                    cursor.leftClick = true
+                    cursor.midPress = b
+                    if (b) cursor.midClick = true
                 }
 
                 2 -> {
-                    cursor.midPress = true
-                    cursor.midClick = true
-                }
-
-                3 -> {
-                    cursor.rightPress = true
-                    cursor.rightClick = true
-                }
-            } else {
-                when (index) {
-                    1 -> cursor.leftPress = false
-                    2 -> cursor.midPress = false
-                    3 -> cursor.rightPress = false
+                    cursor.rightPress = b
+                    if (b) cursor.rightClick = true
                 }
             }
 

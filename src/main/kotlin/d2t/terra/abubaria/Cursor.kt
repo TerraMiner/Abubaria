@@ -12,12 +12,6 @@ import d2t.terra.abubaria.world.Block
 import d2t.terra.abubaria.world.tile.Material
 import lwjgl.drawTexture
 import lwjgl.loadImage
-import readImage
-import scaleImage
-import java.awt.Color
-import java.awt.Graphics2D
-import java.awt.MouseInfo
-import java.awt.image.BufferedImage
 import kotlin.math.floor
 
 class Cursor(private var x: Int, private var y: Int) {
@@ -29,8 +23,6 @@ class Cursor(private var x: Int, private var y: Int) {
     var leftClick = false
     var rightClick = false
     var midClick = false
-
-    var mouseInWindow = false
     var cursorText = ""
     var mouseOnHud = false
 
@@ -67,13 +59,10 @@ class Cursor(private var x: Int, private var y: Int) {
     }
 
     private fun getBlockPosition(): Block? {
-        if (!mouseInWindow) return null
-
         return world.getBlockAt(getGamePositionX(), getGamePositionY())
     }
 
     fun draw(location: Location) {
-        if (mouseInWindow) {
             getBlockPosition().also { block ->
                 currentBlock = block
 
@@ -107,27 +96,24 @@ class Cursor(private var x: Int, private var y: Int) {
 
 //            g2.drawImage(image, x, y, null)
 //            g2.drawImage(cursorItem.type.texture, x + 5, y + 15, 15, 15, null)
-        }
     }
 
     fun update() {
-        val info = MouseHandler
+        MouseHandler.update()
 
-        if (mouseInWindow) {
-            info.apply {
-                this@Cursor.x = (x - GamePanel.screenPosX).toInt() /*- 9*/
-                this@Cursor.y = (y - GamePanel.screenPosY).toInt() /*- 32*/
-            }
-
-            val bound = ClientPlayer.inventory.inventoryBound
-            mouseOnHud = (x >= bound.x && y >= bound.y && x < bound.x + bound.width && y < bound.y + bound.height)
-
-            ClientPlayer.inventory.updateMouseSlot(x, y)
-
-            if (mouseOnHud) handleMouseHud()
-            else handleMouseWorld()
-            endMousehandle()
+        MouseHandler.apply {
+            this@Cursor.x = (x /*- GamePanel.screenPosX*/).toInt() /*- 9*/
+            this@Cursor.y = (y /*- GamePanel.screenPosY*/).toInt() /*- 32*/
         }
+
+        val bound = ClientPlayer.inventory.inventoryBound
+        mouseOnHud = (x >= bound.x && y >= bound.y && x < bound.x + bound.width && y < bound.y + bound.height)
+
+        ClientPlayer.inventory.updateMouseSlot(x, y)
+
+        if (mouseOnHud) handleMouseHud()
+        else handleMouseWorld()
+        endMousehandle()
 
     }
 
@@ -165,6 +151,8 @@ class Cursor(private var x: Int, private var y: Int) {
         cursorText = if (currentBlock?.type !== Material.AIR)
             currentBlock?.type?.display ?: ""
         else ""
+
+
 
         if (!leftPress && !rightPress && !midPress) return
 

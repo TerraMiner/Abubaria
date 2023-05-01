@@ -1,6 +1,9 @@
 package d2t.terra.abubaria
 
 import DebugDisplay
+import KeyHandler
+import LagDebugger
+import d2t.terra.abubaria.io.window
 import d2t.terra.abubaria.entity.player.Camera
 import d2t.terra.abubaria.entity.player.ClientPlayer
 import d2t.terra.abubaria.hud.Hud
@@ -65,6 +68,8 @@ object GamePanel {
         return arrX[0] to arrY[0]
     }
 
+    private val bgColor = Color(170, 255, 255)
+
     fun setupScreen() {
 
         val pos = getWindowPos(window)
@@ -75,6 +80,15 @@ object GamePanel {
         screenWidth2 = size.first
         screenHeight2 = size.second
 
+        glClearColor(bgColor.red/255f, bgColor.green/255f, bgColor.blue/255f, bgColor.alpha/255f)
+
+        glViewport(0, 0, screenWidth2, screenHeight2)
+
+        glMatrixMode(GL_PROJECTION)
+        glLoadIdentity()
+        glOrtho(0.0, screenWidth2.toDouble(), screenHeight2.toDouble(), 0.0, 0.0, 1.0)
+        glMatrixMode(GL_MODELVIEW)
+
         Camera.initialize()
 
     }
@@ -83,11 +97,7 @@ object GamePanel {
         gameThread = thread(true) {
             tick()
         }
-
-//        graphThread = thread(true) {
         draw()
-//        }
-
     }
 
 
@@ -117,6 +127,7 @@ object GamePanel {
 
             if (timer >= 1000000000) {
                 display.fps = drawCount
+                println(display.fps)
                 drawCount = 0
                 timer = 0
             }
@@ -143,6 +154,7 @@ object GamePanel {
                 Camera.interpolate()
                 ClientPlayer.update()
                 cursor.update()
+                KeyHandler.update()
 //                world.update()
 
                 deltaTicks -= 1.0
@@ -159,36 +171,44 @@ object GamePanel {
 
 
     private fun drawToTempScreen() {
+        val a = LagDebugger()
+        a.enabled = false
+        a.check(173)
         val start = System.currentTimeMillis()
 //        g2.color = bgColor
 //        g2.fillRect(0, 0, screenWidth2, screenHeight2)
 //        g2.color = Color.BLACK
-
         val loc = ClientPlayer.location.clone
-
 //        kotlin.runCatching {
-
         glEnable(GL_BLEND)
         glBegin(GL_QUADS)
+        a.check(182)
 
         world.draw(loc)
+        a.check(185)
 
         Camera.draw(loc)
+        a.check(188)
 
         Hud.draw()
+        a.check(191)
 
         cursor.draw(loc)
+        a.check(194)
 
-        /*if (Client.debugMode)*/ display.text.apply {
-            split("\n").forEachIndexed { index, text ->
-                val y = index * 20 + 20f
+
+//        /*if (Client.debugMode)*/ display.text.apply {
+//            split("\n").forEachIndexed { index, text ->
+//                val y = index * 20 + 20f
 //                    drawString(text, 4f, y, 5f,1f)
-            }
-        }
+//            }
+//        }
 
         val end = System.currentTimeMillis()
 
         videoLag = (end - start) / 1000.0
+        a.check(207)
+        a.debug("Video lag")
     }
 }
 

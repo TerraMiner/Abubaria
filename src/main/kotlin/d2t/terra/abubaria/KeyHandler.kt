@@ -1,13 +1,10 @@
 import d2t.terra.abubaria.Client
-import d2t.terra.abubaria.GamePanel
-import d2t.terra.abubaria.entity.player.Camera
 import d2t.terra.abubaria.entity.player.ClientPlayer
 import org.lwjgl.glfw.GLFW.GLFW_PRESS
 import org.lwjgl.glfw.GLFW.GLFW_RELEASE
 import java.awt.event.KeyEvent
-import java.awt.event.KeyListener
 
-object KeyListener {
+object KeyHandler {
     private var keyPressed = BooleanArray(350)
 
     fun keyCallback(window: Long, key: Int, scancode: Int, action: Int, mods: Int) {
@@ -23,9 +20,6 @@ object KeyListener {
         if (keyCode > keyPressed.size) return false
         return keyPressed[keyCode]
     }
-}
-
-object KeyHandler : KeyListener {
 
     var upPressed = false
     var downPressed = false
@@ -37,82 +31,56 @@ object KeyHandler : KeyListener {
     var timeSpaceReleased = 0L
 
 
-    override fun keyTyped(e: KeyEvent?) {
+    fun update() {
+        keyPressed.forEachIndexed { code, b ->
+            when (code) {
 
-    }
-
-    override fun keyPressed(e: KeyEvent?) {
-        val code = e?.keyCode ?: return
-        when (code) {
-
-            KeyEvent.VK_W -> {
-                upPressed = true
-            }
-
-            KeyEvent.VK_S -> {
-                downPressed = true
-            }
-
-            KeyEvent.VK_A -> {
-                leftPressed = true
-            }
-
-            KeyEvent.VK_D -> {
-                rightPressed = true
-            }
-
-            KeyEvent.VK_SPACE -> {
-                if (!spacePressed) {
-                    spacePressed = true
-                    timeSpacePressed = System.currentTimeMillis()
-                    timeSpaceReleased = System.currentTimeMillis() + 1000
+                KeyEvent.VK_W -> {
+                    upPressed = b
                 }
-            }
 
-            KeyEvent.VK_F3 -> {
-                Client.debugMode = !Client.debugMode
-            }
+                KeyEvent.VK_S -> {
+                    downPressed = b
+                }
+
+                KeyEvent.VK_A -> {
+                    leftPressed = b
+                }
+
+                KeyEvent.VK_D -> {
+                    rightPressed = b
+                }
+
+                KeyEvent.VK_SPACE -> {
+                    if (b) {
+                        if (!spacePressed) {
+                            spacePressed = true
+                            timeSpacePressed = System.currentTimeMillis()
+                            timeSpaceReleased = System.currentTimeMillis() + 1000
+                        }
+                    } else {
+                        spacePressed = false
+                        if (timeSpaceReleased <= timeSpacePressed + 1000) {
+                            timeSpaceReleased = System.currentTimeMillis()
+                        }
+                    }
+                }
+
+                KeyEvent.VK_F3 -> {
+                    Client.debugMode = !Client.debugMode
+                }
 
 //            KeyEvent.VK_F11 -> {
 //                GamePanel.setFullScreen(!GamePanel.inFullScreen)
 //            }
 
-            KeyEvent.VK_E -> {
-                ClientPlayer.inventory.opened = !ClientPlayer.inventory.opened
-            }
-        }
-    }
-
-    override fun keyReleased(e: KeyEvent?) {
-        val code = e?.keyCode ?: return
-        when (code) {
-
-            KeyEvent.VK_W -> {
-                upPressed = false
-            }
-
-            KeyEvent.VK_S -> {
-                downPressed = false
-            }
-
-            KeyEvent.VK_A -> {
-                leftPressed = false
-            }
-
-            KeyEvent.VK_D -> {
-                rightPressed = false
-            }
-
-            KeyEvent.VK_SPACE -> {
-                spacePressed = false
-                if (timeSpaceReleased <= timeSpacePressed + 1000) {
-                    timeSpaceReleased = System.currentTimeMillis()
+                KeyEvent.VK_E -> {
+                    if (b) {
+                        ClientPlayer.inventory.opened = !ClientPlayer.inventory.opened
+                        keyPressed[code] = false
+                    }
                 }
-
             }
-
-            KeyEvent.VK_B -> {}
-
         }
     }
 }
