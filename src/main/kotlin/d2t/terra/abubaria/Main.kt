@@ -1,9 +1,15 @@
 package d2t.terra.abubaria
 
+import KeyListener
+import org.lwjgl.glfw.Callbacks.glfwFreeCallbacks
 import org.lwjgl.glfw.GLFW.*
+import org.lwjgl.glfw.GLFWErrorCallback
+import org.lwjgl.glfw.GLFWWindowSizeCallback
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.system.MemoryUtil.NULL
+import java.awt.Color
+
 
 var window: Long = 0
 
@@ -20,13 +26,17 @@ fun main() {
         throw RuntimeException("Failed to create the GLFW window")
     }
 
+    GLFWErrorCallback.createPrint(System.err).set()
+
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN)
 
     glfwMakeContextCurrent(window)
 
     GL.createCapabilities()
 
-    glClearColor(0.5f, 0.5f, 1.0f, 0.0f)
+    val bgColor = Color(170, 255, 255)
+
+    glClearColor(bgColor.red/255f, bgColor.green/255f, bgColor.blue/255f, bgColor.alpha/255f)
 
     glViewport(0, 0, width, height)
 
@@ -35,12 +45,37 @@ fun main() {
     glOrtho(0.0, width.toDouble(), height.toDouble(), 0.0, 0.0, 1.0)
     glMatrixMode(GL_MODELVIEW)
 
+    setCallbacks()
+
     GamePanel.setupScreen()
+
 
     GamePanel.startGameThread()
 
-//    glfwDestroyWindow(window)
-//    glfwTerminate()
+//    glfwFreeCallbacks(window)
+    glfwDestroyWindow(window)
+    glfwTerminate()
+    glfwSetErrorCallback(null)?.free()
+}
+
+private fun setCallbacks() {
+
+    glfwSetCursorPosCallback(window, MouseHandler::mousePosCallback)
+    glfwSetMouseButtonCallback(window, MouseHandler::mouseButtonCallback)
+    glfwSetScrollCallback(window, MouseHandler::mouseScrollCallback)
+    glfwSetKeyCallback(window, KeyListener::keyCallback)
+
+    glfwSetWindowSizeCallback(window, object : GLFWWindowSizeCallback() {
+        override fun invoke(argWindow: Long, argWidth: Int, argHeight: Int) {
+
+//            GamePanel.setupScreen()
+
+//            println("WORK")
+            GamePanel.screenWidth2 = argWidth
+            GamePanel.screenHeight2 = argHeight
+//            GamePanel.hasResized = true
+        }
+    })
 }
 
 fun main1() {

@@ -2,8 +2,28 @@ import d2t.terra.abubaria.Client
 import d2t.terra.abubaria.GamePanel
 import d2t.terra.abubaria.entity.player.Camera
 import d2t.terra.abubaria.entity.player.ClientPlayer
+import org.lwjgl.glfw.GLFW.GLFW_PRESS
+import org.lwjgl.glfw.GLFW.GLFW_RELEASE
 import java.awt.event.KeyEvent
 import java.awt.event.KeyListener
+
+object KeyListener {
+    private var keyPressed = BooleanArray(350)
+
+    fun keyCallback(window: Long, key: Int, scancode: Int, action: Int, mods: Int) {
+        if (key >= keyPressed.size) return
+        if (action == GLFW_PRESS) {
+            keyPressed[key] = true
+        } else if (action == GLFW_RELEASE) {
+            keyPressed[key] = false
+        }
+    }
+
+    fun isKeyPressed(keyCode: Int): Boolean {
+        if (keyCode > keyPressed.size) return false
+        return keyPressed[keyCode]
+    }
+}
 
 object KeyHandler : KeyListener {
 

@@ -111,12 +111,12 @@ class Cursor(private var x: Int, private var y: Int) {
     }
 
     fun update() {
-        val info = MouseInfo.getPointerInfo()
+        val info = MouseHandler
 
         if (mouseInWindow) {
-            info.location.apply {
-                this@Cursor.x = x - GamePanel.screenPosX /*- 9*/
-                this@Cursor.y = y - GamePanel.screenPosY /*- 32*/
+            info.apply {
+                this@Cursor.x = (x - GamePanel.screenPosX).toInt() /*- 9*/
+                this@Cursor.y = (y - GamePanel.screenPosY).toInt() /*- 32*/
             }
 
             val bound = ClientPlayer.inventory.inventoryBound

@@ -1,24 +1,15 @@
 package d2t.terra.abubaria
 
 import DebugDisplay
-import KeyHandler
-import MouseHandler
 import d2t.terra.abubaria.entity.player.Camera
 import d2t.terra.abubaria.entity.player.ClientPlayer
 import d2t.terra.abubaria.hud.Hud
 import d2t.terra.abubaria.world.World
 import d2t.terra.abubaria.world.WorldGenerator
 import org.lwjgl.glfw.GLFW.*
-import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL11.*
 import java.awt.*
-import java.awt.image.BufferedImage
-import java.nio.file.Files
-import java.nio.file.Paths
-import javax.swing.JPanel
 import kotlin.concurrent.thread
-import org.lwjgl.stb.*
-import java.nio.ByteBuffer
 
 
 object GamePanel {
@@ -53,7 +44,7 @@ object GamePanel {
 
     var inFullScreen = false
 
-    val bgColor = Color(170, 255, 255)
+    var hasResized = false
 
     init {
 
