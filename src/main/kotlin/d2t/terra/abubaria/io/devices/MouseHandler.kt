@@ -1,5 +1,6 @@
-package d2t.terra.abubaria
+package d2t.terra.abubaria.io.devices
 
+import d2t.terra.abubaria.GamePanel
 import d2t.terra.abubaria.entity.player.ClientPlayer
 import org.lwjgl.glfw.GLFW.GLFW_PRESS
 import org.lwjgl.glfw.GLFW.GLFW_RELEASE
@@ -12,6 +13,7 @@ object MouseHandler {
     private var lastX: Double = .0
     private var lastY: Double = .0
     private val mouseButtonPressed = BooleanArray(3)
+
     var isDragging = false
 
     val cursor = GamePanel.cursor
@@ -59,29 +61,28 @@ object MouseHandler {
     fun update() {
 
         if (scrollY != .0) {
-            ClientPlayer.scrollHotBar(-scrollY.toInt())
+            ClientPlayer.inventory.scrollHotBar(-scrollY.toInt())
             scrollY = .0
         }
 
         mouseButtonPressed.forEachIndexed { index, b ->
 
-
-
             when (index) {
                 0 -> {
+                    if (b && !cursor.leftPress) cursor.leftClick = true
                     cursor.leftPress = b
-                    if (b) cursor.leftClick = true
                 }
 
                 1 -> {
-                    cursor.midPress = b
-                    if (b) cursor.midClick = true
+                    if (b && !cursor.rightPress) cursor.rightClick = true
+                    cursor.rightPress = b
                 }
 
                 2 -> {
-                    cursor.rightPress = b
-                    if (b) cursor.rightClick = true
+                    if (b && !cursor.midPress) cursor.midClick = true
+                    cursor.midPress = b
                 }
+
             }
 
         }

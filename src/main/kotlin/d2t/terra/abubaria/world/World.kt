@@ -13,6 +13,7 @@ import d2t.terra.abubaria.location.HitBox
 import d2t.terra.abubaria.location.Location
 import d2t.terra.abubaria.world.tile.Material
 import d2t.terra.abubaria.world.tile.Material.*
+import lwjgl.drawRect
 import lwjgl.drawTexture
 import java.awt.Color
 import java.awt.Graphics2D
@@ -155,25 +156,22 @@ class World {
             }
         }
 
-//        if (Client.debugMode) {
-//            val prevColor = g2.color
-//            g2.color = Color.BLACK
-//
-//            val screenX = Camera.worldScreenPosX(x * tileSize * chunkSize, location)
-//            val screenY = Camera.worldScreenPosY(y * tileSize * chunkSize, location)
-//
-//            g2.drawRect(screenX, screenY, hitBox.width.toInt(), hitBox.height.toInt())
-//
+        if (Client.debugMode) {
+
+            val screenX = Camera.worldScreenPosX(x * tileSize * chunkSize, location)
+            val screenY = Camera.worldScreenPosY(y * tileSize * chunkSize, location)
+
+            drawRect(screenX, screenY, hitBox.width.toInt(), hitBox.height.toInt(), 1f, Color.GRAY)
+
 //            g2.drawString("x: $x, y: $y", screenX + 3, screenY + 14)
-//            g2.color = prevColor
-//        }
+        }
     }
 
 
     private fun Block.draw(worldX: Int, worldY: Int, location: Location) {
         val screenX = Camera.worldScreenPosX(worldX, location)
         val screenY = Camera.worldScreenPosY(worldY, location)
-        drawTexture(type.texture, screenX, screenY + type.state.offset, tileSize, tileSize)
+        drawTexture(type.texture?.textureId, screenX, screenY + type.state.offset, tileSize, tileSize)
 //        g2.drawImage(type.texture, screenX, screenY + type.state.offset, null)
     }
 

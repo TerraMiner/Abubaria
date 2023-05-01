@@ -1,18 +1,19 @@
 package d2t.terra.abubaria.entity.player.inventory
 
+import d2t.terra.abubaria.GamePanel
 import d2t.terra.abubaria.entity.player.ClientPlayer
 import d2t.terra.abubaria.hud.Hud
 import d2t.terra.abubaria.location.HitBox
 import d2t.terra.abubaria.world.tile.Material
 import lwjgl.drawTexture
-import java.awt.Color
-import java.awt.Graphics2D
 
 const val slotSize = 42
 const val diff = 20
 
 data class Inventory(val xSize: Int, val ySize: Int) {
-    val items = Array(xSize) { Array(ySize) { Item(Material.AIR,0) } }
+    val items = Array(xSize) { Array(ySize) { Item(Material.AIR, 0) } }
+
+    var selectedHotBar = 0
 
     val hotBar get() = items[0]
 
@@ -20,7 +21,14 @@ data class Inventory(val xSize: Int, val ySize: Int) {
 
     var hoveredSlot = -1 to -1
 
-    fun getItemMouse(mouseX: Int, mouseY: Int) = items.getOrNull((mouseX - diff) / slotSize)?.getOrNull((mouseY - diff) / slotSize)
+    fun scrollHotBar(i: Int) {
+        selectedHotBar += i
+        if (selectedHotBar < 0) selectedHotBar = ClientPlayer.inventory.xSize - 1
+        if (selectedHotBar >= ClientPlayer.inventory.xSize) selectedHotBar = 0
+    }
+
+    fun getItemMouse(mouseX: Int, mouseY: Int) =
+        items.getOrNull((mouseX - diff) / slotSize)?.getOrNull((mouseY - diff) / slotSize)
 
     fun updateMouseSlot(mouseX: Int, mouseY: Int) {
         val x = (mouseX - diff) / slotSize
@@ -38,17 +46,52 @@ data class Inventory(val xSize: Int, val ySize: Int) {
         hoveredSlot = x to y
     }
 
-    fun setItemMouse(mouseX: Int, mouseY: Int, item: Item) {
-        items[(mouseX - diff) / slotSize][(mouseY - diff) / slotSize] = item
+    fun setItemFromMouse(mouseX: Int, mouseY: Int, item: Item) {
+        val x = (mouseX - diff) / slotSize
+        val y = (mouseY - diff) / slotSize
+
+        GamePanel.cursor.cursorItemSlot = if (item.type === Material.AIR) x to y
+        else -1 to -1
+
+        items[x][y] = item
     }
 
     fun getItem(x: Int, y: Int) = items.getOrNull(x)?.getOrNull(y)
+    fun setItem(x: Int, y: Int, item: Item) {
+        if (x !in items.indices) return
+        if (y !in items[x].indices) return
+        items[x][y] = item
+    }
+
+    fun setItem(pair: Pair<Int, Int>, item: Item) {
+        setItem(pair.first, pair.second, item)
+    }
 
 
     private val openBound = HitBox(0 + diff, 0 + diff, xSize * slotSize, ySize * slotSize)
     private val closeBound = HitBox(0 + diff, 0 + diff, xSize * slotSize, slotSize)
 
     val inventoryBound get() = if (opened) openBound else closeBound
+
+    fun firstEmptySlot(): Pair<Int, Int> {
+        items.forEachIndexed { x, items ->
+            items.forEachIndexed yFor@{ y, item ->
+                if (!opened && y != 0) return@yFor
+                if (item.type === Material.AIR) return x to y
+            }
+        }
+        return -1 to -1
+    }
+
+    fun findIdentify(type: Material): Pair<Int, Int> {
+        items.forEachIndexed { x, items ->
+            items.forEachIndexed yFor@{ y, item ->
+                if (!opened && y != 0) return@yFor
+                if (item.type === type) return x to y
+            }
+        }
+        return -1 to -1
+    }
 
     fun draw() {
         if (Hud.inventory.opened) {
@@ -58,27 +101,17 @@ data class Inventory(val xSize: Int, val ySize: Int) {
                     val invX = (x * slotSize) + diff
                     val invY = (y * slotSize) + diff
 
-                    if (ClientPlayer.selectedHotBar == x && y == 0) {
-//                        if (hoveredSlot.first == x && hoveredSlot.second == y)
-//                            g2.drawImage(Hud.hoveredSlot,invX, invY, slotSize, slotSize, null)
-                        drawTexture(Hud.selectedSlot, invX, invY, slotSize, slotSize)
-///*                        else */g2.drawImage(Hud.selectedSlot, invX, invY, slotSize, slotSize, null)
-                    } else {
-//                        if (hoveredSlot.first == x && hoveredSlot.second == y)
-//                            g2.drawImage(Hud.hoveredSlot,invX, invY, slotSize, slotSize, null)
-                        drawTexture(Hud.slot, invX, invY, slotSize, slotSize)
+                    if (selectedHotBar == x && y == 0)
+                        drawTexture(Hud.selectedSlot.textureId, invX, invY, slotSize, slotSize)
+                    else drawTexture(Hud.slot.textureId, invX, invY, slotSize, slotSize)
 
-//                        /*                        else */g2.drawImage(Hud.slot, invX, invY, slotSize, slotSize, null)
-                    }
-
-                    drawTexture(Hud.inventory.getItem(x, y)?.type?.texture, invX + 8, invY + 8,
-                        slotSize - 16, slotSize - 16)
-//                    g2.drawImage(
-//                        Hud.inventory.getItem(x, y)?.type?.texture,
-//                        invX + 8, invY + 8,
-//                        slotSize - 16, slotSize - 16,
-//                        null
-//                    )
+                    drawTexture(
+                        Hud.inventory.getItem(x, y)?.type?.texture?.textureId,
+                        invX + 8,
+                        invY + 8,
+                        slotSize - 16,
+                        slotSize - 16
+                    )
                 }
             }
         } else {
@@ -88,23 +121,17 @@ data class Inventory(val xSize: Int, val ySize: Int) {
                 val invX = (x * slotSize) + diff
                 val invY = diff
 
-                if (ClientPlayer.selectedHotBar == x) {
-//                    if (hoveredSlot.first == x && hoveredSlot.second == 0)
-//                        g2.drawImage(Hud.hoveredSlot,invX, invY, slotSize, slotSize, null)
-/*                    else */drawTexture(Hud.selectedSlot, invX, invY, slotSize, slotSize)
-                } else {
-//                    if (hoveredSlot.first == x && hoveredSlot.second == 0)
-//                        g2.drawImage(Hud.hoveredSlot,invX, invY, slotSize, slotSize, null)
-/*                    else */drawTexture(Hud.slot, invX, invY, slotSize, slotSize)
-                }
-                drawTexture(Hud.inventory.getItem(x, 0)?.type?.texture, invX + 8, invY + 8,
-                    slotSize - 16, slotSize - 16)
-//                g2.drawImage(
-//                    Hud.inventory.getItem(x, 0)?.type?.texture,
-//                    invX + 8, invY + 8,
-//                    slotSize - 16, slotSize - 16,
-//                    null
-//                )
+                if (selectedHotBar == x)
+                    drawTexture(Hud.selectedSlot.textureId, invX, invY, slotSize, slotSize)
+                else drawTexture(Hud.slot.textureId, invX, invY, slotSize, slotSize)
+
+                drawTexture(
+                    Hud.inventory.getItem(x, 0)?.type?.texture?.textureId,
+                    invX + 8,
+                    invY + 8,
+                    slotSize - 16,
+                    slotSize - 16
+                )
 
             }
         }

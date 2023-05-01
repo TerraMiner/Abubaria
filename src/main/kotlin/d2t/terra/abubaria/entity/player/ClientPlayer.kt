@@ -3,7 +3,7 @@ package d2t.terra.abubaria.entity.player
 
 import CollisionHandler.checkCollision
 import CollisionHandler.checkIfStuck
-import KeyHandler
+import d2t.terra.abubaria.io.devices.KeyHandler
 import d2t.terra.abubaria.GamePanel.tileSize
 import d2t.terra.abubaria.GamePanel.world
 import d2t.terra.abubaria.entity.Entity
@@ -11,22 +11,11 @@ import d2t.terra.abubaria.entity.player.inventory.Inventory
 import d2t.terra.abubaria.location.Direction
 import d2t.terra.abubaria.location.Location
 import lwjgl.loadImage
-import readImage
-import scaleImage
-import java.io.File
-import javax.imageio.ImageIO
 
 
 object ClientPlayer : Entity(Location()) {
 
     var inventory = Inventory(10, 5)
-    var selectedHotBar = 0
-
-    fun scrollHotBar(i: Int) {
-        selectedHotBar += i
-        if (selectedHotBar < 0) selectedHotBar = inventory.xSize - 1
-        if (selectedHotBar >= inventory.xSize) selectedHotBar = 0
-    }
 
     init {
         setDefaultValues()

@@ -8,7 +8,7 @@ object CollisionHandler {
         chunks.forEach chunks@{ chunk ->
             chunk.blocks.forEach blockCols@{ blockCols ->
                 blockCols.forEach blocks@{ block ->
-                    if (block.hitBox.clone.transform(1.0,1.0,-1.0,-1.0).intersects(hitBox) && block.type.collideable) {
+                    if (block.hitBox.clone.transform(hitBox.width/2, hitBox.height/2, -(hitBox.width/2), -(hitBox.height/2)).intersects(hitBox) && block.type.collideable) {
                         return true
                     }
                 }

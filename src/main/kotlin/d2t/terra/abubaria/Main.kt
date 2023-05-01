@@ -1,8 +1,9 @@
-package d2t.terra.abubaria.io
+package d2t.terra.abubaria
 
-import KeyHandler
-import d2t.terra.abubaria.GamePanel
-import d2t.terra.abubaria.MouseHandler
+import d2t.terra.abubaria.io.devices.KeyHandler
+import d2t.terra.abubaria.io.TextRender
+import d2t.terra.abubaria.io.devices.MouseHandler
+import org.lwjgl.glfw.Callbacks.glfwFreeCallbacks
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.glfw.GLFWWindowPosCallback
@@ -36,14 +37,16 @@ fun main() {
 
     GamePanel.setupScreen()
 
+    TextRender
+
     setCallbacks()
 
     GamePanel.startGameThread()
 
-//    glfwFreeCallbacks(window)
+    glfwFreeCallbacks(window)
     glfwDestroyWindow(window)
-    glfwTerminate()
     glfwSetErrorCallback(null)?.free()
+    glfwTerminate()
 }
 
 private fun setCallbacks() {

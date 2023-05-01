@@ -1,7 +1,6 @@
 package d2t.terra.abubaria.entity
 
-import KeyHandler
-import java.awt.image.BufferedImage
+import d2t.terra.abubaria.io.devices.KeyHandler
 import d2t.terra.abubaria.location.Direction
 import d2t.terra.abubaria.location.EntityHitBox
 import d2t.terra.abubaria.location.Location
@@ -9,7 +8,6 @@ import d2t.terra.abubaria.world.Chunk
 import d2t.terra.abubaria.world.tile.Material
 import lwjgl.Image
 import java.awt.Graphics2D
-import java.nio.ByteBuffer
 
 open class Entity(val location: Location) {
 

@@ -1,3 +1,5 @@
+package d2t.terra.abubaria.io.devices
+
 import d2t.terra.abubaria.Client
 import d2t.terra.abubaria.entity.player.ClientPlayer
 import org.lwjgl.glfw.GLFW.GLFW_PRESS
@@ -8,11 +10,11 @@ object KeyHandler {
     private var keyPressed = BooleanArray(350)
 
     fun keyCallback(window: Long, key: Int, scancode: Int, action: Int, mods: Int) {
-        if (key >= keyPressed.size) return
+        if (scancode >= keyPressed.size) return
         if (action == GLFW_PRESS) {
-            keyPressed[key] = true
+            keyPressed[scancode] = true
         } else if (action == GLFW_RELEASE) {
-            keyPressed[key] = false
+            keyPressed[scancode] = false
         }
     }
 
@@ -32,27 +34,27 @@ object KeyHandler {
 
 
     fun update() {
-        keyPressed.forEachIndexed { code, b ->
+        keyPressed.forEachIndexed { code, pressed ->
             when (code) {
 
-                KeyEvent.VK_W -> {
-                    upPressed = b
+                Keys.VK_W -> {
+                    upPressed = pressed
                 }
 
-                KeyEvent.VK_S -> {
-                    downPressed = b
+                Keys.VK_S -> {
+                    downPressed = pressed
                 }
 
-                KeyEvent.VK_A -> {
-                    leftPressed = b
+                Keys.VK_A -> {
+                    leftPressed = pressed
                 }
 
-                KeyEvent.VK_D -> {
-                    rightPressed = b
+                Keys.VK_D -> {
+                    rightPressed = pressed
                 }
 
-                KeyEvent.VK_SPACE -> {
-                    if (b) {
+                Keys.VK_SPACE -> {
+                    if (pressed) {
                         if (!spacePressed) {
                             spacePressed = true
                             timeSpacePressed = System.currentTimeMillis()
@@ -66,16 +68,20 @@ object KeyHandler {
                     }
                 }
 
-                KeyEvent.VK_F3 -> {
-                    Client.debugMode = !Client.debugMode
+                Keys.VK_F3 -> {
+
+                    if (pressed) {
+                        Client.debugMode = !Client.debugMode
+                        keyPressed[code] = false
+                    }
                 }
 
-//            KeyEvent.VK_F11 -> {
+//            Keys.VK_F11 -> {
 //                GamePanel.setFullScreen(!GamePanel.inFullScreen)
 //            }
 
-                KeyEvent.VK_E -> {
-                    if (b) {
+                Keys.VK_E -> {
+                    if (pressed) {
                         ClientPlayer.inventory.opened = !ClientPlayer.inventory.opened
                         keyPressed[code] = false
                     }

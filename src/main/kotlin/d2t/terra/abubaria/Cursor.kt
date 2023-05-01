@@ -6,10 +6,11 @@ import d2t.terra.abubaria.GamePanel.tileSize
 import d2t.terra.abubaria.entity.player.Camera
 import d2t.terra.abubaria.entity.player.ClientPlayer
 import d2t.terra.abubaria.entity.player.inventory.Item
-import d2t.terra.abubaria.entity.player.inventory.maxStackSize
+import d2t.terra.abubaria.io.devices.MouseHandler
 import d2t.terra.abubaria.location.Location
 import d2t.terra.abubaria.world.Block
 import d2t.terra.abubaria.world.tile.Material
+import lwjgl.drawRect
 import lwjgl.drawTexture
 import lwjgl.loadImage
 import kotlin.math.floor
@@ -27,11 +28,15 @@ class Cursor(private var x: Int, private var y: Int) {
     var mouseOnHud = false
 
     var cursorItem: Item = Item()
+    var cursorItemSlot = -1 to -1
+
     var currentBlock: Block? = null
 
     private var image =/*: BufferedImage = scaleImage(readImage(*/loadImage("cursor/cursor.png")/*), 30, 30)*/
 
     val world = GamePanel.world
+
+    val inventory get() = ClientPlayer.inventory
 
     private fun getGamePositionX(): Int {
         val tileSize = tileSize.toDouble()
@@ -63,90 +68,87 @@ class Cursor(private var x: Int, private var y: Int) {
     }
 
     fun draw(location: Location) {
-            getBlockPosition().also { block ->
-                currentBlock = block
 
-//                val prevColor = g2.color
-//                g2.color = Color.GREEN
+        getBlockPosition().also { block ->
+            currentBlock = block
 
-//                g2.drawString(cursorText, x, y - 3)
 
-                if (Client.debugMode && !mouseOnHud) {
+            if (Client.debugMode && !mouseOnHud) {
 
-                    block?.apply {
-                        val screenX = Camera.worldScreenPosX(x * tileSize, location)
-                        val screenY = Camera.worldScreenPosY(y * tileSize, location)
 
-//                        g2.drawRect(
-//                            screenX,
-//                            screenY + type.state.offset,
-//                            hitBox.width.toInt(),
-//                            hitBox.height.toInt()
-//                        )
+                block?.apply {
+                    val screenX = Camera.worldScreenPosX(x * tileSize, location)
+                    val screenY = Camera.worldScreenPosY(y * tileSize, location)
+                    drawRect(screenX, screenY + type.state.offset, hitBox.width.toInt(), hitBox.height.toInt())
 
-//                        g2.drawString("$x $y", screenX, screenY + block.type.state.offset)
-                    }
+//                    g2.drawString("$x $y", screenX, screenY + block.type.state.offset)
                 }
-
-//                g2.color = prevColor
             }
+        }
 
-            drawTexture(image, x, y, 30, 30)
-            drawTexture(cursorItem.type.texture, x + 5, y + 15, 15, 15)
 
-//            g2.drawImage(image, x, y, null)
-//            g2.drawImage(cursorItem.type.texture, x + 5, y + 15, 15, 15, null)
+        drawTexture(image.textureId, x, y, 30, 30)
+        drawTexture(cursorItem.type.texture?.textureId, x + 5, y + 15, 15, 15)
     }
 
     fun update() {
         MouseHandler.update()
 
         MouseHandler.apply {
-            this@Cursor.x = (x /*- GamePanel.screenPosX*/).toInt() /*- 9*/
-            this@Cursor.y = (y /*- GamePanel.screenPosY*/).toInt() /*- 32*/
+            this@Cursor.x = x.toInt()
+            this@Cursor.y = y.toInt()
         }
 
-        val bound = ClientPlayer.inventory.inventoryBound
+        val bound = inventory.inventoryBound
         mouseOnHud = (x >= bound.x && y >= bound.y && x < bound.x + bound.width && y < bound.y + bound.height)
 
-        ClientPlayer.inventory.updateMouseSlot(x, y)
+        if (!inventory.opened
+            && cursorItem.type !== Material.AIR
+            && cursorItemSlot.first != -1 && cursorItemSlot.second != -1) {
+            if (inventory.items[cursorItemSlot.first][cursorItemSlot.second].type === Material.AIR) {
+                inventory.items[cursorItemSlot.first][cursorItemSlot.second] = cursorItem.clone
+            } else {
+                //drop item
+            }
+            cursorItem.remove()
+            cursorItemSlot = -1 to -1
+        }
+
+        inventory.updateMouseSlot(x, y)
 
         if (mouseOnHud) handleMouseHud()
         else handleMouseWorld()
-        endMousehandle()
+        endMouseHandle()
 
     }
 
-    fun endMousehandle() {
+    private fun endMouseHandle() {
         leftClick = false
         rightClick = false
         midClick = false
     }
 
-    fun handleMouseHud() {
+    private fun handleMouseHud() {
 
-        val hoveredItem = ClientPlayer.inventory.getItemMouse(x, y)
+        val hoveredItem = inventory.getItemMouse(x, y)
 
         cursorText = if (hoveredItem?.type !== Material.AIR)
             (hoveredItem?.run { "$display $amount" }) ?: ""
         else ""
 
-        if (ClientPlayer.inventory.opened) {
+        if (inventory.opened) {
             if (leftClick) {
 
-                ClientPlayer.inventory.setItemMouse(x, y, cursorItem)
+                inventory.setItemFromMouse(x, y, cursorItem)
+                cursorItem = hoveredItem ?: return
 
-                cursorItem = hoveredItem ?: run {
-                    println("ERROR")
-                    return
-                }
             }
         } else {
-            if (leftClick) ClientPlayer.selectedHotBar = ClientPlayer.inventory.hoveredSlot.first
+            if (leftClick) inventory.selectedHotBar = inventory.hoveredSlot.first
         }
     }
 
-    fun handleMouseWorld() {
+    private fun handleMouseWorld() {
 
         cursorText = if (currentBlock?.type !== Material.AIR)
             currentBlock?.type?.display ?: ""
@@ -159,7 +161,7 @@ class Cursor(private var x: Int, private var y: Int) {
         currentBlock?.apply {
 
             val hotBarItem = ClientPlayer.run {
-                inventory.getItem(selectedHotBar, 0)
+                inventory.getItem(inventory.selectedHotBar, 0)
             }
 
             when {
@@ -176,7 +178,15 @@ class Cursor(private var x: Int, private var y: Int) {
                 }
 
                 midPress -> {
-                    cursorItem = Item(type, maxStackSize)
+                    val item = Item(type, type.maxStackSize)
+                    if (inventory.opened)
+                    cursorItem = item
+                    else {
+                        val targetSlot = inventory.findIdentify(item.type).first
+                        if (targetSlot == -1) inventory.setItem(inventory.firstEmptySlot(), item)
+                        else inventory.selectedHotBar = targetSlot
+                    }
+                    
                 }
             }
         }

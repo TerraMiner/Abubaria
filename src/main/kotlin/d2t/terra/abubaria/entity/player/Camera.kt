@@ -8,6 +8,7 @@ import d2t.terra.abubaria.GamePanel.tileSize
 import d2t.terra.abubaria.GamePanel.world
 import d2t.terra.abubaria.location.Direction
 import d2t.terra.abubaria.location.Location
+import lwjgl.drawRect
 import lwjgl.drawTexture
 import java.awt.Color
 import java.awt.Graphics2D
@@ -123,16 +124,16 @@ object Camera {
             val width = (tileSize * width + 4).toInt()
             val height = (tileSize * height + 1).toInt()
 
-            drawTexture(image, offX - 1, offY, width, height)
+            drawTexture(image?.textureId, offX - 1, offY, width, height)
 
 //            g2.drawImage(image, offX - 1, offY, null)
 
-//            if (Client.debugMode) ClientPlayer.hitBox.apply {
+            if (Client.debugMode) ClientPlayer.hitBox.apply {
 //                val prevColor = g2.color
 //                g2.color = Color.BLACK
-//                g2.drawRect(offX, offY, width.toInt(), height.toInt())
+                  drawRect(offX, offY, this.width.toInt(), this.height.toInt())
 //                g2.color = prevColor
-//            }
+            }
         }
     }
 }

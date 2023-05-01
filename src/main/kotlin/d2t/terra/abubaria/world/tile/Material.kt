@@ -21,16 +21,17 @@ enum class Material(
     val id: Int,
     path: String?,
     val display: String,
+    val maxStackSize: Int = 9999,
     val state: MaterialState = FULL,
     val collideable: Boolean = true,
     val height: Int = tileSize,
     val friction: Double = .03
 ) {
-    AIR(0, null,"", FULL, false, tileSize, .005),
+    AIR(0, null,"",0, FULL, false, tileSize, .005, ),
     STONE(1, "stone","Stone"),
     GRASS(2, "grass","Grass"),
     DIRT(3, "dirt","Dirt"),
-    STONE_HALF_DOWN(4, "stone_half_down", "Stone Slab", BOTTOM, true, tileSize / 2);
+    STONE_HALF_DOWN(4, "stone_half_down", "Stone Slab",9999, BOTTOM, true, tileSize / 2);
 
 //    val texture: BufferedImage? = if (path == null) null else scaleImage(
 //        readImage("block/$path.png"), tileSize, height)

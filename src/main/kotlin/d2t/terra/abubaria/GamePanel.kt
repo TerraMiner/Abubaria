@@ -1,9 +1,8 @@
 package d2t.terra.abubaria
 
 import DebugDisplay
-import KeyHandler
+import d2t.terra.abubaria.io.devices.KeyHandler
 import LagDebugger
-import d2t.terra.abubaria.io.window
 import d2t.terra.abubaria.entity.player.Camera
 import d2t.terra.abubaria.entity.player.ClientPlayer
 import d2t.terra.abubaria.hud.Hud
@@ -11,7 +10,7 @@ import d2t.terra.abubaria.world.World
 import d2t.terra.abubaria.world.WorldGenerator
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL11.*
-import java.awt.*
+import java.awt.Color
 import kotlin.concurrent.thread
 
 
@@ -80,11 +79,13 @@ object GamePanel {
         screenWidth2 = size.first
         screenHeight2 = size.second
 
-        glClearColor(bgColor.red/255f, bgColor.green/255f, bgColor.blue/255f, bgColor.alpha/255f)
+        glClearColor(bgColor.red / 255f, bgColor.green / 255f, bgColor.blue / 255f, bgColor.alpha / 255f)
 
         glViewport(0, 0, screenWidth2, screenHeight2)
 
         glMatrixMode(GL_PROJECTION)
+        glEnable(GL_TEXTURE_2D)
+
         glLoadIdentity()
         glOrtho(0.0, screenWidth2.toDouble(), screenHeight2.toDouble(), 0.0, 0.0, 1.0)
         glMatrixMode(GL_MODELVIEW)
@@ -116,7 +117,7 @@ object GamePanel {
 
             glClear(GL_COLOR_BUFFER_BIT)
 
-            glEnable(GL_TEXTURE_2D)
+//            glEnable(GL_TEXTURE_2D)
 
             drawToTempScreen()
 
@@ -127,14 +128,13 @@ object GamePanel {
 
             if (timer >= 1000000000) {
                 display.fps = drawCount
-                println(display.fps)
+//                println(display.fps)
                 drawCount = 0
                 timer = 0
             }
         }
 
         glfwDestroyWindow(window)
-        glfwTerminate()
     }
 
 
@@ -181,7 +181,7 @@ object GamePanel {
         val loc = ClientPlayer.location.clone
 //        kotlin.runCatching {
         glEnable(GL_BLEND)
-        glBegin(GL_QUADS)
+//        glBegin(GL_QUADS)
         a.check(182)
 
         world.draw(loc)
@@ -194,6 +194,13 @@ object GamePanel {
         a.check(191)
 
         cursor.draw(loc)
+
+//        glEnd()
+
+//        drawQuad(596.0f,10.0f,23.0f,23.0f)
+
+//        "ABOBUS".draw(3,20,20,20,20)
+
         a.check(194)
 
 
