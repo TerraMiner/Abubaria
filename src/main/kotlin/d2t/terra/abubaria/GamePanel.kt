@@ -6,11 +6,17 @@ import LagDebugger
 import d2t.terra.abubaria.entity.player.Camera
 import d2t.terra.abubaria.entity.player.ClientPlayer
 import d2t.terra.abubaria.hud.Hud
+import d2t.terra.abubaria.io.fonts.CFont
 import d2t.terra.abubaria.world.World
 import d2t.terra.abubaria.world.WorldGenerator
+import lwjgl.drawString
+import lwjgl.drawTexture
+import org.lwjgl.BufferUtils
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL11.*
+import org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE
 import java.awt.Color
+import java.awt.Image
 import kotlin.concurrent.thread
 
 
@@ -47,6 +53,8 @@ object GamePanel {
     var inFullScreen = false
 
     var hasResized = false
+
+    val font = CFont("fonts/Comic Sans MS.ttf","Comic Sans MS",64)
 
     init {
 
@@ -108,6 +116,7 @@ object GamePanel {
         var currentTime: Long
         var timer = 0L
         var drawCount = 0
+
 
         while (!glfwWindowShouldClose(window)) {
 
@@ -195,11 +204,11 @@ object GamePanel {
 
         cursor.draw(loc)
 
-//        glEnd()
+//        font.apply {
+//            drawTexture(getCharacter('А').textureId,100,100,100,100)
+//        }
 
-//        drawQuad(596.0f,10.0f,23.0f,23.0f)
-
-//        "ABOBUS".draw(3,20,20,20,20)
+//        drawString(",.!$';/|",60,100,1, Color(100,60,20))
 
         a.check(194)
 

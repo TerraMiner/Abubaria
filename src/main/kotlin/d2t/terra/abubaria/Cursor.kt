@@ -179,8 +179,10 @@ class Cursor(private var x: Int, private var y: Int) {
 
                 midPress -> {
                     val item = Item(type, type.maxStackSize)
-                    if (inventory.opened)
-                    cursorItem = item
+                    if (inventory.opened) {
+                        cursorItem = item
+                        cursorItemSlot = inventory.firstEmptySlot()
+                    }
                     else {
                         val targetSlot = inventory.findIdentify(item.type).first
                         if (targetSlot == -1) inventory.setItem(inventory.firstEmptySlot(), item)

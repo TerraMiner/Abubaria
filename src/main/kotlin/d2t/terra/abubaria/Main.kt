@@ -3,6 +3,7 @@ package d2t.terra.abubaria
 import d2t.terra.abubaria.io.devices.KeyHandler
 import d2t.terra.abubaria.io.TextRender
 import d2t.terra.abubaria.io.devices.MouseHandler
+import d2t.terra.abubaria.io.fonts.CFont
 import org.lwjgl.glfw.Callbacks.glfwFreeCallbacks
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWErrorCallback
@@ -36,8 +37,6 @@ fun main() {
     GL.createCapabilities()
 
     GamePanel.setupScreen()
-
-    TextRender
 
     setCallbacks()
 

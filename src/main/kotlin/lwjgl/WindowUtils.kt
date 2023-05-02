@@ -1,5 +1,6 @@
 package lwjgl
 
+import d2t.terra.abubaria.GamePanel
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE
@@ -23,10 +24,10 @@ fun BufferedImage.toImage(): Image {
         for (x in 0 until width) {
             val pixel = pixels[y * width + x]
 
-            buffer.put((pixel shr 16 and 0xFF).toByte()) // Red component
-            buffer.put((pixel shr 8 and 0xFF).toByte())  // Green component
-            buffer.put((pixel and 0xFF).toByte())       // Blue component
-            buffer.put((pixel shr 24 and 0xFF).toByte()) // Alpha component
+            buffer.put((pixel and 0xFF).toByte())        // Red component
+            buffer.put((pixel shr 8 and 0xFF).toByte())   // Green component
+            buffer.put((pixel shr 16 and 0xFF).toByte())  // Blue component
+            buffer.put((pixel shr 24 and 0xFF).toByte())  // Alpha component
         }
     }
 
@@ -47,12 +48,43 @@ class Image(byteBuffer: ByteBuffer? = null, texturePath: String? = null) {
     var height = imageHeight[0]
     val textureId = glGenTextures()
 
+    fun subImage(x: Int, y: Int, width: Int, height: Int): Image {
+        val subImageSizeInBytes = width * height * 4
+        val subImageByteBuffer = BufferUtils.createByteBuffer(subImageSizeInBytes)
+
+        for (row in y - height until y) {
+            for (col in x until x + width) {
+                val pixelIndex = ((row) * this.width + col) * 4
+
+                subImageByteBuffer.put(this.image!![pixelIndex + 0])
+                subImageByteBuffer.put(this.image!![pixelIndex + 1])
+                subImageByteBuffer.put(this.image!![pixelIndex + 2])
+                subImageByteBuffer.put(this.image!![pixelIndex + 3])
+            }
+        }
+
+        subImageByteBuffer.flip()
+
+        return Image(subImageByteBuffer).apply {
+            // Устанавливаем параметры текстуры для подизображения
+            glPopMatrix()
+            glBindTexture(GL_TEXTURE_2D, textureId)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
+
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image)
+//            glPopMatrix() // восстанавливаем предыдущее состояние матрицы трансформации
+        }
+    }
+
     init {
         glBindTexture(GL_TEXTURE_2D, textureId)
-//        glTexture
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image)
     }
 }
+
 
 fun drawRect(x: Int, y: Int, width: Int, height: Int, lineWidth: Float = 1f, color: Color = Color.BLACK) {
     glPushAttrib(GL_CURRENT_BIT or GL_ENABLE_BIT or GL_TRANSFORM_BIT)
@@ -68,7 +100,18 @@ fun drawRect(x: Int, y: Int, width: Int, height: Int, lineWidth: Float = 1f, col
     glPopAttrib()
 }
 
-fun drawTexture(textureId: Int?, x: Int, y: Int, width: Int, height: Int) {
+fun drawString(string: String, x: Int, y: Int, sizeMod: Int, color: Color = Color.WHITE) {
+    GamePanel.font.apply {
+        var xMod = x
+        string.forEach{
+            val char = getCharacter(it)
+            drawTexture(char.textureId,xMod,y,char.width/sizeMod,char.height/sizeMod, color)
+            xMod += char.width / sizeMod
+        }
+    }
+}
+
+fun drawTexture(textureId: Int?, x: Int, y: Int, width: Int, height: Int, color: Color = Color.WHITE) {
 
     if (textureId == null) return
 
@@ -81,6 +124,8 @@ fun drawTexture(textureId: Int?, x: Int, y: Int, width: Int, height: Int) {
 
     glEnable(GL_BLEND)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
+    glColor4f(color.red/255f, color.green/255f, color.blue/255f, color.alpha/255f)
 
     glBegin(GL_QUADS)
 
