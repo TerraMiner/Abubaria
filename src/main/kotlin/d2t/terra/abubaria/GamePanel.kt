@@ -213,12 +213,12 @@ object GamePanel {
         a.check(194)
 
 
-//        /*if (Client.debugMode)*/ display.text.apply {
-//            split("\n").forEachIndexed { index, text ->
-//                val y = index * 20 + 20f
-//                    drawString(text, 4f, y, 5f,1f)
-//            }
-//        }
+        if (Client.debugMode) display.text.apply {
+            split("\n").forEachIndexed { index, text ->
+                val y = index * 20 + 20
+                    drawString(text, 4, y, 5,Color.DARK_GRAY)
+            }
+        }
 
         val end = System.currentTimeMillis()
 
