@@ -1,6 +1,7 @@
 package d2t.terra.abubaria.world.tile
 
 import d2t.terra.abubaria.GamePanel.tileSize
+import d2t.terra.abubaria.entity.particleSize
 
 import d2t.terra.abubaria.world.tile.MaterialState.BOTTOM
 import d2t.terra.abubaria.world.tile.MaterialState.FULL
@@ -35,5 +36,19 @@ enum class Material(
 
 //    val texture: BufferedImage? = if (path == null) null else scaleImage(
 //        readImage("block/$path.png"), tileSize, height)
-    val texture: Image? = if (path == null) null else loadImage("block/$path.png")
+    val texture: Image? = if (path === null) null else loadImage("block/$path.png")
+    val slices = Array(particleSize) { Array(particleSize) { Image() } }.apply {
+        if (texture === null) return@apply
+        for (y in 0 until particleSize) {
+            for (x in 0 until particleSize) {
+                val tileWidth = texture.width / particleSize
+                val tileHeight = texture.height / particleSize
+                this[x][y] = texture.subImage(x*tileWidth, y*tileHeight, tileWidth, tileHeight)
+                this[x][y].apply a@{
+                    if (width == 0) width = tileWidth
+                    if (height == 0) height = tileHeight
+                }
+            }
+        }
+    }
 }

@@ -36,13 +36,11 @@ object ClientPlayer : Entity(Location()) {
     private fun getPlayerImage() {
         kotlin.runCatching {
             val path = "entity/player/"
-            val width = (tileSize * width + 4).toInt()
-            val height = (tileSize * height + 1).toInt()
 
-            leftIdle = /*scaleImage(readImage(*/loadImage("${path}leftIdle.png")/*)*//*.negative()*//*, width, height)*/
-            leftJump = /*scaleImage(readImage(*/loadImage("${path}leftJump.png")/*)*//*.negative()*//*, width, height)*/
-            rightIdle = /*scaleImage(readImage(*/loadImage("${path}rightIdle.png")/*)*//*.negative()*//*, width, height)*/
-            rightJump = /*scaleImage(readImage(*/loadImage("${path}rightJump.png")/*)*//*.negative()*//*, width, height)*/
+            leftIdle = loadImage("${path}leftIdle.png")
+            leftJump = loadImage("${path}leftJump.png")
+            rightIdle = loadImage("${path}rightIdle.png")
+            rightJump = loadImage("${path}rightJump.png")
 
         }.getOrElse {
             it.printStackTrace()

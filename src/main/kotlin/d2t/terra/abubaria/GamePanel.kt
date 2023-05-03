@@ -75,7 +75,8 @@ object GamePanel {
         return arrX[0] to arrY[0]
     }
 
-    private val bgColor = Color(170, 255, 255)
+//    private val bgColor = Color(170, 255, 255)
+private val bgColor = Color(40, 40, 50)
 
     fun setupScreen() {
 
@@ -126,18 +127,16 @@ object GamePanel {
 
             glClear(GL_COLOR_BUFFER_BIT)
 
-//            glEnable(GL_TEXTURE_2D)
-
             drawToTempScreen()
 
             glfwSwapBuffers(window)
+
             glfwPollEvents()
 
             drawCount++
 
             if (timer >= 1000000000) {
                 display.fps = drawCount
-//                println(display.fps)
                 drawCount = 0
                 timer = 0
             }
@@ -164,7 +163,7 @@ object GamePanel {
                 ClientPlayer.update()
                 cursor.update()
                 KeyHandler.update()
-//                world.update()
+                world.update()
 
                 deltaTicks -= 1.0
                 tickCount++
@@ -184,13 +183,9 @@ object GamePanel {
         a.enabled = false
         a.check(173)
         val start = System.currentTimeMillis()
-//        g2.color = bgColor
-//        g2.fillRect(0, 0, screenWidth2, screenHeight2)
-//        g2.color = Color.BLACK
         val loc = ClientPlayer.location.clone
-//        kotlin.runCatching {
+
         glEnable(GL_BLEND)
-//        glBegin(GL_QUADS)
         a.check(182)
 
         world.draw(loc)
@@ -203,13 +198,6 @@ object GamePanel {
         a.check(191)
 
         cursor.draw(loc)
-
-//        font.apply {
-//            drawTexture(getCharacter('А').textureId,100,100,100,100)
-//        }
-
-//        drawString(",.!$';/|",60,100,1, Color(100,60,20))
-
         a.check(194)
 
 

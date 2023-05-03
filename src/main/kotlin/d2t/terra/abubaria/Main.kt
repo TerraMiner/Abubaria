@@ -113,7 +113,7 @@ fun main1() {
 
 //    })
 
-    GamePanel.startGameThread()
+//    GamePanel.startGameThread()
 }
 
 

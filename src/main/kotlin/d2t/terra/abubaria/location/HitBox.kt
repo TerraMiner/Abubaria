@@ -17,6 +17,12 @@ class EntityHitBox(val entity: Entity) :
             it.y = y
         }
 
+    override fun move(dx: Double, dy: Double): EntityHitBox {
+        x += dx
+        y += dy
+        return this
+    }
+
     fun intersectionChunks(): MutableList<Chunk> {
         val chunks = mutableListOf<Chunk>()
 
@@ -168,7 +174,7 @@ open class HitBox(var x: Double, var y: Double, var width: Double, var height: D
         }
     }
 
-    fun move(dx: Double, dy: Double): HitBox {
+    open fun move(dx: Double, dy: Double): HitBox {
         x += dx
         y += dy
         return this

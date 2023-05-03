@@ -1,85 +1,148 @@
 package d2t.terra.abubaria.entity
 
+import CollisionHandler.checkCollision
+import CollisionHandler.checkIfStuck
+import d2t.terra.abubaria.Client
 import d2t.terra.abubaria.GamePanel
 import d2t.terra.abubaria.GamePanel.tileSize
 import d2t.terra.abubaria.entity.player.Camera
-import d2t.terra.abubaria.entity.player.ClientPlayer
 import d2t.terra.abubaria.location.Direction
+import d2t.terra.abubaria.location.EntityHitBox
 import d2t.terra.abubaria.location.Location
 import d2t.terra.abubaria.world.Block
 import d2t.terra.abubaria.world.tile.Material
-import java.awt.Graphics2D
-import java.awt.image.BufferedImage
+import lwjgl.Image
+import lwjgl.drawRect
+import lwjgl.drawTexture
+import java.lang.Math.pow
 import java.util.concurrent.ConcurrentLinkedQueue
+import kotlin.math.pow
 import kotlin.random.Random
 
-//class Particle(val texture: BufferedImage, val x: Int, val y: Int, private val parentSize: Int) : Entity(Location()) {
-//    override fun draw(g2: Graphics2D, clientLoc: Location) {
-//        if (!GamePanel.world.entities.contains(this)) return
-//
-//        val screenX = Camera.worldScreenPosX((location.x * tileSize).toInt(), clientLoc) - x * parentSize + parentSize/2
-//        val screenY = Camera.worldScreenPosY((location.y * tileSize).toInt(), clientLoc) - y * parentSize + parentSize/2
-//
-//        g2.drawImage(texture, screenX , screenY , texture.width, texture.height, null)
-//    }
-//}
+const val particleSize = 8
 
-//class ParticleDestroy(private val block: Block) : Entity(Location()) {
-//
-//    private fun initParticles(): ConcurrentLinkedQueue<Particle> {
-//
-//        if (block.type.texture === null || block.type === Material.AIR) return ConcurrentLinkedQueue()
-//
-//        val tileSize = block.type.texture!!.width / 3 // 4 * 4 = 16 tiles
-//        val particles = ConcurrentLinkedQueue<Particle>()
-//
-//        height = block.type.texture!!.width.toDouble()
-//        width = block.type.texture!!.width.toDouble()
-//
-//        for (y in 0 until 3) {
-//            for (x in 0 until 3) {
-//                if (y != 0 && Random.nextInt(0,5) != 1 || particles.size > 4) continue
-//                val tile = block.type.texture!!.getSubimage(x * tileSize, y * tileSize, tileSize, tileSize)
-//                particles.add(Particle(tile, x, y, tileSize*3).apply {
-//
-//                    val dir = if (x == 0) Direction.LEFT else Direction.RIGHT
-//
-//                    health = 200.0
-//
-//                    dx = Random.nextDouble(-.01,.01)
-//
-//                    dy = -.03
-//
-//                    dyModifier = 0.0006
-//
-//                    maxYspeed = 0.1
-//
-//                    location.setLocation(Location((block.x).toDouble() + x, (block.y).toDouble() + y, dir))
-//
-//                    GamePanel.world.entities.add(this)
-//                })
-//            }
-//        }
-//
-//        GamePanel.world.entities.add(this)
-//        return particles
-//    }
-//
-//    val tiles = initParticles()
-//
-//    override fun update() {
-//        tiles.forEach {
-//            if (!GamePanel.world.entities.contains(it)) tiles.remove(it)
-//
-//            if (it.health <= 0) it.removed = true
-//
-//            it.fall()
-//
-//            it.location.x += it.dx
-//            it.location.y += it.dy
-//            it.health -= 1
-//        }
-//    }
+class Particle(
+    private val texture: Image,
+    val x: Int,
+    val y: Int,
+    val owner: ParticleOwner
+) : Entity(Location()) {
 
+    override fun draw(playerLoc: Location) {
+        if (!GamePanel.world.entities.contains(this)) return
 
-//}
+        val screenX = Camera.worldScreenPosX((location.x).toInt(), playerLoc)
+        val screenY = Camera.worldScreenPosY((location.y).toInt(), playerLoc)
+
+        drawTexture(texture.textureId, screenX, screenY, tileSize / particleSize, tileSize / particleSize)
+
+        if (Client.debugMode) {
+            drawRect(screenX,screenY,hitBox.width.toInt(), hitBox.height.toInt())
+        }
+
+    }
+
+    override fun update() {
+        if (!GamePanel.world.entities.contains(this)) owner.tiles.remove(this)
+
+        if (this.health <= 0) this.removed = true
+
+        this.autoClimb = false
+
+        hitBox.keepInBounds(GamePanel.world.worldBorder)
+
+        chunks = hitBox.intersectionChunks()
+
+        checkIfOnGround()
+
+        if (onGround) dx = .0
+
+        fall()
+
+        checkCollision()
+
+        if (checkIfStuck(hitBox)) {
+            dy = .0
+            dx = .0
+        }
+
+        location.x += dx
+        location.y += dy
+
+        health -= if (onGround) 2 else 1
+
+        hitBox.setLocation(location)
+    }
+}
+
+open class ParticleOwner : Entity(Location()) {
+    open fun initParticles() {}
+
+    var tiles = ConcurrentLinkedQueue<Particle>()
+}
+
+class ParticleDestroy(block: Block) : ParticleOwner() {
+
+    var inited = false
+
+    val bx = block.x
+    val by = block.y
+    val type = block.type
+    val img = type.texture!!
+
+    init {
+        GamePanel.world.entities.add(this)
+    }
+
+    override fun initParticles() {
+
+        if (type.texture === null || type === Material.AIR) return
+
+        // 4 * 4 = 16 tiles
+        val particles = ConcurrentLinkedQueue<Particle>()
+
+        height = img.width.toDouble()
+        width = img.width.toDouble()
+
+        for (y in 0 until particleSize) {
+            for (x in 0 until particleSize) {
+
+                val tile = type.slices[x][y]
+
+                val modX = x * tileSize / particleSize
+                val modY = y * tileSize / particleSize
+
+                particles.add(Particle(tile, x, y, this).apply {
+
+                    val dir = if (x == 0) Direction.LEFT else Direction.RIGHT
+
+                    health = 400.0
+
+                    dx = Random.nextDouble(-.3, .3)
+
+                    dy = Random.nextDouble(-.3,.3)
+
+                    dyModifier = 0.008
+
+                    maxYspeed = 2.0
+
+                    location
+                        .setLocation(Location(
+                                bx.toDouble() * tileSize + modX,
+                                by.toDouble() * tileSize + modY,
+                                dir))
+
+                    width = particleSize.toDouble().pow(-1)
+                    height = particleSize.toDouble().pow(-1)
+
+                    hitBox = EntityHitBox(this)
+
+                    GamePanel.world.entities.add(this)
+                })
+            }
+        }
+
+        tiles = particles
+        inited = true
+    }
+}

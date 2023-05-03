@@ -7,7 +7,6 @@ import d2t.terra.abubaria.location.Location
 import d2t.terra.abubaria.world.Chunk
 import d2t.terra.abubaria.world.tile.Material
 import lwjgl.Image
-import java.awt.Graphics2D
 
 open class Entity(val location: Location) {
 
@@ -103,7 +102,7 @@ open class Entity(val location: Location) {
 
     }
 
-    open fun draw(g2: Graphics2D, location: Location) {
+    open fun draw(playerLoc: Location) {
 
     }
 

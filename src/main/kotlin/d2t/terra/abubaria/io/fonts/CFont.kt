@@ -105,7 +105,7 @@ class CFont(val path: String, val name: String, val size: Int) {
             if (font.canDisplay(i)) {
                 val char = characterMap[i] ?: continue
 
-                char.textureId = imageFont.subImage(char.sourceX,char.sourceY+12,char.width,char.height).textureId
+                char.textureId = imageFont.subTextImage(char.sourceX,char.sourceY+12,char.width,char.height).textureId
 
             }
         }

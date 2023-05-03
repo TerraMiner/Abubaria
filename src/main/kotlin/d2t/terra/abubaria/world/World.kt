@@ -5,8 +5,8 @@ import d2t.terra.abubaria.Client
 import d2t.terra.abubaria.GamePanel
 import d2t.terra.abubaria.GamePanel.tileSize
 import d2t.terra.abubaria.entity.Entity
-//import d2t.terra.abubaria.entity.Particle
-//import d2t.terra.abubaria.entity.ParticleDestroy
+import d2t.terra.abubaria.entity.Particle
+import d2t.terra.abubaria.entity.ParticleDestroy
 import d2t.terra.abubaria.entity.player.Camera
 import d2t.terra.abubaria.location.BlockHitBox
 import d2t.terra.abubaria.location.HitBox
@@ -14,6 +14,7 @@ import d2t.terra.abubaria.location.Location
 import d2t.terra.abubaria.world.tile.Material
 import d2t.terra.abubaria.world.tile.Material.*
 import lwjgl.drawRect
+import lwjgl.drawString
 import lwjgl.drawTexture
 import java.awt.Color
 import java.awt.Graphics2D
@@ -35,7 +36,8 @@ class Block(private var material: Material = AIR, var x: Int = 0, var y: Int = 0
         }
 
     fun destroy() {
-//        ParticleDestroy(this)
+        if (type === AIR) return
+        ParticleDestroy(this)
         type = AIR
     }
 
@@ -138,11 +140,15 @@ class World {
         for (chunkX in leftCorner..rightCorner) {
             for (chunkY in topCorner..bottomCorner) {
                 chunks[chunkX][chunkY].draw(location)
-//                entities.forEach {
-//                    it.draw(location)
-//                }
+                entities.forEach {
+                    if (it is ParticleDestroy && !it.inited) {
+                        it.initParticles()
+                    }
+                    it.draw(location)
+                }
             }
         }
+
         a.check(144)
         a.debug("world")
     }
@@ -157,13 +163,12 @@ class World {
         }
 
         if (Client.debugMode) {
-
             val screenX = Camera.worldScreenPosX(x * tileSize * chunkSize, location)
             val screenY = Camera.worldScreenPosY(y * tileSize * chunkSize, location)
 
             drawRect(screenX, screenY, hitBox.width.toInt(), hitBox.height.toInt(), 1f, Color.GRAY)
 
-//            g2.drawString("x: $x, y: $y", screenX + 3, screenY + 14)
+            drawString("x: $x, y: $y", screenX + 3, screenY + 14, 4, Color.GRAY)
         }
     }
 
@@ -172,26 +177,29 @@ class World {
         val screenX = Camera.worldScreenPosX(worldX, location)
         val screenY = Camera.worldScreenPosY(worldY, location)
         drawTexture(type.texture?.textureId, screenX, screenY + type.state.offset, tileSize, tileSize)
-//        g2.drawImage(type.texture, screenX, screenY + type.state.offset, null)
     }
 
-//    fun update() {
-//        entities.forEach {
-//
-//            when {
-//                it is ParticleDestroy -> {
-//
-//                    if (it.removed) {
-//                        entities.remove(it)
-//                    }
-//
+    fun update() {
+//        if (entities.isNotEmpty()) println(entities.size)
+        entities.forEach {
+            when (it) {
+                is ParticleDestroy -> {
+
+                    if (it.removed) {
+                        entities.remove(it)
+                    }
+
 //                    it.update()
-//                }
-//
-//                it is Particle -> {
-//                    if (it.removed) entities.remove(it)
-//                }
-//            }
-//        }
-//    }
+                }
+
+                is Particle -> {
+                    it.update()
+                    if (it.removed) {
+                        entities.remove(it.owner)
+                        entities.remove(it)
+                    }
+                }
+            }
+        }
+    }
 }

@@ -11,8 +11,10 @@ import d2t.terra.abubaria.location.Location
 import d2t.terra.abubaria.world.Block
 import d2t.terra.abubaria.world.tile.Material
 import lwjgl.drawRect
+import lwjgl.drawString
 import lwjgl.drawTexture
 import lwjgl.loadImage
+import java.awt.Color
 import kotlin.math.floor
 
 class Cursor(private var x: Int, private var y: Int) {
@@ -79,9 +81,16 @@ class Cursor(private var x: Int, private var y: Int) {
                 block?.apply {
                     val screenX = Camera.worldScreenPosX(x * tileSize, location)
                     val screenY = Camera.worldScreenPosY(y * tileSize, location)
-                    drawRect(screenX, screenY + type.state.offset, hitBox.width.toInt(), hitBox.height.toInt())
 
-//                    g2.drawString("$x $y", screenX, screenY + block.type.state.offset)
+                    drawRect(
+                        screenX,
+                        screenY + type.state.offset,
+                        hitBox.width.toInt(),
+                        hitBox.height.toInt(),
+                        1f,
+                        Color.GREEN
+                    )
+                    drawString("$x $y", screenX, screenY + block.type.state.offset, 4, Color.GREEN)
                 }
             }
         }
@@ -104,7 +113,8 @@ class Cursor(private var x: Int, private var y: Int) {
 
         if (!inventory.opened
             && cursorItem.type !== Material.AIR
-            && cursorItemSlot.first != -1 && cursorItemSlot.second != -1) {
+            && cursorItemSlot.first != -1 && cursorItemSlot.second != -1
+        ) {
             if (inventory.items[cursorItemSlot.first][cursorItemSlot.second].type === Material.AIR) {
                 inventory.items[cursorItemSlot.first][cursorItemSlot.second] = cursorItem.clone
             } else {
@@ -182,13 +192,12 @@ class Cursor(private var x: Int, private var y: Int) {
                     if (inventory.opened) {
                         cursorItem = item
                         cursorItemSlot = inventory.firstEmptySlot()
-                    }
-                    else {
+                    } else {
                         val targetSlot = inventory.findIdentify(item.type).first
                         if (targetSlot == -1) inventory.setItem(inventory.firstEmptySlot(), item)
                         else inventory.selectedHotBar = targetSlot
                     }
-                    
+
                 }
             }
         }

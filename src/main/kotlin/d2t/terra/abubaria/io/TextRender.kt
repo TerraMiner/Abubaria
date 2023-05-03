@@ -65,29 +65,4 @@ object TextRender {
 
         return image
     }
-
-//    private fun createCharImage(font: Font, c: Char): BufferedImage {
-//
-//        val image1 = BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB)
-//        val fontGraph = image1.createGraphics()
-//        fontGraph.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
-//        fontGraph.font = font
-//        val metrics = fontGraph.fontMetrics
-//
-//        val charWidth: Int = metrics.charWidth(c)
-//        val charHeight: Int = metrics.height
-//
-//        val image = BufferedImage(charWidth, charHeight, BufferedImage.TYPE_INT_ARGB)
-//        val g = image.createGraphics()
-//
-//        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
-//
-//        g.font = font
-//        g.paint = Color.WHITE
-//        g.drawString("$c", 0, metrics.ascent)
-//        g.dispose()
-//        return image
-//    }
-
-
 }
