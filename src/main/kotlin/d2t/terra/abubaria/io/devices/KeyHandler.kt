@@ -35,6 +35,7 @@ object KeyHandler {
 
     fun update() {
         keyPressed.forEachIndexed { code, pressed ->
+
             when (code) {
 
                 Keys.VK_W -> {
@@ -74,6 +75,14 @@ object KeyHandler {
                         Client.debugMode = !Client.debugMode
                         keyPressed[code] = false
                     }
+                }
+
+                Keys.VK_UP -> {
+                    if (pressed) Client.zoomIn()
+                }
+
+                Keys.VK_DOWN -> {
+                    if (pressed) Client.zoomOut()
                 }
 
 //            Keys.VK_F11 -> {

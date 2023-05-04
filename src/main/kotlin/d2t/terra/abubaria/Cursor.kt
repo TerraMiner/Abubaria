@@ -1,7 +1,7 @@
 package d2t.terra.abubaria
 
-import d2t.terra.abubaria.GamePanel.screenHeight2
-import d2t.terra.abubaria.GamePanel.screenWidth2
+import d2t.terra.abubaria.GamePanel.screenHeight
+import d2t.terra.abubaria.GamePanel.screenWidth
 import d2t.terra.abubaria.GamePanel.tileSize
 import d2t.terra.abubaria.entity.player.Camera
 import d2t.terra.abubaria.entity.player.ClientPlayer
@@ -43,24 +43,24 @@ class Cursor(private var x: Int, private var y: Int) {
     private fun getGamePositionX(): Int {
         val tileSize = tileSize.toDouble()
         var x =
-            (x.toDouble() / tileSize) - (Camera.screenX.toDouble() / tileSize) + (ClientPlayer.location.x / tileSize)
+            (x.toDouble() / tileSize) - (Camera.centerX.toDouble() / tileSize) + (ClientPlayer.location.x / tileSize)
 
-        if (Camera.screenX > ClientPlayer.location.x) x = this.x.toDouble() / tileSize
+        if (Camera.centerX > ClientPlayer.location.x) x = this.x.toDouble() / tileSize
 
-        if (screenWidth2 - Camera.screenX > world.worldWidth - ClientPlayer.location.x) x =
-            world.worldWidth.toDouble() / tileSize - (screenWidth2.toDouble() / tileSize - this.x.toDouble() / tileSize)
+        if (screenWidth - Camera.centerX > world.worldWidth - ClientPlayer.location.x) x =
+            world.worldWidth.toDouble() / tileSize - (screenWidth.toDouble() / tileSize - this.x.toDouble() / tileSize)
 
         return floor(x).toInt()
     }
 
     private fun getGamePositionY(): Int {
         val tileSize = tileSize.toDouble()
-        var y = y.toDouble() / tileSize - Camera.screenY.toDouble() / tileSize + ClientPlayer.location.y / tileSize
+        var y = y.toDouble() / tileSize - Camera.centerY.toDouble() / tileSize + ClientPlayer.location.y / tileSize
 
-        if (Camera.screenY > ClientPlayer.location.y) y = this.y.toDouble() / tileSize
+        if (Camera.centerY > ClientPlayer.location.y) y = this.y.toDouble() / tileSize
 
-        if (screenHeight2 - Camera.screenY > world.worldHeight - ClientPlayer.location.y) y =
-            world.worldHeight.toDouble() / tileSize - (screenHeight2.toDouble() / tileSize - this.y.toDouble() / tileSize)
+        if (screenHeight - Camera.centerY > world.worldHeight - ClientPlayer.location.y) y =
+            world.worldHeight.toDouble() / tileSize - (screenHeight.toDouble() / tileSize - this.y.toDouble() / tileSize)
 
         return floor(y).toInt()
     }
@@ -178,7 +178,7 @@ class Cursor(private var x: Int, private var y: Int) {
                 leftPress -> {
                     if (cursorItem.type === Material.AIR && hotBarItem?.type === Material.AIR) {
                         destroy()
-                    } else if (!this.hitBox.clone.transform(1.0, 1.0, -1.0, -1.0).intersects(ClientPlayer.hitBox))
+                    } else if (!this.hitBox.clone.transform(1.0, .0, -1.0, .0).intersects(ClientPlayer.hitBox))
                         type = if (cursorItem.type !== Material.AIR) cursorItem.type
                         else hotBarItem?.type ?: Material.AIR
                 }

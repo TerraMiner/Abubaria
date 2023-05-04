@@ -1,29 +1,25 @@
 package d2t.terra.abubaria
 
 import d2t.terra.abubaria.io.devices.KeyHandler
-import d2t.terra.abubaria.io.TextRender
 import d2t.terra.abubaria.io.devices.MouseHandler
-import d2t.terra.abubaria.io.fonts.CFont
 import org.lwjgl.glfw.Callbacks.glfwFreeCallbacks
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWErrorCallback
-import org.lwjgl.glfw.GLFWWindowPosCallback
 import org.lwjgl.glfw.GLFWWindowSizeCallback
 import org.lwjgl.opengl.GL
 import org.lwjgl.system.MemoryUtil.NULL
 
-
 var window: Long = 0
+val windowWidth = 1280
+val windowHeight = 560
 
 fun main() {
-    val width = 640
-    val height = 480
 
     if (!glfwInit()) {
         throw IllegalStateException("Failed to initialize GLFW")
     }
 
-    window = glfwCreateWindow(width, height, "Abubaria", NULL, NULL)
+    window = glfwCreateWindow(windowWidth, windowHeight, "Abubaria", NULL, NULL)
     if (window == NULL) {
         throw RuntimeException("Failed to create the GLFW window")
     }
@@ -57,64 +53,12 @@ private fun setCallbacks() {
 
     glfwSetWindowSizeCallback(window, object : GLFWWindowSizeCallback() {
         override fun invoke(argWindow: Long, argWidth: Int, argHeight: Int) {
+            val width = argWidth.coerceIn(800..Int.MAX_VALUE)
+            val height = argHeight.coerceIn(600..Int.MAX_VALUE)
+
+            glfwSetWindowSize(window,width,height)
 
             GamePanel.setupScreen()
-
-//            println("WORK")
-//            GamePanel.screenWidth2 = argWidth
-//            GamePanel.screenHeight2 = argHeight
-//            GamePanel.hasResized = true
-        }
-    })
-    glfwSetWindowPosCallback(window, object : GLFWWindowPosCallback() {
-        override fun invoke(window: Long, xpos: Int, ypos: Int) {
-//            GamePanel.setupScreen()
         }
     })
 }
-
-fun main1() {
-//    window.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
-//
-//    window.title = "Abubaria"
-
-//    val cursorImg = BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB)
-
-//    window.contentPane.cursor = Toolkit.getDefaultToolkit().createCustomCursor(
-//        cursorImg, Point(0, 0), "blank cursor"
-//    )
-
-//    window.add(GamePanel)
-
-//    window.pack()
-
-//    window.setLocationRelativeTo(null)
-
-//    window.isVisible = true
-
-//    GamePanel.setupScreen()
-
-//    window.addComponentListener(object : ComponentListener {
-//        override fun componentResized(e: ComponentEvent?) {
-//            GamePanel.setupScreen()
-//        }
-
-//        override fun componentMoved(e: ComponentEvent?) {
-//            GamePanel.setupScreen()
-//        }
-
-//        override fun componentShown(e: ComponentEvent?) {
-//            GamePanel.setupScreen()
-//        }
-
-//        override fun componentHidden(e: ComponentEvent?) {
-//            GamePanel.setupScreen()
-//        }
-
-//    })
-
-//    GamePanel.startGameThread()
-}
-
-
-

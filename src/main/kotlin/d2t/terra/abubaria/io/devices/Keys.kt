@@ -117,12 +117,12 @@ object Keys {
     val VK_FUNCTION = 196
     val VK_PAUSE = 197
     val VK_HOME = 199
-    val VK_UP = 200
+    val VK_UP = 328
     val VK_PRIOR = 201
-    val VK_LEFT = 203
-    val VK_RIGHT = 205
+    val VK_LEFT = 331
+    val VK_RIGHT = 333
     val VK_END = 207
-    val VK_DOWN = 208
+    val VK_DOWN = 336
     val VK_NEXT = 209
     val VK_INSERT = 210
     val VK_DELETE = 211

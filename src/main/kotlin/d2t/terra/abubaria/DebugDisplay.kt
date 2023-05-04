@@ -1,5 +1,8 @@
+import d2t.terra.abubaria.Client
 import d2t.terra.abubaria.GamePanel
 import d2t.terra.abubaria.entity.player.ClientPlayer
+import lwjgl.drawString
+import java.awt.Color
 import java.util.*
 
 class DebugDisplay {
@@ -18,5 +21,16 @@ class DebugDisplay {
         .add("onJump: ${ClientPlayer.onJump}")
         .add("videoLag: ${GamePanel.videoLag}")
         .toString()
+
+    fun draw() {
+        text.apply {
+            split("\n").forEachIndexed { index, text ->
+                val y = index * 20 + 20
+                if (index == 0) drawString(text, 4, y, 3, Color.DARK_GRAY)
+                else if (Client.debugMode)
+                    drawString(text, 4, y, 3, Color.DARK_GRAY)
+            }
+        }
+    }
 
 }

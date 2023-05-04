@@ -1,15 +1,10 @@
 package d2t.terra.abubaria.hud
 
-import d2t.terra.abubaria.GamePanel.screenWidth2
+import d2t.terra.abubaria.GamePanel.defaultScreenWidth
+import d2t.terra.abubaria.GamePanel.screenWidth
 import d2t.terra.abubaria.entity.player.ClientPlayer
-import d2t.terra.abubaria.entity.player.inventory.slotSize
 import lwjgl.drawString
 import lwjgl.loadImage
-import readImage
-import scaleImage
-import java.awt.Graphics2D
-import java.io.File
-import javax.imageio.ImageIO
 
 object Hud {
     var healthBar = ""
@@ -24,7 +19,7 @@ object Hud {
 
         healthBar = ClientPlayer.run { "$health / $maxHealth" }
 
-        drawString(healthBar,screenWidth2 - healthBar.length * 8, 15,4)
+        drawString(healthBar, defaultScreenWidth - healthBar.length * 8, 15,4)
         inventory.draw()
 
 

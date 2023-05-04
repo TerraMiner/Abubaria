@@ -1,22 +1,17 @@
 package d2t.terra.abubaria
 
 import DebugDisplay
-import d2t.terra.abubaria.io.devices.KeyHandler
-import LagDebugger
 import d2t.terra.abubaria.entity.player.Camera
 import d2t.terra.abubaria.entity.player.ClientPlayer
 import d2t.terra.abubaria.hud.Hud
+import d2t.terra.abubaria.io.devices.KeyHandler
 import d2t.terra.abubaria.io.fonts.CFont
 import d2t.terra.abubaria.world.World
 import d2t.terra.abubaria.world.WorldGenerator
-import lwjgl.drawString
-import lwjgl.drawTexture
-import org.lwjgl.BufferUtils
+import lwjgl.drawRect
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL11.*
-import org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE
 import java.awt.Color
-import java.awt.Image
 import kotlin.concurrent.thread
 
 
@@ -27,18 +22,18 @@ object GamePanel {
     private const val scale = 3
 
     var tileSize = originalTileSize * scale
-    val maxScreenCol = 1280
-    val maxScreenRow = 720
-    val screenWidth = maxScreenCol
-    val screenHeight = maxScreenRow
 
-    var screenWidth2 = screenWidth
-    var screenHeight2 = screenHeight
+    val defaultScreenPosX = 1
+    val defaultScreenPosY = 1
+    val defaultScreenWidth = windowWidth
+    val defaultScreenHeight = windowHeight
 
-    var screenPosX = 0
-    var screenPosY = 0
+    var screenPosX = defaultScreenPosX
+    var screenPosY = defaultScreenPosY
+    var screenWidth = defaultScreenWidth
+    var screenHeight = defaultScreenHeight
 
-    var gameThread: Thread? = null
+    private var gameThread: Thread? = null
 
     val world = World().apply { /*generate()*/
         WorldGenerator(this).generateWorld()
@@ -54,12 +49,7 @@ object GamePanel {
 
     var hasResized = false
 
-    val font = CFont("fonts/Comic Sans MS.ttf","Comic Sans MS",64)
-
-    init {
-
-        Camera.initialize()
-    }
+    val font = CFont("fonts/Comic Sans MS.ttf", "Comic Sans MS", 64)
 
     fun getWindowPos(window: Long): Pair<Int, Int> {
         val arrX = IntArray(1)
@@ -75,28 +65,25 @@ object GamePanel {
         return arrX[0] to arrY[0]
     }
 
-//    private val bgColor = Color(170, 255, 255)
-private val bgColor = Color(40, 40, 50)
+    //    private val bgColor = Color(170, 255, 255)
+    private val bgColor = Color(40, 40, 50)
 
     fun setupScreen() {
 
-        val pos = getWindowPos(window)
         val size = getWindowSize(window)
 
-        screenPosX = pos.first
-        screenPosY = pos.second
-        screenWidth2 = size.first
-        screenHeight2 = size.second
+        screenWidth = size.first
+        screenHeight = size.second
 
         glClearColor(bgColor.red / 255f, bgColor.green / 255f, bgColor.blue / 255f, bgColor.alpha / 255f)
 
-        glViewport(0, 0, screenWidth2, screenHeight2)
+        glViewport(0, 0, screenWidth, screenHeight)
 
         glMatrixMode(GL_PROJECTION)
         glEnable(GL_TEXTURE_2D)
 
         glLoadIdentity()
-        glOrtho(0.0, screenWidth2.toDouble(), screenHeight2.toDouble(), 0.0, 0.0, 1.0)
+        glOrtho(0.0, screenWidth.toDouble(), screenHeight.toDouble(), 0.0, 0.0, 1.0)
         glMatrixMode(GL_MODELVIEW)
 
         Camera.initialize()
@@ -126,6 +113,8 @@ private val bgColor = Color(40, 40, 50)
             lastTime = currentTime
 
             glClear(GL_COLOR_BUFFER_BIT)
+
+            Camera.interpolate()
 
             drawToTempScreen()
 
@@ -159,7 +148,6 @@ private val bgColor = Color(40, 40, 50)
             timer += (currentTime - lastTime)
             lastTime = currentTime
             while (deltaTicks >= 1.0) {
-                Camera.interpolate()
                 ClientPlayer.update()
                 cursor.update()
                 KeyHandler.update()
@@ -179,40 +167,23 @@ private val bgColor = Color(40, 40, 50)
 
 
     private fun drawToTempScreen() {
-        val a = LagDebugger()
-        a.enabled = false
-        a.check(173)
         val start = System.currentTimeMillis()
         val loc = ClientPlayer.location.clone
 
         glEnable(GL_BLEND)
-        a.check(182)
 
         world.draw(loc)
-        a.check(185)
-
         Camera.draw(loc)
-        a.check(188)
-
         Hud.draw()
-        a.check(191)
-
         cursor.draw(loc)
-        a.check(194)
 
-
-        if (Client.debugMode) display.text.apply {
-            split("\n").forEachIndexed { index, text ->
-                val y = index * 20 + 20
-                    drawString(text, 4, y, 5,Color.DARK_GRAY)
-            }
+        Camera.box.apply {
+            drawRect(x.toInt(),y.toInt(),width.toInt(),height.toInt())
         }
+        display.draw()
 
         val end = System.currentTimeMillis()
-
         videoLag = (end - start) / 1000.0
-        a.check(207)
-        a.debug("Video lag")
     }
 }
 

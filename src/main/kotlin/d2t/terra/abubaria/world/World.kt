@@ -2,7 +2,10 @@ package d2t.terra.abubaria.world
 
 import LagDebugger
 import d2t.terra.abubaria.Client
+import d2t.terra.abubaria.Client.currentZoom
 import d2t.terra.abubaria.GamePanel
+import d2t.terra.abubaria.GamePanel.screenHeight
+import d2t.terra.abubaria.GamePanel.screenWidth
 import d2t.terra.abubaria.GamePanel.tileSize
 import d2t.terra.abubaria.entity.Entity
 import d2t.terra.abubaria.entity.Particle
@@ -17,7 +20,6 @@ import lwjgl.drawRect
 import lwjgl.drawString
 import lwjgl.drawTexture
 import java.awt.Color
-import java.awt.Graphics2D
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.math.abs
 
@@ -176,7 +178,10 @@ class World {
     private fun Block.draw(worldX: Int, worldY: Int, location: Location) {
         val screenX = Camera.worldScreenPosX(worldX, location)
         val screenY = Camera.worldScreenPosY(worldY, location)
-        drawTexture(type.texture?.textureId, screenX, screenY + type.state.offset, tileSize, tileSize)
+//        println((screenWidth/Camera.box.width))
+        val xsMod = (screenWidth/Camera.box.width)
+        val ysMod = (screenHeight/Camera.box.height)
+        drawTexture(type.texture?.textureId, screenX, screenY + type.state.offset, tileSize, type.height)
     }
 
     fun update() {

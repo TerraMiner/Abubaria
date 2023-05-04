@@ -1,43 +1,39 @@
 package d2t.terra.abubaria.entity.player
 
 import d2t.terra.abubaria.Client
+import d2t.terra.abubaria.Client.currentZoom
 import d2t.terra.abubaria.GamePanel
-import d2t.terra.abubaria.GamePanel.screenHeight2
-import d2t.terra.abubaria.GamePanel.screenWidth2
+import d2t.terra.abubaria.GamePanel.screenHeight
+import d2t.terra.abubaria.GamePanel.screenWidth
 import d2t.terra.abubaria.GamePanel.tileSize
 import d2t.terra.abubaria.GamePanel.world
 import d2t.terra.abubaria.location.Direction
+import d2t.terra.abubaria.location.HitBox
 import d2t.terra.abubaria.location.Location
 import lwjgl.drawRect
 import lwjgl.drawTexture
-import java.awt.Color
-import java.awt.Graphics2D
-import java.awt.image.BufferedImage
 
 object Camera {
     var screenX = 0
     var screenY = 0
 
-    var cameraDx = .0
-    var cameraDy = .0
-
-    private var interpolationFactor = 0.2
-
     private var targetX = 0.0
     private var targetY = 0.0
 
-    private var centerX = (screenWidth2 / 2 - (tileSize / 2))
-    private var centerY = (screenHeight2 / 2 - (tileSize / 2))
+    var centerX = (screenWidth / 2 - (tileSize / 2))
+    var centerY = (screenHeight / 2 - (tileSize / 2))
+
+    val box = HitBox(0, 0, screenWidth, screenHeight)
+    val boxResolution get() = box.width / box.height
+    val screenResolution get() = screenWidth.toDouble() / screenHeight
+    val boxScreenDivX get() = box.width / screenWidth
+    val boxScreenDivY get() = box.height / screenHeight
 
     fun interpolate() {
-        screenX = centerX /*- cameraDx.toInt()*/
-        screenY = centerY /*- cameraDy.toInt()*/
-
-//        val distX = centerX - screenX
-//        val distY = centerY - screenY
-//
-//        if (screenX != centerX) cameraDx -= distX * 0.05
-//        if (screenY != centerY) cameraDy -= distY * 0.05
+//        screenX = centerX
+//        screenY = centerY
+        screenX = (box.width / 2 - (tileSize / 2)).toInt()
+        screenY = (box.height / 2 - (tileSize / 2)).toInt()
     }
 
 
@@ -45,8 +41,14 @@ object Camera {
 
         targetX = ClientPlayer.location.x
         targetY = ClientPlayer.location.y
-        centerX = (screenWidth2 / 2 - (tileSize / 2))
-        centerY = (screenHeight2 / 2 - (tileSize / 2))
+        centerX = (screenWidth / 2 - (tileSize / 2))
+        centerY = (screenHeight / 2 - (tileSize / 2))
+
+        box.apply {
+            width = screenWidth - currentZoom * 2.0
+            height = screenHeight - currentZoom * 2.0
+        }
+
     }
 
     fun offsetX(location: Location) = location.x + screenX
@@ -61,11 +63,20 @@ object Camera {
         var offX = defaultX - onsetX(location).toInt()
         val world = GamePanel.world
 
+//        if (screenX > location.x)
+//            offX = defaultX
+//        if (screenWidth - screenX > world.worldWidth - location.x)
+//            offX = screenWidth - (world.worldWidth - defaultX)
+//
         if (screenX > location.x)
             offX = defaultX
-        if (screenWidth2 - screenX > world.worldWidth - location.x)
-            offX = screenWidth2 - (world.worldWidth - defaultX)
-        return offX
+        if (box.width - screenX > world.worldWidth - location.x)
+            offX = (box.width - (world.worldWidth - defaultX)).toInt()
+//
+//        println("------------------")
+//        println(boxResolution)
+//        println(screenResolution)
+        return (offX / boxScreenDivX).toInt()
     }
 
     fun worldScreenPosY(defaultY: Int, location: Location): Int {
@@ -73,12 +84,18 @@ object Camera {
         var offY = defaultY - onsetY(location).toInt()
         val world = GamePanel.world
 
+//        if (screenY > location.y)
+//            offY = defaultY
+//        if (screenHeight - screenY > world.worldHeight - location.y)
+//            offY = screenHeight - (world.worldHeight - defaultY)
+//
         if (screenY > location.y)
             offY = defaultY
-        if (screenHeight2 - screenY > world.worldHeight - location.y)
-            offY = screenHeight2 - (world.worldHeight - defaultY)
-
-        return offY
+        if (box.height - screenY > world.worldHeight - location.y)
+            offY = (box.height - (world.worldHeight - defaultY)).toInt()
+//
+        return (offY / boxScreenDivY).toInt()
+//        return offY
     }
 
     fun playerScreenPosX(location: Location): Int {
@@ -86,10 +103,14 @@ object Camera {
 
         if (screenX > location.x) offX = location.x.toInt()
 
-        if (screenWidth2 - screenX > world.worldWidth - location.x) offX =
-            (screenWidth2 - (world.worldWidth - location.x)).toInt()
-
-        return offX
+//        if (screenWidth - screenX > world.worldWidth - location.x) offX =
+//            (screenWidth - (world.worldWidth - location.x)).toInt()
+//
+        if (box.width - screenX > world.worldWidth - location.x) offX =
+            (box.width - (world.worldWidth - location.x)).toInt()
+//
+        return (offX / (box.width / screenWidth)).toInt()
+//        return offX
     }
 
     fun playerScreenPosY(location: Location): Int {
@@ -97,10 +118,14 @@ object Camera {
 
         if (screenY > location.y) offY = location.y.toInt()
 
-        if (screenHeight2 - screenY > world.worldHeight - location.y) offY =
-            (screenHeight2 - (world.worldHeight - location.y)).toInt()
-
-        return offY
+//        if (screenHeight - screenY > world.worldHeight - location.y) offY =
+//            (screenHeight - (world.worldHeight - location.y)).toInt()
+//
+        if (box.height - screenY > world.worldHeight - location.y) offY =
+            (box.height - (world.worldHeight - location.y)).toInt()
+//
+        return (offY / (box.height / screenHeight)).toInt()
+//        return offY
     }
 
     fun draw(location: Location) {
@@ -131,7 +156,7 @@ object Camera {
             if (Client.debugMode) ClientPlayer.hitBox.apply {
 //                val prevColor = g2.color
 //                g2.color = Color.BLACK
-                  drawRect(offX, offY, this.width.toInt(), this.height.toInt())
+                drawRect(offX, offY, this.width.toInt(), this.height.toInt())
 //                g2.color = prevColor
             }
         }

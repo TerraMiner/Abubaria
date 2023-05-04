@@ -127,6 +127,7 @@ class Image(byteBuffer: ByteBuffer? = null, texturePath: String? = null) {
     init {
         glBindTexture(GL_TEXTURE_2D, textureId)
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image)
+        drawTexture(textureId,-10,-10,0,0)
     }
 }
 
@@ -176,14 +177,27 @@ fun drawTexture(textureId: Int?, x: Int, y: Int, width: Int, height: Int, color:
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
     glColor4f(color.red / 255f, color.green / 255f, color.blue / 255f, color.alpha / 255f)
     glBegin(GL_QUADS)
-    glTexCoord2f(0.0f, 1.0f)
-    glVertex2i(x, y + height)
-    glTexCoord2f(1.0f, 1.0f)
-    glVertex2i(x + width, y + height)
-    glTexCoord2f(1.0f, 0.0f)
-    glVertex2i(x + width, y)
+//    glTexCoord2f(0.0f, 1.0f)
+//    glVertex2i(x, y + height)
+//    glTexCoord2f(1.0f, 1.0f)
+//    glVertex2i(x + width, y + height)
+//    glTexCoord2f(1.0f, 0.0f)
+//    glVertex2i(x + width, y)
+//    glTexCoord2f(0.0f, 0.0f)
+//    glVertex2i(x, y)
+
+
     glTexCoord2f(0.0f, 0.0f)
     glVertex2i(x, y)
+    glTexCoord2f(1.0f, 0.0f)
+    glVertex2i(x + width, y)
+    glTexCoord2f(1.0f, 1.0f)
+    glVertex2i(x + width, y + height)
+    glTexCoord2f(0.0f, 1.0f)
+    glVertex2i(x, y + height)
+
+
+
     glEnd()
 
 }

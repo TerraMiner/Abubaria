@@ -15,6 +15,10 @@ data class Inventory(val xSize: Int, val ySize: Int) {
 
     var selectedHotBar = 0
 
+    init {
+        items[5][0] = Item(Material.STONE_HALF_DOWN,1)
+    }
+
     val hotBar get() = items[0]
 
     var opened = false
@@ -105,12 +109,13 @@ data class Inventory(val xSize: Int, val ySize: Int) {
                         drawTexture(Hud.selectedSlot.textureId, invX, invY, slotSize, slotSize)
                     else drawTexture(Hud.slot.textureId, invX, invY, slotSize, slotSize)
 
+                    val item = Hud.inventory.getItem(x, y) ?: continue
                     drawTexture(
-                        Hud.inventory.getItem(x, y)?.type?.texture?.textureId,
+                        item.type.texture?.textureId,
                         invX + 8,
-                        invY + 8,
+                        invY + 8 + item.type.state.offset,
                         slotSize - 16,
-                        slotSize - 16
+                        slotSize - 16 - item.type.height
                     )
                 }
             }
@@ -125,12 +130,13 @@ data class Inventory(val xSize: Int, val ySize: Int) {
                     drawTexture(Hud.selectedSlot.textureId, invX, invY, slotSize, slotSize)
                 else drawTexture(Hud.slot.textureId, invX, invY, slotSize, slotSize)
 
+                val item = Hud.inventory.getItem(x, 0) ?: continue
                 drawTexture(
-                    Hud.inventory.getItem(x, 0)?.type?.texture?.textureId,
+                    item.type.texture?.textureId,
                     invX + 8,
-                    invY + 8,
+                    invY + 8 + item.type.state.offset,
                     slotSize - 16,
-                    slotSize - 16
+                    slotSize - 16 - item.type.height
                 )
 
             }

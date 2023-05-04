@@ -3,6 +3,7 @@ package d2t.terra.abubaria.entity
 import CollisionHandler.checkCollision
 import CollisionHandler.checkIfStuck
 import d2t.terra.abubaria.Client
+import d2t.terra.abubaria.Client.currentZoom
 import d2t.terra.abubaria.GamePanel
 import d2t.terra.abubaria.GamePanel.tileSize
 import d2t.terra.abubaria.entity.player.Camera
@@ -14,12 +15,12 @@ import d2t.terra.abubaria.world.tile.Material
 import lwjgl.Image
 import lwjgl.drawRect
 import lwjgl.drawTexture
-import java.lang.Math.pow
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.math.pow
 import kotlin.random.Random
+import kotlin.random.nextInt
 
-const val particleSize = 8
+const val particleSize = 4
 
 class Particle(
     private val texture: Image,
@@ -28,16 +29,20 @@ class Particle(
     val owner: ParticleOwner
 ) : Entity(Location()) {
 
+    private val dSize = tileSize.toDouble() / particleSize.toDouble()
+
     override fun draw(playerLoc: Location) {
         if (!GamePanel.world.entities.contains(this)) return
 
-        val screenX = Camera.worldScreenPosX((location.x).toInt(), playerLoc)
-        val screenY = Camera.worldScreenPosY((location.y).toInt(), playerLoc)
+        val mod = (health / maxHealth).coerceIn(.0, 1.0)
 
-        drawTexture(texture.textureId, screenX, screenY, tileSize / particleSize, tileSize / particleSize)
+        val screenX = Camera.worldScreenPosX((location.x).toInt(), playerLoc) + (dSize / 2.0 * (1.0 - mod)).toInt()
+        val screenY = Camera.worldScreenPosY((location.y).toInt(), playerLoc) + (dSize * (1.0 - mod)).toInt()
+
+        drawTexture(texture.textureId, screenX, screenY, (dSize * mod).toInt(), (dSize * mod).toInt())
 
         if (Client.debugMode) {
-            drawRect(screenX,screenY,hitBox.width.toInt(), hitBox.height.toInt())
+            drawRect(screenX, screenY, hitBox.width.toInt(), hitBox.height.toInt())
         }
 
     }
@@ -45,9 +50,9 @@ class Particle(
     override fun update() {
         if (!GamePanel.world.entities.contains(this)) owner.tiles.remove(this)
 
-        if (this.health <= 0) this.removed = true
+        if (this.health <= 0) removed = true
 
-        this.autoClimb = false
+        autoClimb = false
 
         hitBox.keepInBounds(GamePanel.world.worldBorder)
 
@@ -62,8 +67,7 @@ class Particle(
         checkCollision()
 
         if (checkIfStuck(hitBox)) {
-            dy = .0
-            dx = .0
+            dy = .0; dx = .0
         }
 
         location.x += dx
@@ -104,8 +108,13 @@ class ParticleDestroy(block: Block) : ParticleOwner() {
         height = img.width.toDouble()
         width = img.width.toDouble()
 
+        val maxParticles = Random.nextInt(particleSize/2..particleSize*2)
+
         for (y in 0 until particleSize) {
+
             for (x in 0 until particleSize) {
+                if (particles.size >= maxParticles) break
+                if (Random.nextBoolean()) continue
 
                 val tile = type.slices[x][y]
 
@@ -116,21 +125,25 @@ class ParticleDestroy(block: Block) : ParticleOwner() {
 
                     val dir = if (x == 0) Direction.LEFT else Direction.RIGHT
 
-                    health = 400.0
+                    health = 200.0
+                    maxHealth = 200.0
 
                     dx = Random.nextDouble(-.3, .3)
 
-                    dy = Random.nextDouble(-.3,.3)
+                    dy = Random.nextDouble(-.3, .3)
 
                     dyModifier = 0.008
 
                     maxYspeed = 2.0
 
                     location
-                        .setLocation(Location(
+                        .setLocation(
+                            Location(
                                 bx.toDouble() * tileSize + modX,
                                 by.toDouble() * tileSize + modY,
-                                dir))
+                                dir
+                            )
+                        )
 
                     width = particleSize.toDouble().pow(-1)
                     height = particleSize.toDouble().pow(-1)

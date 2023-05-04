@@ -24,6 +24,8 @@ object ClientPlayer : Entity(Location()) {
 
     private fun setDefaultValues() {
 
+        maxXspeed = 10.0
+
         hitBox.height = height * tileSize.toDouble()
         hitBox.width = width * tileSize.toDouble()
 
