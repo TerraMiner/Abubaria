@@ -12,6 +12,8 @@ import d2t.terra.abubaria.location.HitBox
 import d2t.terra.abubaria.location.Location
 import lwjgl.drawRect
 import lwjgl.drawTexture
+import kotlin.math.pow
+import kotlin.math.roundToInt
 
 object Camera {
     var screenX = 0
@@ -32,8 +34,8 @@ object Camera {
     fun interpolate() {
 //        screenX = centerX
 //        screenY = centerY
-        screenX = (box.width / 2 - (tileSize / 2)).toInt()
-        screenY = (box.height / 2 - (tileSize / 2)).toInt()
+        screenX = (box.width / 2 /*- (tileSize / 2)*/).toInt()
+        screenY = (box.height / 2 /*- (tileSize / 2)*/).toInt()
     }
 
 
@@ -41,12 +43,14 @@ object Camera {
 
         targetX = ClientPlayer.location.x
         targetY = ClientPlayer.location.y
-        centerX = (screenWidth / 2 - (tileSize / 2))
-        centerY = (screenHeight / 2 - (tileSize / 2))
+        centerX = (box.width / 2 /*- (tileSize / 2)*/).toInt()
+        centerY = (box.height / 2 /*- (tileSize / 2)*/).toInt()
 
         box.apply {
-            width = screenWidth - currentZoom * 2.0
-            height = screenHeight - currentZoom * 2.0
+            x = currentZoom.toDouble()
+            y = currentZoom.toDouble()
+            width = screenWidth - currentZoom.toDouble()*2
+            height = screenHeight - currentZoom.toDouble()
         }
 
     }
@@ -60,7 +64,7 @@ object Camera {
     fun onsetY(location: Location) = location.y - screenY
 
     fun worldScreenPosX(defaultX: Int, location: Location): Int {
-        var offX = defaultX - onsetX(location).toInt()
+        var offX = defaultX - onsetX(location)
         val world = GamePanel.world
 
 //        if (screenX > location.x)
@@ -69,9 +73,9 @@ object Camera {
 //            offX = screenWidth - (world.worldWidth - defaultX)
 //
         if (screenX > location.x)
-            offX = defaultX
+            offX = defaultX.toDouble()
         if (box.width - screenX > world.worldWidth - location.x)
-            offX = (box.width - (world.worldWidth - defaultX)).toInt()
+            offX = box.width - (world.worldWidth - defaultX)
 //
 //        println("------------------")
 //        println(boxResolution)
@@ -81,7 +85,7 @@ object Camera {
 
     fun worldScreenPosY(defaultY: Int, location: Location): Int {
 
-        var offY = defaultY - onsetY(location).toInt()
+        var offY = (defaultY - onsetY(location)).toInt()
         val world = GamePanel.world
 
 //        if (screenY > location.y)
@@ -109,7 +113,7 @@ object Camera {
         if (box.width - screenX > world.worldWidth - location.x) offX =
             (box.width - (world.worldWidth - location.x)).toInt()
 //
-        return (offX / (box.width / screenWidth)).toInt()
+        return (offX / boxScreenDivX.pow(0.5)).toInt()
 //        return offX
     }
 
@@ -124,7 +128,7 @@ object Camera {
         if (box.height - screenY > world.worldHeight - location.y) offY =
             (box.height - (world.worldHeight - location.y)).toInt()
 //
-        return (offY / (box.height / screenHeight)).toInt()
+        return (offY / boxScreenDivY.pow(0.5)).toInt()
 //        return offY
     }
 

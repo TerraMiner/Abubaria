@@ -22,6 +22,8 @@ import lwjgl.drawTexture
 import java.awt.Color
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.math.abs
+import kotlin.math.absoluteValue
+import kotlin.math.pow
 
 enum class BlockFace {
     DOWN, UP, LEFT, RIGHT
@@ -179,9 +181,9 @@ class World {
         val screenX = Camera.worldScreenPosX(worldX, location)
         val screenY = Camera.worldScreenPosY(worldY, location)
 //        println((screenWidth/Camera.box.width))
-        val xsMod = (screenWidth/Camera.box.width)
-        val ysMod = (screenHeight/Camera.box.height)
-        drawTexture(type.texture?.textureId, screenX, screenY + type.state.offset, tileSize, type.height)
+        val xsMod = ((tileSize) * (Camera.boxScreenDivX).pow(-1)).toInt()
+        val ysMod = ((type.height) * (Camera.boxScreenDivY).pow(-1)).toInt()
+        drawTexture(type.texture?.textureId, screenX, screenY + type.state.offset,xsMod /*(tileSize * xsMod).toInt()*/, ysMod/*(type.height * ysMod).toInt()*/)
     }
 
     fun update() {

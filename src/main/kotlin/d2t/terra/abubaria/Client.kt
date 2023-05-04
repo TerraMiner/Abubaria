@@ -1,5 +1,6 @@
 package d2t.terra.abubaria
 
+import d2t.terra.abubaria.GamePanel.tileSize
 import d2t.terra.abubaria.entity.player.Camera
 
 object Client {
@@ -8,7 +9,7 @@ object Client {
     var zoom = 0
     var currentZoom = 0
 
-    val maxZoom = 150
+    val maxZoom = 200
 
     fun zoomIn() {
         zoom = 1
@@ -38,7 +39,7 @@ object Client {
 
         Camera.box.apply {
             width -= zoom*2
-            height -= zoom*2
+            height -= zoom
             x += zoom
             y += zoom
         }

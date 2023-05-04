@@ -136,7 +136,7 @@ data class Inventory(val xSize: Int, val ySize: Int) {
                     invX + 8,
                     invY + 8 + item.type.state.offset,
                     slotSize - 16,
-                    slotSize - 16 - item.type.height
+                    slotSize - item.type.state.offset - 16
                 )
 
             }
