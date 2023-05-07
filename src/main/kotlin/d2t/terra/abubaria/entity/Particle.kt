@@ -12,9 +12,9 @@ import d2t.terra.abubaria.location.EntityHitBox
 import d2t.terra.abubaria.location.Location
 import d2t.terra.abubaria.world.Block
 import d2t.terra.abubaria.world.tile.Material
-import lwjgl.Image
-import lwjgl.drawRect
-import lwjgl.drawTexture
+import d2t.terra.abubaria.lwjgl.Image
+import d2t.terra.abubaria.lwjgl.drawRect
+import d2t.terra.abubaria.lwjgl.drawTexture
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.math.pow
 import kotlin.random.Random
@@ -27,7 +27,7 @@ class Particle(
     val x: Int,
     val y: Int,
     val owner: ParticleOwner
-) : Entity(Location()) {
+) : Entity() {
 
     private val dSize = tileSize.toDouble() / particleSize.toDouble()
 
@@ -48,11 +48,9 @@ class Particle(
     }
 
     override fun update() {
-        if (!GamePanel.world.entities.contains(this)) owner.tiles.remove(this)
-
-        if (this.health <= 0) removed = true
-
-        autoClimb = false
+        if (this.health <= 0) remove{
+            owner.tiles.remove(this)
+        }
 
         hitBox.keepInBounds(GamePanel.world.worldBorder)
 
@@ -79,7 +77,7 @@ class Particle(
     }
 }
 
-open class ParticleOwner : Entity(Location()) {
+open class ParticleOwner : Entity() {
     open fun initParticles() {}
 
     var tiles = ConcurrentLinkedQueue<Particle>()
@@ -96,6 +94,10 @@ class ParticleDestroy(block: Block) : ParticleOwner() {
 
     init {
         GamePanel.world.entities.add(this)
+    }
+
+    override fun update() {
+        if (tiles.isEmpty() && inited) remove{}
     }
 
     override fun initParticles() {
@@ -147,6 +149,8 @@ class ParticleDestroy(block: Block) : ParticleOwner() {
 
                     width = particleSize.toDouble().pow(-1)
                     height = particleSize.toDouble().pow(-1)
+
+                    autoClimb = false
 
                     hitBox = EntityHitBox(this)
 

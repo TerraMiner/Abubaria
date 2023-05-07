@@ -1,39 +1,39 @@
 package d2t.terra.abubaria.world
 
-import LagDebugger
 import d2t.terra.abubaria.Client
-import d2t.terra.abubaria.Client.currentZoom
 import d2t.terra.abubaria.GamePanel
-import d2t.terra.abubaria.GamePanel.screenHeight
-import d2t.terra.abubaria.GamePanel.screenWidth
 import d2t.terra.abubaria.GamePanel.tileSize
 import d2t.terra.abubaria.entity.Entity
-import d2t.terra.abubaria.entity.Particle
 import d2t.terra.abubaria.entity.ParticleDestroy
 import d2t.terra.abubaria.entity.player.Camera
 import d2t.terra.abubaria.location.BlockHitBox
 import d2t.terra.abubaria.location.HitBox
 import d2t.terra.abubaria.location.Location
+import d2t.terra.abubaria.lwjgl.drawRect
+import d2t.terra.abubaria.lwjgl.drawString
+import d2t.terra.abubaria.lwjgl.drawTexture
 import d2t.terra.abubaria.world.tile.Material
-import d2t.terra.abubaria.world.tile.Material.*
-import lwjgl.drawRect
-import lwjgl.drawString
-import lwjgl.drawTexture
+import d2t.terra.abubaria.world.tile.Material.AIR
 import java.awt.Color
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.math.abs
-import kotlin.math.absoluteValue
-import kotlin.math.pow
 
 enum class BlockFace {
     DOWN, UP, LEFT, RIGHT
 }
 
-class Block(private var material: Material = AIR, var x: Int = 0, var y: Int = 0, var chunkX: Int = 0, var chunkY: Int = 0) {
+class Block(
+    private var material: Material = AIR,
+    var x: Int = 0,
+    var y: Int = 0,
+    var chunkX: Int = 0,
+    var chunkY: Int = 0
+) {
     var hitBox = BlockHitBox(this)
     val world = GamePanel.world
 
-    var type get() = material
+    var type
+        get() = material
         set(value) {
             material = value
             hitBox = BlockHitBox(this)
@@ -123,38 +123,33 @@ class World {
     }
 
     fun draw(location: Location) {
+        val extraDrawDistX = abs((Camera.playerScreenPosX(location) - Camera.cameraX) / tileSize / chunkSize) + 1
+        val extraDrawDistY = abs((Camera.playerScreenPosY(location) - Camera.cameraY) / tileSize / chunkSize) + 1
 
-        val a = LagDebugger()
-        a.enabled = false
-        a.check(121)
-        val extraDrawDistX = abs((Camera.playerScreenPosX(location) - Camera.screenX) / tileSize / chunkSize) + 1
-        val extraDrawDistY = abs((Camera.playerScreenPosY(location) - Camera.screenY) / tileSize / chunkSize) + 1
-
-        var rightCorner = (Camera.offsetX(location) / tileSize / chunkSize).toInt() + extraDrawDistX
-        var leftCorner = (Camera.onsetX(location) / tileSize / chunkSize).toInt() - extraDrawDistX
-        var bottomCorner = (Camera.offsetY(location) / tileSize / chunkSize).toInt() + extraDrawDistY
-        var topCorner = (Camera.onsetY(location) / tileSize / chunkSize).toInt() - extraDrawDistY
-
-        leftCorner = if (leftCorner < 0) 0 else if (leftCorner >= worldSizeX) worldSizeX - 1 else leftCorner
-        rightCorner = if (rightCorner < 0) 0 else if (rightCorner >= worldSizeX) worldSizeX - 1 else rightCorner
-        bottomCorner = if (bottomCorner < 0) 0 else if (bottomCorner >= worldSizeY) worldSizeY - 1 else bottomCorner
-        topCorner = if (topCorner < 0) 0 else if (topCorner >= worldSizeY) worldSizeY - 1 else topCorner
-        a.check(134)
+        val leftCorner = ((Camera.leftCameraX(location) / tileSize / chunkSize).toInt() - extraDrawDistX)
+            .coerceIn(0 until worldSizeX)
+        val rightCorner = ((Camera.rightCameraX(location) / tileSize / chunkSize).toInt() + extraDrawDistX)
+            .coerceIn(0 until worldSizeX)
+        val bottomCorner = ((Camera.bottomCameraY(location) / tileSize / chunkSize).toInt() + extraDrawDistY)
+            .coerceIn(0 until worldSizeY)
+        val topCorner = ((Camera.topCameraY(location) / tileSize / chunkSize).toInt() - extraDrawDistY)
+            .coerceIn(0 until worldSizeY)
 
         for (chunkX in leftCorner..rightCorner) {
             for (chunkY in topCorner..bottomCorner) {
                 chunks[chunkX][chunkY].draw(location)
-                entities.forEach {
-                    if (it is ParticleDestroy && !it.inited) {
-                        it.initParticles()
-                    }
-                    it.draw(location)
-                }
+                drawEntities(location)
             }
         }
+    }
 
-        a.check(144)
-        a.debug("world")
+    private fun drawEntities(location: Location) {
+        entities.forEach {
+            if (it is ParticleDestroy && !it.inited) {
+                it.initParticles()
+            }
+            it.draw(location)
+        }
     }
 
     private fun Chunk.draw(location: Location) {
@@ -179,33 +174,22 @@ class World {
 
     private fun Block.draw(worldX: Int, worldY: Int, location: Location) {
         val screenX = Camera.worldScreenPosX(worldX, location)
-        val screenY = Camera.worldScreenPosY(worldY, location)
-//        println((screenWidth/Camera.box.width))
-        val xsMod = ((tileSize) * (Camera.boxScreenDivX).pow(-1)).toInt()
-        val ysMod = ((type.height) * (Camera.boxScreenDivY).pow(-1)).toInt()
-        drawTexture(type.texture?.textureId, screenX, screenY + type.state.offset,xsMod /*(tileSize * xsMod).toInt()*/, ysMod/*(type.height * ysMod).toInt()*/)
+        val screenY = (Camera.worldScreenPosY(worldY, location) + (tileSize * type.state.offset).toInt())
+
+        drawTexture(type.texture?.textureId, screenX, screenY, tileSize, type.height)
     }
 
     fun update() {
-//        if (entities.isNotEmpty()) println(entities.size)
+        updateEntities()
+    }
+
+    private fun updateEntities() {
         entities.forEach {
-            when (it) {
-                is ParticleDestroy -> {
-
-                    if (it.removed) {
-                        entities.remove(it)
-                    }
-
-//                    it.update()
-                }
-
-                is Particle -> {
-                    it.update()
-                    if (it.removed) {
-                        entities.remove(it.owner)
-                        entities.remove(it)
-                    }
-                }
+            it.update().apply {
+                println("${it.entityId} ${it.javaClass.simpleName}")
+            }
+            if (it.removed) {
+                entities.remove(it)
             }
         }
     }

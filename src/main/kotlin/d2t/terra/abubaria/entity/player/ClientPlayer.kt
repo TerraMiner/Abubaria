@@ -3,28 +3,28 @@ package d2t.terra.abubaria.entity.player
 
 import CollisionHandler.checkCollision
 import CollisionHandler.checkIfStuck
-import d2t.terra.abubaria.io.devices.KeyHandler
 import d2t.terra.abubaria.GamePanel.tileSize
 import d2t.terra.abubaria.GamePanel.world
 import d2t.terra.abubaria.entity.Entity
-import d2t.terra.abubaria.entity.player.inventory.Inventory
+import d2t.terra.abubaria.inventory.Inventory
+import d2t.terra.abubaria.io.devices.KeyHandler
 import d2t.terra.abubaria.location.Direction
-import d2t.terra.abubaria.location.Location
-import lwjgl.loadImage
+import d2t.terra.abubaria.lwjgl.loadImage
+import org.lwjgl.glfw.GLFW
 
 
-object ClientPlayer : Entity(Location()) {
+object ClientPlayer : Entity() {
 
     var inventory = Inventory(10, 5)
 
-    init {
+    fun initialize() {
         setDefaultValues()
         getPlayerImage()
     }
 
     private fun setDefaultValues() {
 
-        maxXspeed = 10.0
+        maxXspeed = 0.8
 
         hitBox.height = height * tileSize.toDouble()
         hitBox.width = width * tileSize.toDouble()
@@ -36,18 +36,12 @@ object ClientPlayer : Entity(Location()) {
     }
 
     private fun getPlayerImage() {
-        kotlin.runCatching {
-            val path = "entity/player/"
+        val path = "entity/player/"
 
-            leftIdle = loadImage("${path}leftIdle.png")
-            leftJump = loadImage("${path}leftJump.png")
-            rightIdle = loadImage("${path}rightIdle.png")
-            rightJump = loadImage("${path}rightJump.png")
-
-        }.getOrElse {
-            it.printStackTrace()
-            println("error while loading images")
-        }
+        leftIdle = loadImage("${path}leftIdle.png")
+        leftJump = loadImage("${path}leftJump.png")
+        rightIdle = loadImage("${path}rightIdle.png")
+        rightJump = loadImage("${path}rightJump.png")
     }
 
 

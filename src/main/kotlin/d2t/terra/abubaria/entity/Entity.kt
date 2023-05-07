@@ -6,9 +6,14 @@ import d2t.terra.abubaria.location.EntityHitBox
 import d2t.terra.abubaria.location.Location
 import d2t.terra.abubaria.world.Chunk
 import d2t.terra.abubaria.world.tile.Material
-import lwjgl.Image
+import d2t.terra.abubaria.lwjgl.Image
 
-open class Entity(val location: Location) {
+private var id = 0
+open class Entity {
+
+    val location = Location()
+
+    val entityId = ++id
 
     var removed = false
 
@@ -51,12 +56,10 @@ open class Entity(val location: Location) {
 
     fun moveLeft() {
         dx -= dxModifier
-//        Camera.cameraDx += dxModifier*6
     }
 
     fun moveRight() {
         dx += dxModifier
-//        Camera.cameraDx -= dxModifier*6
     }
 
 
@@ -92,8 +95,6 @@ open class Entity(val location: Location) {
 
         dy += dyModifier
 
-//        Camera.cameraDy -= dyModifier*5
-
         if (dy > maxYspeed) dy = maxYspeed
 
     }
@@ -104,6 +105,11 @@ open class Entity(val location: Location) {
 
     open fun draw(playerLoc: Location) {
 
+    }
+
+    fun remove(unit: () -> Unit) {
+        unit.invoke()
+        removed = true
     }
 
     fun checkIfOnGround() {

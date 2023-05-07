@@ -1,22 +1,19 @@
 package d2t.terra.abubaria.io.fonts
 
-import d2t.terra.abubaria.GamePanel
-import lwjgl.loadImage
-import lwjgl.toImage
+import d2t.terra.abubaria.lwjgl.loadImage
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL11.*
-import java.awt.Color
-import java.awt.Font
-import java.awt.FontMetrics
-import java.awt.GraphicsEnvironment
-import java.awt.Image
-import java.awt.RenderingHints
+import java.awt.*
 import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_ARGB
 import java.io.File
 import javax.imageio.ImageIO
 import kotlin.math.max
 import kotlin.math.sqrt
+
+class CharInfo(val sourceX: Int, val sourceY: Int, val width: Int, val height: Int) {
+    var textureId = 0
+}
 
 class CFont(val path: String, val name: String, val size: Int) {
 
@@ -26,7 +23,7 @@ class CFont(val path: String, val name: String, val size: Int) {
     private val characterMap: MutableMap<Int, CharInfo> = mutableMapOf()
     private val ge: GraphicsEnvironment = GraphicsEnvironment.getLocalGraphicsEnvironment()
     private val imageFile = "fonts/${name}_map.png"
-    lateinit var imageFont: lwjgl.Image
+    lateinit var imageFont: d2t.terra.abubaria.lwjgl.Image
     lateinit var fontMetrics: FontMetrics
 
 
@@ -89,12 +86,13 @@ class CFont(val path: String, val name: String, val size: Int) {
             }
         }
 
-
-        kotlin.runCatching {
-            val file = File(imageFile)
-            ImageIO.write(img,"png",file)
-        }.getOrElse {
-            it.printStackTrace()
+        if (!File(imageFile).exists()) {
+            kotlin.runCatching {
+                val file = File(imageFile)
+                ImageIO.write(img, "png", file)
+            }.getOrElse {
+                it.printStackTrace()
+            }
         }
 
         g2d.dispose()
@@ -105,11 +103,11 @@ class CFont(val path: String, val name: String, val size: Int) {
             if (font.canDisplay(i)) {
                 val char = characterMap[i] ?: continue
 
-                char.textureId = imageFont.subTextImage(char.sourceX,char.sourceY+12,char.width,char.height).textureId
+                char.textureId =
+                    imageFont.subTextImage(char.sourceX, char.sourceY + 12, char.width, char.height).textureId
 
             }
         }
-
     }
 
     fun getCharacter(codepoint: Char): CharInfo {

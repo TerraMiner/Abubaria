@@ -37,7 +37,7 @@ class WorldGenerator(private val world: World) {
                 if (y == 0) {
                     fillChunkWithAir(chunk)
                 } else {
-                    fillChunkWithTerrain(chunk)
+//                    fillChunkWithTerrain(chunk)
                 }
             }
         }
@@ -56,7 +56,7 @@ class WorldGenerator(private val world: World) {
             val worldX = x + this.x * chunkSize
             for (y in 0 until chunkSize) {
                 val worldY = y + this.y * chunkSize
-                action.invoke(worldX, worldY)
+                action(worldX, worldY)
             }
         }
     }

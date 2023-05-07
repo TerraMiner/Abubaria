@@ -131,10 +131,10 @@ class EntityHitBox(val entity: Entity) :
     }
 }
 
-class BlockHitBox(val block: Block) :
+class BlockHitBox(private val block: Block) :
     HitBox(
         block.x * tileSize,
-        block.y * tileSize + block.type.state.offset,
+        block.y * tileSize + (tileSize * block.type.state.offset).toInt(),
         tileSize - 1,
         block.type.height - 1
     ) {

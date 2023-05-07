@@ -8,7 +8,7 @@ import d2t.terra.abubaria.io.devices.KeyHandler
 import d2t.terra.abubaria.io.fonts.CFont
 import d2t.terra.abubaria.world.World
 import d2t.terra.abubaria.world.WorldGenerator
-import lwjgl.drawRect
+import d2t.terra.abubaria.world.tile.Material
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL11.*
 import java.awt.Color
@@ -19,7 +19,7 @@ object GamePanel {
 
     private const val originalTileSize = 8
 
-    private const val scale = 3
+    private const val scale = 2
 
     var tileSize = originalTileSize * scale
 
@@ -37,6 +37,9 @@ object GamePanel {
 
     val world = World().apply { /*generate()*/
         WorldGenerator(this).generateWorld()
+        val x = (worldWidth / tileSize) / 2
+        val y = 20
+        setBlock(Material.STONE, x, y)
     }
 
     val cursor = Cursor(0, 0)
@@ -87,16 +90,22 @@ object GamePanel {
         glMatrixMode(GL_MODELVIEW)
 
         Camera.initialize()
-
     }
 
     fun startGameThread() {
+        ClientPlayer.initialize()
+
         gameThread = thread(true) {
             tick()
         }
         draw()
     }
 
+    val vertices = FloatArray(9).apply {
+        set(0,-1f);set(1,-1f);set(2,0f)
+        set(3,0f);set(4,1f);set(5,0f)
+        set(6,1f);set(7,-1f);set(8,0f)
+    }
 
     private fun draw() {
 
@@ -105,26 +114,25 @@ object GamePanel {
         var timer = 0L
         var drawCount = 0
 
-
         while (!glfwWindowShouldClose(window)) {
 
             currentTime = System.nanoTime()
             timer += (currentTime - lastTime)
             lastTime = currentTime
 
+            glfwPollEvents()
+
             glClear(GL_COLOR_BUFFER_BIT)
 
             Camera.interpolate()
 
-            drawToTempScreen()
+            drawScreen()
 
             glfwSwapBuffers(window)
 
-            glfwPollEvents()
-
             drawCount++
 
-            if (timer >= 1000000000) {
+            if (timer >= 1e9) {
                 display.fps = drawCount
                 drawCount = 0
                 timer = 0
@@ -165,8 +173,7 @@ object GamePanel {
         }
     }
 
-
-    private fun drawToTempScreen() {
+    private fun drawScreen() {
         val start = System.currentTimeMillis()
         val loc = ClientPlayer.location.clone
 
@@ -174,12 +181,10 @@ object GamePanel {
 
         world.draw(loc)
         Camera.draw(loc)
+
         Hud.draw()
         cursor.draw(loc)
 
-        Camera.box.apply {
-            drawRect(x.toInt(),y.toInt(),width.toInt(),height.toInt())
-        }
         display.draw()
 
         val end = System.currentTimeMillis()

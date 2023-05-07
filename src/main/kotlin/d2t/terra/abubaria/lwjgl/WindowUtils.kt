@@ -1,4 +1,4 @@
-package lwjgl
+package d2t.terra.abubaria.lwjgl
 
 import d2t.terra.abubaria.GamePanel
 import org.lwjgl.BufferUtils
@@ -11,29 +11,6 @@ import java.nio.ByteBuffer
 
 
 fun loadImage(texturePath: String) = Image(null, texturePath)
-
-fun BufferedImage.toImage(): Image {
-    val pixels = IntArray(width * height)
-
-    getRGB(0, 0, width, height, pixels, 0, width)
-
-    val buffer = BufferUtils.createByteBuffer(width * height * 4)
-
-    for (y in 0 until height) {
-        for (x in 0 until width) {
-            val pixel = pixels[y * width + x]
-
-            buffer.put((pixel and 0xFF).toByte())        // Red component
-            buffer.put((pixel shr 8 and 0xFF).toByte())   // Green component
-            buffer.put((pixel shr 16 and 0xFF).toByte())  // Blue component
-            buffer.put((pixel shr 24 and 0xFF).toByte())  // Alpha component
-        }
-    }
-
-    buffer.flip()
-
-    return Image(buffer)
-}
 
 class Image(byteBuffer: ByteBuffer? = null, texturePath: String? = null) {
 
@@ -70,7 +47,6 @@ class Image(byteBuffer: ByteBuffer? = null, texturePath: String? = null) {
                     it.printStackTrace()
                     return Image()
                 }
-//                println("Confirm x:$x, y:$y, col:$col, row:$row, width:$width, height:$height")
             }
         }
 
@@ -141,7 +117,7 @@ fun drawRect(x: Int, y: Int, width: Int, height: Int, lineWidth: Float = 1f, col
     glVertex2f(x.toFloat(), y.toFloat())
     glVertex2f(x.toFloat() + width, y.toFloat())
     glVertex2f(x.toFloat() + width, y.toFloat() + height)
-    glVertex2f(x.toFloat() - 1, y.toFloat() + height)
+    glVertex2f(x.toFloat()-1f, y.toFloat() + height)
     glEnd()
     glPopAttrib()
 }
@@ -151,15 +127,33 @@ fun drawString(string: String, x: Int, y: Int, sizeMod: Int, color: Color = Colo
         var xMod = x
         string.forEach {
             val char = getCharacter(it)
-            drawTexture(
-                char.textureId,
-                xMod,
-                y - fontMetrics.descent,
-                char.width / sizeMod,
-                char.height / sizeMod,
-                color
-            )
-            xMod += char.width / sizeMod
+
+            glBindTexture(GL_TEXTURE_2D, char.textureId)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+
+            val widthAdjusted = char.width / sizeMod
+            val heightAdjusted = char.height / sizeMod
+            glBegin(GL_QUADS)
+            glColor4f(color.red / 255f, color.green / 255f, color.blue / 255f, color.alpha / 255f)
+
+            glTexCoord2f(0.0f, 0.0f)
+            glVertex2i(xMod, y - fontMetrics.descent)
+
+            glTexCoord2f(0.0f, 1.0f)
+            glVertex2i(xMod, y + heightAdjusted - fontMetrics.descent)
+
+            glTexCoord2f(1.0f, 1.0f)
+            glVertex2i(xMod + widthAdjusted, y + heightAdjusted - fontMetrics.descent)
+
+            glTexCoord2f(1.0f, 0.0f)
+            glVertex2i(xMod + widthAdjusted, y - fontMetrics.descent)
+
+            glEnd()
+
+            xMod += widthAdjusted
         }
     }
 }
@@ -172,31 +166,22 @@ fun drawTexture(textureId: Int?, x: Int, y: Int, width: Int, height: Int, color:
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
+
+
     glBindTexture(GL_TEXTURE_2D, textureId)
     glEnable(GL_BLEND)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
     glColor4f(color.red / 255f, color.green / 255f, color.blue / 255f, color.alpha / 255f)
     glBegin(GL_QUADS)
-//    glTexCoord2f(0.0f, 1.0f)
-//    glVertex2i(x, y + height)
-//    glTexCoord2f(1.0f, 1.0f)
-//    glVertex2i(x + width, y + height)
-//    glTexCoord2f(1.0f, 0.0f)
-//    glVertex2i(x + width, y)
-//    glTexCoord2f(0.0f, 0.0f)
-//    glVertex2i(x, y)
 
-
-    glTexCoord2f(0.0f, 0.0f)
-    glVertex2i(x, y)
-    glTexCoord2f(1.0f, 0.0f)
-    glVertex2i(x + width, y)
-    glTexCoord2f(1.0f, 1.0f)
-    glVertex2i(x + width, y + height)
     glTexCoord2f(0.0f, 1.0f)
     glVertex2i(x, y + height)
-
-
+    glTexCoord2f(1.0f, 1.0f)
+    glVertex2i(x + width, y + height)
+    glTexCoord2f(1.0f, 0.0f)
+    glVertex2i(x + width, y)
+    glTexCoord2f(0.0f, 0.0f)
+    glVertex2i(x, y)
 
     glEnd()
 

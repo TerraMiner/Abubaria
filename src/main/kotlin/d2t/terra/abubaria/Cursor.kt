@@ -3,17 +3,19 @@ package d2t.terra.abubaria
 import d2t.terra.abubaria.GamePanel.screenHeight
 import d2t.terra.abubaria.GamePanel.screenWidth
 import d2t.terra.abubaria.GamePanel.tileSize
+import d2t.terra.abubaria.entity.item.EntityItem
 import d2t.terra.abubaria.entity.player.Camera
 import d2t.terra.abubaria.entity.player.ClientPlayer
-import d2t.terra.abubaria.entity.player.inventory.Item
+import d2t.terra.abubaria.inventory.Item
 import d2t.terra.abubaria.io.devices.MouseHandler
+import d2t.terra.abubaria.location.Direction
 import d2t.terra.abubaria.location.Location
+import d2t.terra.abubaria.lwjgl.drawRect
+import d2t.terra.abubaria.lwjgl.drawString
+import d2t.terra.abubaria.lwjgl.drawTexture
+import d2t.terra.abubaria.lwjgl.loadImage
 import d2t.terra.abubaria.world.Block
 import d2t.terra.abubaria.world.tile.Material
-import lwjgl.drawRect
-import lwjgl.drawString
-import lwjgl.drawTexture
-import lwjgl.loadImage
 import java.awt.Color
 import kotlin.math.floor
 
@@ -81,16 +83,17 @@ class Cursor(private var x: Int, private var y: Int) {
                 block?.apply {
                     val screenX = Camera.worldScreenPosX(x * tileSize, location)
                     val screenY = Camera.worldScreenPosY(y * tileSize, location)
+                    val offset = (tileSize * type.state.offset).toInt()
 
                     drawRect(
                         screenX,
-                        screenY + type.state.offset,
+                        screenY + offset,
                         hitBox.width.toInt(),
                         hitBox.height.toInt(),
                         1f,
                         Color.GREEN
                     )
-                    drawString("$x $y", screenX, screenY + block.type.state.offset, 4, Color.GREEN)
+                    drawString("$x $y", screenX, screenY + offset, 4, Color.GREEN)
                 }
             }
         }
@@ -140,18 +143,38 @@ class Cursor(private var x: Int, private var y: Int) {
 
     private fun handleMouseHud() {
 
-        val hoveredItem = inventory.getItemMouse(x, y)
+        val hoveredItem = inventory.getItemOfMouse(x, y)!!
 
-        cursorText = if (hoveredItem?.type !== Material.AIR)
-            (hoveredItem?.run { "$display $amount" }) ?: ""
+        cursorText = if (hoveredItem.type !== Material.AIR)
+            (hoveredItem.run { "$display $amount" })
         else ""
 
         if (inventory.opened) {
-            if (leftClick) {
+            when {
+                leftClick -> {
+                    if (cursorItem.type !== hoveredItem.type) {
+                        inventory.setItemFromMouse(x, y, cursorItem)
+                        cursorItem = hoveredItem
+                    } else {
+                        hoveredItem.compareItem(cursorItem)
+                    }
+                }
 
-                inventory.setItemFromMouse(x, y, cursorItem)
-                cursorItem = hoveredItem ?: return
+                midClick -> {
+                    if (cursorItem.type === Material.AIR) {
+                        cursorItem = hoveredItem.takeHalf()
+                    } else if (cursorItem.type == hoveredItem.type) {
+                        cursorItem.compareItem(hoveredItem.takeHalf())
+                    }
+                }
 
+                rightClick -> {
+                    if (cursorItem.type == Material.AIR) {
+                        cursorItem = hoveredItem.takeOne()
+                    } else if (cursorItem.type == hoveredItem.type) {
+                        cursorItem.compareItem(hoveredItem.takeOne())
+                    }
+                }
             }
         } else {
             if (leftClick) inventory.selectedHotBar = inventory.hoveredSlot.first
@@ -170,31 +193,42 @@ class Cursor(private var x: Int, private var y: Int) {
 
         currentBlock?.apply {
 
-            val hotBarItem = ClientPlayer.run {
-                inventory.getItem(inventory.selectedHotBar, 0)
-            }
+            val hotBarItem = ClientPlayer.inventory.getItem(inventory.selectedHotBar, 0) ?: return
+
 
             when {
                 leftPress -> {
-                    if (cursorItem.type === Material.AIR && hotBarItem?.type === Material.AIR) {
+                    if (cursorItem.type === Material.AIR && hotBarItem.type === Material.AIR) {
                         destroy()
                     } else if (!this.hitBox.clone.transform(1.0, .0, -1.0, .0).intersects(ClientPlayer.hitBox))
-                        type = if (cursorItem.type !== Material.AIR) cursorItem.type
-                        else hotBarItem?.type ?: Material.AIR
+                        if (cursorItem.type !== Material.AIR) {
+                            if (type === cursorItem.type) return
+                            type = cursorItem.type
+                            cursorItem.decrement()
+                        } else {
+                            if (type === hotBarItem.type) return
+                            type = hotBarItem.type
+                            hotBarItem.decrement()
+                        }
                 }
 
                 rightPress -> {
-                    //Drop item
+                    if (cursorItem.type === Material.AIR) return
+                    EntityItem(cursorItem.clone, ClientPlayer).apply {
+                        dy = -.5
+                        dx = 2.0
+                    }.spawn()
+                    cursorItem.remove()
                 }
 
                 midPress -> {
                     val item = Item(type, type.maxStackSize)
                     if (inventory.opened) {
                         cursorItem = item
-                        cursorItemSlot = inventory.firstEmptySlot()
+                        cursorItemSlot = inventory.firstEmptySlot(!inventory.opened)
                     } else {
-                        val targetSlot = inventory.findIdentify(item.type).first
-                        if (targetSlot == -1) inventory.setItem(inventory.firstEmptySlot(), item)
+                        val targetSlot = inventory.findIdentify(item.type, !inventory.opened).first
+                        if (targetSlot == -1) inventory.setItem(inventory.firstEmptySlot(!inventory.opened), item)
                         else inventory.selectedHotBar = targetSlot
                     }
 
