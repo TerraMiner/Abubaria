@@ -22,13 +22,12 @@ object CollisionHandler {
             chunk.blocks.forEach blockCols@{ blockCols ->
                 blockCols.forEach blocks@{ block ->
 
-                    //Horizontal
-
                     if (hitBox.clone.move(dx, dy)
                             .intersects(block.hitBox) && block.type.collideable) {
                         climb(block)
                     }
 
+                    //Horizontal
                     if (hitBox.clone.move(dx, .0).intersects(block.hitBox) && block.type.collideable) {
                         hitBox.pushOutX(block.hitBox)
                     }

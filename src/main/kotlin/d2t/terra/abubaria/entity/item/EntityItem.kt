@@ -8,31 +8,33 @@ import d2t.terra.abubaria.entity.Entity
 import d2t.terra.abubaria.entity.player.Camera
 import d2t.terra.abubaria.entity.player.ClientPlayer
 import d2t.terra.abubaria.inventory.Item
+import d2t.terra.abubaria.location.Direction
 import d2t.terra.abubaria.location.EntityHitBox
 import d2t.terra.abubaria.location.Location
 import d2t.terra.abubaria.lwjgl.drawRect
 import d2t.terra.abubaria.lwjgl.drawTexture
+import d2t.terra.abubaria.world.tile.Material
 import kotlin.math.pow
-
-val entityItemSize = 12
 
 class EntityItem(val item: Item, val throwOwner: Entity?) : Entity() {
 
-    private val deathTime = System.currentTimeMillis() + 10000//30*60*1000
+    private val entityItemSize = 12.0
+    private val deathTime = System.currentTimeMillis() + 30*60*1000
     private val canPickUpAfter = System.currentTimeMillis() + 2000
     private val texture = item.type.texture!!
+    private val spawnLocation = throwOwner?.location?.clone?.move(throwOwner.width/2.0,throwOwner.height/2.0)
 
     fun spawn() {
         autoClimb = false
+        onGround = false
         dyModifier = 0.008
-        maxYspeed = 2.0
-        location.setLocation(throwOwner?.location?.clone ?: Location())
-        width = (entityItemSize).toDouble()
-        height = (entityItemSize).toDouble()
-        hitBox = EntityHitBox(this).apply {
-            width = entityItemSize.toDouble()
-            height = entityItemSize.toDouble()
-        }
+        maxYspeed = 1.5
+        maxXspeed = 1.5
+
+        location.setLocation(spawnLocation ?: Location())
+        width = entityItemSize
+        height = entityItemSize
+        hitBox = EntityHitBox(this, width, height)
         GamePanel.world.entities.add(this)
     }
 
@@ -40,22 +42,22 @@ class EntityItem(val item: Item, val throwOwner: Entity?) : Entity() {
         if (!GamePanel.world.entities.contains(this)) return
 
         val screenX = Camera.worldScreenPosX((location.x).toInt(), playerLoc)
-        val screenY = Camera.worldScreenPosY((location.y).toInt(), playerLoc)
+        val screenY = (Camera.worldScreenPosY((location.y).toInt(), playerLoc) + height * item.type.state.offset).toInt()
+        val height = (height * (1.0 - item.type.state.offset)).toInt()
 
         drawTexture(
             texture.textureId, screenX, screenY,
-            width.toInt(), height.toInt(),
+            width.toInt(), height,
         )
 
         if (Client.debugMode) {
-            drawRect(screenX, screenY, hitBox.width.toInt(), hitBox.height.toInt())
+            drawRect(screenX, screenY, hitBox.width.toInt() , height)
         }
 
     }
 
     private fun tryPickUp() {
         if (location.distance(ClientPlayer.location) > 64) return
-//        println("trying to pickup")
     }
 
     override fun update() {
@@ -63,9 +65,7 @@ class EntityItem(val item: Item, val throwOwner: Entity?) : Entity() {
         tryPickUp()
 
         if (deathTime - System.currentTimeMillis() <= 0L) {
-            remove{
-                println("removed")
-            }
+            remove{}
             return
         }
 
@@ -75,18 +75,16 @@ class EntityItem(val item: Item, val throwOwner: Entity?) : Entity() {
 
         checkIfOnGround()
 
-        fall()
+        if (onGround) dx = .0
 
-        applyMovement()
+        fall()
 
         checkCollision()
 
-//        if (checkIfStuck(hitBox)) {
-//            dy = .0; dx = .0
-//        }
-
         location.x += dx
         location.y += dy
+
+        applyMovement()
 
         hitBox.setLocation(location)
     }

@@ -13,12 +13,12 @@ class DebugDisplay {
         .add("FPS: $fps")
         .add("TPS: $tps")
         .add("Pos: ${ClientPlayer.location.x} ${ClientPlayer.location.y}")
-        .add("Speed: ${ClientPlayer.dxModifier}")
         .add("dX: ${ClientPlayer.dx}")
         .add("dY: ${ClientPlayer.dy}")
         .add("ground: ${ClientPlayer.ground}")
         .add("onGround: ${ClientPlayer.onGround}")
         .add("onJump: ${ClientPlayer.onJump}")
+        .add("entities: ${GamePanel.world.entities.size}")
         .add("videoLag: ${GamePanel.videoLag}")
         .toString()
 

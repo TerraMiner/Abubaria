@@ -4,9 +4,9 @@ import d2t.terra.abubaria.GamePanel
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE
-import org.lwjgl.stb.STBImage.*
+import org.lwjgl.stb.STBImage.STBI_rgb_alpha
+import org.lwjgl.stb.STBImage.stbi_load
 import java.awt.Color
-import java.awt.image.BufferedImage
 import java.nio.ByteBuffer
 
 
@@ -19,8 +19,9 @@ class Image(byteBuffer: ByteBuffer? = null, texturePath: String? = null) {
 
     val textureId = glGenTextures()
 
-    var image = if (byteBuffer === null) stbi_load(texturePath ?: "", imageWidth, imageHeight, IntArray(1), STBI_rgb_alpha)
-    else byteBuffer
+    var image =
+        if (byteBuffer === null) stbi_load(texturePath ?: "", imageWidth, imageHeight, IntArray(1), STBI_rgb_alpha)
+        else byteBuffer
 
     var width = imageWidth[0]
     var height = imageHeight[0]
@@ -35,18 +36,14 @@ class Image(byteBuffer: ByteBuffer? = null, texturePath: String? = null) {
 
         for (row in y until y + height) {
             for (col in x until x + width) {
-                kotlin.runCatching {
-                    val pixelIndex = (row * this.width + col) * 4
 
-                    subImageByteBuffer.put(this.image!![pixelIndex])
-                    subImageByteBuffer.put(this.image!![pixelIndex + 1])
-                    subImageByteBuffer.put(this.image!![pixelIndex + 2])
-                    subImageByteBuffer.put(this.image!![pixelIndex + 3])
-                }.getOrElse {
-                    println("ERROR x:$x, y:$y, col:$col, row:$row, width:$width, height:$height")
-                    it.printStackTrace()
-                    return Image()
-                }
+                val pixelIndex = (row * this.width + col) * 4
+
+                subImageByteBuffer.put(this.image!![pixelIndex])
+                subImageByteBuffer.put(this.image!![pixelIndex + 1])
+                subImageByteBuffer.put(this.image!![pixelIndex + 2])
+                subImageByteBuffer.put(this.image!![pixelIndex + 3])
+
             }
         }
 
@@ -103,7 +100,7 @@ class Image(byteBuffer: ByteBuffer? = null, texturePath: String? = null) {
     init {
         glBindTexture(GL_TEXTURE_2D, textureId)
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image)
-        drawTexture(textureId,-10,-10,0,0)
+        drawTexture(textureId, -10, -10, 0, 0)
     }
 }
 
@@ -117,7 +114,7 @@ fun drawRect(x: Int, y: Int, width: Int, height: Int, lineWidth: Float = 1f, col
     glVertex2f(x.toFloat(), y.toFloat())
     glVertex2f(x.toFloat() + width, y.toFloat())
     glVertex2f(x.toFloat() + width, y.toFloat() + height)
-    glVertex2f(x.toFloat()-1f, y.toFloat() + height)
+    glVertex2f(x.toFloat() - 1f, y.toFloat() + height)
     glEnd()
     glPopAttrib()
 }

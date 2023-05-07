@@ -8,11 +8,11 @@ import d2t.terra.abubaria.world.Chunk
 import kotlin.math.min
 
 
-class EntityHitBox(val entity: Entity) :
-    HitBox(entity.location, (entity.width * tileSize).toInt(), (entity.height * tileSize).toInt()) {
+class EntityHitBox(val entity: Entity, width: Double,height: Double) :
+    HitBox(entity.location, width, height) {
 
     val clone
-        get() = EntityHitBox(entity).also {
+        get() = EntityHitBox(entity, width, height).also {
             it.x = x
             it.y = y
         }
@@ -148,11 +148,11 @@ open class HitBox(var x: Double, var y: Double, var width: Double, var height: D
     val right get() = x + width
     val left get() = x
 
-    constructor(location: Location, sizeX: Int, sizeY: Int) : this(
+    constructor(location: Location, sizeX: Double, sizeY: Double) : this(
         location.x,
         location.y,
-        sizeX.toDouble(),
-        sizeY.toDouble()
+        sizeX,
+        sizeY
     )
 
     constructor(x: Int, y: Int, width: Int, height: Int) : this(

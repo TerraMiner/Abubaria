@@ -140,19 +140,15 @@ class ParticleDestroy(block: Block) : ParticleOwner() {
 
                     location
                         .setLocation(
-                            Location(
-                                bx.toDouble() * tileSize + modX,
-                                by.toDouble() * tileSize + modY,
-                                dir
-                            )
-                        )
+                            Location(bx.toDouble() * tileSize + modX,
+                                by.toDouble() * tileSize + modY, dir))
 
-                    width = particleSize.toDouble().pow(-1)
-                    height = particleSize.toDouble().pow(-1)
+                    width = particleSize.toDouble()
+                    height = particleSize.toDouble()
 
                     autoClimb = false
 
-                    hitBox = EntityHitBox(this)
+                    hitBox = EntityHitBox(this, width, height)
 
                     GamePanel.world.entities.add(this)
                 })

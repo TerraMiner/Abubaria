@@ -34,6 +34,7 @@ object GamePanel {
     var screenHeight = defaultScreenHeight
 
     private var gameThread: Thread? = null
+    private var chatThread: Thread? = null
 
     val world = World().apply { /*generate()*/
         WorldGenerator(this).generateWorld()
@@ -94,17 +95,10 @@ object GamePanel {
 
     fun startGameThread() {
         ClientPlayer.initialize()
-
         gameThread = thread(true) {
             tick()
         }
         draw()
-    }
-
-    val vertices = FloatArray(9).apply {
-        set(0,-1f);set(1,-1f);set(2,0f)
-        set(3,0f);set(4,1f);set(5,0f)
-        set(6,1f);set(7,-1f);set(8,0f)
     }
 
     private fun draw() {
@@ -161,7 +155,7 @@ object GamePanel {
                 KeyHandler.update()
                 world.update()
 
-                deltaTicks -= 1.0
+                deltaTicks = .0
                 tickCount++
             }
 

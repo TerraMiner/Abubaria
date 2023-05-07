@@ -1,9 +1,5 @@
 package d2t.terra.abubaria
 
-import d2t.terra.abubaria.GamePanel.tileSize
-import d2t.terra.abubaria.entity.player.Camera
-import org.lwjgl.opengl.GL
-
 object Client {
     var debugMode = false
 
@@ -24,21 +20,4 @@ object Client {
             currentZoom = minZoom
         } else currentZoom -= zoom
     }
-
-//    fun applyZoom() {
-//        Camera.box.apply {
-//            println("current: $currentZoom")
-//            val zoomFactor = 23f
-//            val zoomLvl = String.format("%.2f",
-//                kotlin.math.round(currentZoom * zoomFactor) / zoomFactor
-//                ).replace(",",".").toDouble()
-//
-//            println("rounded: $zoomLvl")
-//            width = (GamePanel.screenWidth / zoomLvl).toDouble()
-//            height = (GamePanel.screenHeight / zoomLvl).toDouble()
-////            x = width
-////            y = height
-//        }
-//    }
-
 }

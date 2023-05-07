@@ -41,7 +41,7 @@ class Block(
 
     fun destroy() {
         if (type === AIR) return
-        ParticleDestroy(this)
+        ParticleDestroy(this).initParticles()
         type = AIR
     }
 
@@ -126,28 +126,34 @@ class World {
         val extraDrawDistX = abs((Camera.playerScreenPosX(location) - Camera.cameraX) / tileSize / chunkSize) + 1
         val extraDrawDistY = abs((Camera.playerScreenPosY(location) - Camera.cameraY) / tileSize / chunkSize) + 1
 
-        val leftCorner = ((Camera.leftCameraX(location) / tileSize / chunkSize).toInt() - extraDrawDistX)
+        val leftVertex = Camera.leftCameraX(location)
+        val rightVertex = Camera.rightCameraX(location)
+        val bottomVertex = Camera.bottomCameraY(location)
+        val topVertex = Camera.topCameraY(location)
+
+        val leftCorner = ((leftVertex / tileSize / chunkSize).toInt() - extraDrawDistX)
             .coerceIn(0 until worldSizeX)
-        val rightCorner = ((Camera.rightCameraX(location) / tileSize / chunkSize).toInt() + extraDrawDistX)
+        val rightCorner = ((rightVertex / tileSize / chunkSize).toInt() + extraDrawDistX)
             .coerceIn(0 until worldSizeX)
-        val bottomCorner = ((Camera.bottomCameraY(location) / tileSize / chunkSize).toInt() + extraDrawDistY)
+        val bottomCorner = ((bottomVertex / tileSize / chunkSize).toInt() + extraDrawDistY)
             .coerceIn(0 until worldSizeY)
-        val topCorner = ((Camera.topCameraY(location) / tileSize / chunkSize).toInt() - extraDrawDistY)
+        val topCorner = ((topVertex / tileSize / chunkSize).toInt() - extraDrawDistY)
             .coerceIn(0 until worldSizeY)
 
         for (chunkX in leftCorner..rightCorner) {
             for (chunkY in topCorner..bottomCorner) {
                 chunks[chunkX][chunkY].draw(location)
-                drawEntities(location)
+                drawEntities(location,leftVertex,rightVertex,topVertex,bottomVertex)
             }
         }
     }
 
-    private fun drawEntities(location: Location) {
-        entities.forEach {
-            if (it is ParticleDestroy && !it.inited) {
-                it.initParticles()
-            }
+    private fun drawEntities(location: Location, leftVertex: Double, rightVertex: Double, topVertex: Double, bottomVertex: Double) {
+        entities.filter {
+            it.location.run {
+                x in leftVertex..rightVertex &&
+                y in topVertex..bottomVertex }
+        }.forEach {
             it.draw(location)
         }
     }
@@ -185,9 +191,7 @@ class World {
 
     private fun updateEntities() {
         entities.forEach {
-            it.update().apply {
-                println("${it.entityId} ${it.javaClass.simpleName}")
-            }
+            it.update()
             if (it.removed) {
                 entities.remove(it)
             }

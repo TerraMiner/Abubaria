@@ -19,9 +19,10 @@ open class Location(var x: Double = .0, var y: Double = .0, var direction: Direc
         this.y = y
     }
 
-    fun move(x: Double, y: Double) {
+    fun move(x: Double, y: Double): Location {
         this.x += x
         this.y += y
+        return this
     }
 
     fun distance(other: Location): Double {

@@ -50,9 +50,10 @@ open class Entity {
     var health = 100.0
     var maxHealth = 100.0
 
-    var hitBox = EntityHitBox(this)
-
     var chunks = mutableListOf<Chunk>()
+
+    var hitBox = EntityHitBox(this, .0,.0)
+
 
     fun moveLeft() {
         dx -= dxModifier
@@ -119,7 +120,9 @@ open class Entity {
             chunks.forEach chunks@{ chunk ->
                 chunk.blocks.forEach blocksCols@{ blockCols ->
                     blockCols.forEach blocks@{
-                        if (it.hitBox.top <= hitBox.bottom && hitBox.bottom - it.hitBox.top == .0 && it.type.collideable
+                        if (it.hitBox.top <= hitBox.bottom
+                            && hitBox.bottom - it.hitBox.top == .0
+                            && it.type.collideable
                             && hitBox.run { x < it.hitBox.x + it.hitBox.width && x + width - 1 > it.hitBox.x }
                         ) {
                             isOnGround = true

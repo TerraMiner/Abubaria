@@ -215,8 +215,8 @@ class Cursor(private var x: Int, private var y: Int) {
                 rightPress -> {
                     if (cursorItem.type === Material.AIR) return
                     EntityItem(cursorItem.clone, ClientPlayer).apply {
-                        dy = -.5
-                        dx = 2.0
+                        dx = if (ClientPlayer.location.direction == Direction.RIGHT) .7 else -.7
+                        dy = -.4
                     }.spawn()
                     cursorItem.remove()
                 }

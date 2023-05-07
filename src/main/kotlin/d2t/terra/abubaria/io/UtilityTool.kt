@@ -1,5 +1,7 @@
 package d2t.terra.abubaria.io
 
+import java.util.concurrent.ConcurrentLinkedQueue
+
 class LagDebugger {
     private var startTime = System.nanoTime()
     private val list = mutableMapOf<Int, Long>()
