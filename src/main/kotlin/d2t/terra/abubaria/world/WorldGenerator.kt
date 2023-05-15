@@ -2,7 +2,8 @@ package d2t.terra.abubaria.world
 
 import d2t.terra.abubaria.GamePanel.tileSize
 import d2t.terra.abubaria.SimplexNoise
-import d2t.terra.abubaria.world.tile.Material
+import d2t.terra.abubaria.world.block.Block
+import d2t.terra.abubaria.world.material.Material
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.random.Random
@@ -33,7 +34,7 @@ class WorldGenerator(private val world: World) {
         for (x in 0 until chunksX) {
             for (y in 0 until chunksY) {
                 val chunk = Chunk(x, y).apply { initBlocks() }
-                world.chunks[x][y] = chunk
+                world.chunkMap[x][y] = chunk
                 if (y == 0) {
                     fillChunkWithAir(chunk)
                 } else {
@@ -41,6 +42,7 @@ class WorldGenerator(private val world: World) {
                 }
             }
         }
+
     }
 
     private fun fillChunkWithAir(chunk: Chunk) {
@@ -51,21 +53,11 @@ class WorldGenerator(private val world: World) {
         }
     }
 
-    fun Chunk.applyForBlocks(action: (x: Int, y: Int) -> Unit) {
-        for (x in 0 until chunkSize) {
-            val worldX = x + this.x * chunkSize
-            for (y in 0 until chunkSize) {
-                val worldY = y + this.y * chunkSize
-                action(worldX, worldY)
-            }
-        }
-    }
-
     private fun fillChunkWithTerrain(chunk: Chunk) {
 
         chunk.applyForBlocks { x, y ->
             val height = getHeight(x)
-            if (y in (height + 1) until groundLevel + groundHeight*2) {
+            if (y in (height + 1) until groundLevel + groundHeight * 2) {
                 world.setBlock(Material.DIRT, x, y)
             }
         }
@@ -135,13 +127,11 @@ class WorldGenerator(private val world: World) {
 //            if (world.getBlockAt(currentX, currentY)?.material != Material.AIR) continue
 
             world.setBlock(Material.AIR, currentX, currentY)
-//            println("${currentX / chunkSize} $currentY")
         }
     }
 
-    // установить блок на заданных координатах
     private fun setBlock(block: Block) {
         val chunk = world.getChunkAt(block.x, block.y) ?: return
-        chunk.blocks[block.x - chunk.x * chunkSize][block.y - chunk.y * chunkSize] = block
+        chunk.blockMap[block.x - chunk.x * chunkSize][block.y - chunk.y * chunkSize] = block
     }
 }

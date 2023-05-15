@@ -10,12 +10,12 @@ import d2t.terra.abubaria.inventory.Item
 import d2t.terra.abubaria.io.devices.MouseHandler
 import d2t.terra.abubaria.location.Direction
 import d2t.terra.abubaria.location.Location
-import d2t.terra.abubaria.lwjgl.drawRect
-import d2t.terra.abubaria.lwjgl.drawString
-import d2t.terra.abubaria.lwjgl.drawTexture
-import d2t.terra.abubaria.lwjgl.loadImage
-import d2t.terra.abubaria.world.Block
-import d2t.terra.abubaria.world.tile.Material
+import d2t.terra.abubaria.io.graphics.drawRect
+import d2t.terra.abubaria.io.graphics.drawString
+import d2t.terra.abubaria.io.graphics.drawTexture
+import d2t.terra.abubaria.io.graphics.loadImage
+import d2t.terra.abubaria.world.block.Block
+import d2t.terra.abubaria.world.material.Material
 import java.awt.Color
 import kotlin.math.floor
 
@@ -90,7 +90,6 @@ class Cursor(private var x: Int, private var y: Int) {
                         screenY + offset,
                         hitBox.width.toInt(),
                         hitBox.height.toInt(),
-                        1f,
                         Color.GREEN
                     )
                     drawString("$x $y", screenX, screenY + offset, 4, Color.GREEN)
@@ -100,7 +99,9 @@ class Cursor(private var x: Int, private var y: Int) {
 
 
         drawTexture(image.textureId, x, y, 30, 30)
-        drawTexture(cursorItem.type.texture?.textureId, x + 5, y + 15, 15, 15)
+        cursorItem.type.apply {
+            drawTexture(texture?.textureId, x + 5, y + 15, 15, (15.0 / size.size).toInt())
+        }
     }
 
     fun update() {
@@ -195,7 +196,6 @@ class Cursor(private var x: Int, private var y: Int) {
 
             val hotBarItem = ClientPlayer.inventory.getItem(inventory.selectedHotBar, 0) ?: return
 
-
             when {
                 leftPress -> {
                     if (cursorItem.type === Material.AIR && hotBarItem.type === Material.AIR) {
@@ -231,7 +231,6 @@ class Cursor(private var x: Int, private var y: Int) {
                         if (targetSlot == -1) inventory.setItem(inventory.firstEmptySlot(!inventory.opened), item)
                         else inventory.selectedHotBar = targetSlot
                     }
-
                 }
             }
         }

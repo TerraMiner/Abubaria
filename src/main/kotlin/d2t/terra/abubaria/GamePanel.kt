@@ -6,9 +6,11 @@ import d2t.terra.abubaria.entity.player.ClientPlayer
 import d2t.terra.abubaria.hud.Hud
 import d2t.terra.abubaria.io.devices.KeyHandler
 import d2t.terra.abubaria.io.fonts.CFont
+import d2t.terra.abubaria.light.LightManager
+import d2t.terra.abubaria.light.LightRect
 import d2t.terra.abubaria.world.World
 import d2t.terra.abubaria.world.WorldGenerator
-import d2t.terra.abubaria.world.tile.Material
+import d2t.terra.abubaria.world.material.Material
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL11.*
 import java.awt.Color
@@ -21,7 +23,7 @@ object GamePanel {
 
     private const val scale = 2
 
-    var tileSize = originalTileSize * scale
+    const val tileSize = originalTileSize * scale
 
     val defaultScreenPosX = 1
     val defaultScreenPosY = 1
@@ -95,6 +97,9 @@ object GamePanel {
 
     fun startGameThread() {
         ClientPlayer.initialize()
+
+        world.generateWorldLight()
+
         gameThread = thread(true) {
             tick()
         }
@@ -175,6 +180,7 @@ object GamePanel {
 
         world.draw(loc)
         Camera.draw(loc)
+        LightManager.draw(loc)
 
         Hud.draw()
         cursor.draw(loc)

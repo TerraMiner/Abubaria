@@ -1,10 +1,10 @@
 package d2t.terra.abubaria.io.devices
 
 import d2t.terra.abubaria.Client
+import d2t.terra.abubaria.GamePanel
 import d2t.terra.abubaria.entity.player.ClientPlayer
 import org.lwjgl.glfw.GLFW.GLFW_PRESS
 import org.lwjgl.glfw.GLFW.GLFW_RELEASE
-import java.awt.event.KeyEvent
 
 object KeyHandler {
     private var keyPressed = BooleanArray(350)
@@ -88,6 +88,9 @@ object KeyHandler {
 //            Keys.VK_F11 -> {
 //                GamePanel.setFullScreen(!GamePanel.inFullScreen)
 //            }
+                Keys.VK_B -> {
+                    if (pressed) GamePanel.world.generateWorldLight()
+                }
 
                 Keys.VK_E -> {
                     if (pressed) {

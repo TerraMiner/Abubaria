@@ -6,7 +6,7 @@ import kotlin.math.sqrt
 open class Location(var x: Double = .0, var y: Double = .0, var direction: Direction = Direction.LEFT) {
     constructor(x: Int, y: Int) : this(x.toDouble(),y.toDouble(),Direction.LEFT)
 
-    val clone get() = Location(x,y,direction)
+    val clone: Location get() = Location(x,y,direction)
 
     fun setLocation(location: Location) {
         x = location.x

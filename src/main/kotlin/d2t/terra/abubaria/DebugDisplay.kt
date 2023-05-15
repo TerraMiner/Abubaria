@@ -1,7 +1,7 @@
 import d2t.terra.abubaria.Client
 import d2t.terra.abubaria.GamePanel
 import d2t.terra.abubaria.entity.player.ClientPlayer
-import d2t.terra.abubaria.lwjgl.drawString
+import d2t.terra.abubaria.io.graphics.drawString
 import java.awt.Color
 import java.util.*
 

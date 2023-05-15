@@ -1,8 +1,7 @@
 package d2t.terra.abubaria.io.fonts
 
-import d2t.terra.abubaria.lwjgl.loadImage
-import org.lwjgl.BufferUtils
-import org.lwjgl.opengl.GL11.*
+import d2t.terra.abubaria.io.graphics.Image
+import d2t.terra.abubaria.io.graphics.loadImage
 import java.awt.*
 import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_ARGB
@@ -11,11 +10,8 @@ import javax.imageio.ImageIO
 import kotlin.math.max
 import kotlin.math.sqrt
 
-class CharInfo(val sourceX: Int, val sourceY: Int, val width: Int, val height: Int) {
-    var textureId = 0
-}
 
-class CFont(val path: String, val name: String, val size: Int) {
+class CFont(private val path: String, private val name: String, val size: Int) {
 
     private var width: Int = 0
     private var height: Int = 0
@@ -23,7 +19,7 @@ class CFont(val path: String, val name: String, val size: Int) {
     private val characterMap: MutableMap<Int, CharInfo> = mutableMapOf()
     private val ge: GraphicsEnvironment = GraphicsEnvironment.getLocalGraphicsEnvironment()
     private val imageFile = "fonts/${name}_map.png"
-    lateinit var imageFont: d2t.terra.abubaria.lwjgl.Image
+    private lateinit var imageFont: Image
     lateinit var fontMetrics: FontMetrics
 
 
@@ -112,37 +108,6 @@ class CFont(val path: String, val name: String, val size: Int) {
 
     fun getCharacter(codepoint: Char): CharInfo {
         return characterMap.getOrDefault(codepoint.code, CharInfo(0, 0, 0, 0))
-    }
-
-    private fun uploadTexture(image: BufferedImage) {
-        val pixels = IntArray(image.height * image.width)
-        image.getRGB(0, 0, image.width, image.height, pixels, 0, image.width)
-
-        val buffer = BufferUtils.createByteBuffer(image.width * image.height * 4)
-
-        for (y in 0 until image.height) {
-            for (x in 0 until image.width) {
-                val pixel = pixels[y * image.width + x]
-                val alphaComponent = (pixel shr 24 and 0xFF).toByte()
-                buffer.put(alphaComponent)
-                buffer.put(alphaComponent)
-                buffer.put(alphaComponent)
-                buffer.put(alphaComponent)
-
-            }
-        }
-        buffer.flip()
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, image.width, image.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
-
-//        fontImage = lwjgl.Image(buffer)
-
-        buffer.clear()
     }
 
 }

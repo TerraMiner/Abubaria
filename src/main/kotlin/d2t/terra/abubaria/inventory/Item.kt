@@ -1,8 +1,8 @@
 package d2t.terra.abubaria.inventory
 
-import d2t.terra.abubaria.lwjgl.drawString
-import d2t.terra.abubaria.lwjgl.drawTexture
-import d2t.terra.abubaria.world.tile.Material
+import d2t.terra.abubaria.io.graphics.drawString
+import d2t.terra.abubaria.io.graphics.drawTexture
+import d2t.terra.abubaria.world.material.Material
 import kotlin.math.ceil
 import kotlin.math.floor
 

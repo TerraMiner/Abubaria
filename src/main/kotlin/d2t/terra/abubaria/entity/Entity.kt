@@ -2,11 +2,11 @@ package d2t.terra.abubaria.entity
 
 import d2t.terra.abubaria.io.devices.KeyHandler
 import d2t.terra.abubaria.location.Direction
-import d2t.terra.abubaria.location.EntityHitBox
+import d2t.terra.abubaria.hitbox.EntityHitBox
 import d2t.terra.abubaria.location.Location
 import d2t.terra.abubaria.world.Chunk
-import d2t.terra.abubaria.world.tile.Material
-import d2t.terra.abubaria.lwjgl.Image
+import d2t.terra.abubaria.world.material.Material
+import d2t.terra.abubaria.io.graphics.Image
 
 private var id = 0
 open class Entity {
@@ -71,20 +71,20 @@ open class Entity {
             Direction.RIGHT -> if (KeyHandler.rightPressed) moveRight()
         }
 
-        if (location.direction === Direction.LEFT) {
+    }
 
+    fun applyFriction() {
+        if (location.direction === Direction.LEFT) {
             if (dx < 0) dx += ground.friction
             if (dx > 0) dx = .0
             if (dx < -maxXspeed) dx = -maxXspeed
         }
 
         if (location.direction === Direction.RIGHT) {
-
             if (dx > 0) dx -= ground.friction
             if (dx < 0) dx = .0
             if (dx > maxXspeed) dx = maxXspeed
         }
-
     }
 
     fun fall() {
@@ -118,7 +118,7 @@ open class Entity {
 
         if (dy == .0)
             chunks.forEach chunks@{ chunk ->
-                chunk.blocks.forEach blocksCols@{ blockCols ->
+                chunk.blockMap.forEach blocksCols@{ blockCols ->
                     blockCols.forEach blocks@{
                         if (it.hitBox.top <= hitBox.bottom
                             && hitBox.bottom - it.hitBox.top == .0
@@ -140,6 +140,14 @@ open class Entity {
 
         onGround = isOnGround
         if (!isOnGround) ground = Material.AIR
+    }
+
+    fun velocity(target: Location, speed: Double) {
+
+        dx = if (target.x < location.x) -speed else if (target.x > location.x) speed else .0
+        dy = if (target.y < location.y) -speed else if (target.y > location.y) speed else .0
+
+        location.direction = if (dx >= 0) Direction.RIGHT else Direction.LEFT
     }
 
 }

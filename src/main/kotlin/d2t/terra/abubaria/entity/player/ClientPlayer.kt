@@ -9,8 +9,7 @@ import d2t.terra.abubaria.entity.Entity
 import d2t.terra.abubaria.inventory.Inventory
 import d2t.terra.abubaria.io.devices.KeyHandler
 import d2t.terra.abubaria.location.Direction
-import d2t.terra.abubaria.lwjgl.loadImage
-import org.lwjgl.glfw.GLFW
+import d2t.terra.abubaria.io.graphics.loadImage
 
 
 object ClientPlayer : Entity() {
@@ -68,6 +67,8 @@ object ClientPlayer : Entity() {
         fall()
 
         applyMovement()
+
+        applyFriction()
 
         val prevHitBox = hitBox.clone
 

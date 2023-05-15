@@ -1,10 +1,9 @@
 package d2t.terra.abubaria.hud
 
-import d2t.terra.abubaria.GamePanel.defaultScreenWidth
 import d2t.terra.abubaria.GamePanel.screenWidth
 import d2t.terra.abubaria.entity.player.ClientPlayer
-import d2t.terra.abubaria.lwjgl.drawString
-import d2t.terra.abubaria.lwjgl.loadImage
+import d2t.terra.abubaria.io.graphics.drawString
+import d2t.terra.abubaria.io.graphics.loadImage
 
 object Hud {
     var healthBar = ""

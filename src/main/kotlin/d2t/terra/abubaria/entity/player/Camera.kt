@@ -8,8 +8,9 @@ import d2t.terra.abubaria.GamePanel.tileSize
 import d2t.terra.abubaria.GamePanel.world
 import d2t.terra.abubaria.location.Direction
 import d2t.terra.abubaria.location.Location
-import d2t.terra.abubaria.lwjgl.drawRect
-import d2t.terra.abubaria.lwjgl.drawTexture
+import d2t.terra.abubaria.io.graphics.drawRect
+import d2t.terra.abubaria.io.graphics.drawTexture
+import d2t.terra.abubaria.world.Chunk
 
 object Camera {
     var cameraX = 0
@@ -17,6 +18,8 @@ object Camera {
 
     var centerX = (screenWidth / 2.0 - (tileSize / 2)).toInt()
     var centerY = (screenHeight / 2.0 - (tileSize / 2)).toInt()
+
+    var chunksOnScreen = mutableListOf<Chunk>()
 
     fun interpolate() {
         cameraX = centerX

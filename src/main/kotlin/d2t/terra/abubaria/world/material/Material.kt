@@ -1,16 +1,11 @@
-package d2t.terra.abubaria.world.tile
+package d2t.terra.abubaria.world.material
 
 import d2t.terra.abubaria.GamePanel.tileSize
-import d2t.terra.abubaria.entity.particleSize
-import d2t.terra.abubaria.inventory.inSlotPos
-import d2t.terra.abubaria.inventory.inSlotSize
-import d2t.terra.abubaria.lwjgl.Image
-import d2t.terra.abubaria.lwjgl.loadImage
-import d2t.terra.abubaria.world.tile.MaterialState.*
-
-enum class MaterialState(val offset: Double) {
-    BOTTOM(0.5), UPPER(.0), FULL(.0)
-}
+import d2t.terra.abubaria.io.graphics.Image
+import d2t.terra.abubaria.io.graphics.loadImage
+import d2t.terra.abubaria.world.inSlotSize
+import d2t.terra.abubaria.world.material.MaterialState.*
+import d2t.terra.abubaria.world.particleSize
 
 enum class Material(
     val id: Int,
@@ -20,14 +15,15 @@ enum class Material(
     val state: MaterialState = FULL,
     val collideable: Boolean = true,
     val height: Int = tileSize,
+    val size: MaterialSize = MaterialSize.FULL,
     val friction: Double = .03
 ) {
-    AIR(0, null, "", 0, FULL, false, tileSize, .005),
+    AIR(0, null, "", 0, FULL, false, tileSize,MaterialSize.FULL,.005),
     STONE(1, "stone", "Stone"),
     GRASS(2, "grass", "Grass"),
     DIRT(3, "dirt", "Dirt"),
-    STONE_HALF_DOWN(4, "stone_half_down", "Stone Slab", 9999, BOTTOM, true, tileSize / 2),
-    STONE_HALF_UP(4, "stone_half_up", "Stone Slab", 9999, UPPER, true, tileSize / 2);
+    STONE_HALF_DOWN(4, "stone_half_down", "Stone Slab", 9999, BOTTOM, true, tileSize / 2, MaterialSize.HALF),
+    STONE_HALF_UP(5, "stone_half_up", "Stone Slab", 9999, UPPER, true, tileSize / 2, MaterialSize.HALF);
 
     val texture: Image? = if (path === null) null else loadImage("block/$path.png")
     val invSizes = scaleToSlotSize()
@@ -52,7 +48,7 @@ enum class Material(
 
         while (width < inSlotSize && height < inSlotSize) {
             width += 1
-            height += 1.0 * (1.0 - state.offset)
+            height += 1.0 / size.size
         }
 
         return width.toInt() to height.toInt()

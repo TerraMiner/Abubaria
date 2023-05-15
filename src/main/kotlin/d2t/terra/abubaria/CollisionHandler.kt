@@ -1,12 +1,12 @@
 import d2t.terra.abubaria.entity.Entity
-import d2t.terra.abubaria.location.HitBox
-import d2t.terra.abubaria.world.Block
+import d2t.terra.abubaria.hitbox.HitBox
+import d2t.terra.abubaria.world.block.Block
 
 object CollisionHandler {
 
     fun Entity.checkIfStuck(hitBox: HitBox): Boolean {
         chunks.forEach chunks@{ chunk ->
-            chunk.blocks.forEach blockCols@{ blockCols ->
+            chunk.blockMap.forEach blockCols@{ blockCols ->
                 blockCols.forEach blocks@{ block ->
                     if (block.hitBox.clone.transform(hitBox.width/2, hitBox.height/2, -(hitBox.width/2), -(hitBox.height/2)).intersects(hitBox) && block.type.collideable) {
                         return true
@@ -19,7 +19,7 @@ object CollisionHandler {
 
     fun Entity.checkCollision() {
         chunks.forEach chunks@{ chunk ->
-            chunk.blocks.forEach blockCols@{ blockCols ->
+            chunk.blockMap.forEach blockCols@{ blockCols ->
                 blockCols.forEach blocks@{ block ->
 
                     if (hitBox.clone.move(dx, dy)
@@ -50,7 +50,7 @@ object CollisionHandler {
             futureBox.x += dx
             futureBox.y = block.hitBox.top - hitBox.height
 
-            if (futureBox.intersectionChunks().any { it.blocks.flatten().any { b -> b != block && b.type.collideable && b.hitBox.intersects(futureBox) } }) return
+            if (futureBox.intersectionChunks().any { it.blockMap.flatten().any { b -> b != block && b.type.collideable && b.hitBox.intersects(futureBox) } }) return
 
             location.x = futureBox.x
             location.y = futureBox.y

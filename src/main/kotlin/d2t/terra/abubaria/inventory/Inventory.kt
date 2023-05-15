@@ -3,15 +3,15 @@ package d2t.terra.abubaria.inventory
 import d2t.terra.abubaria.GamePanel
 import d2t.terra.abubaria.entity.player.ClientPlayer
 import d2t.terra.abubaria.hud.Hud
-import d2t.terra.abubaria.location.HitBox
-import d2t.terra.abubaria.lwjgl.drawString
-import d2t.terra.abubaria.lwjgl.drawTexture
-import d2t.terra.abubaria.world.tile.Material
+import d2t.terra.abubaria.hitbox.HitBox
+import d2t.terra.abubaria.io.graphics.drawString
+import d2t.terra.abubaria.io.graphics.drawTexture
+import d2t.terra.abubaria.world.diff
+import d2t.terra.abubaria.world.inSlotPos
+import d2t.terra.abubaria.world.inSlotSize
+import d2t.terra.abubaria.world.slotSize
+import d2t.terra.abubaria.world.material.Material
 
-const val slotSize = 42
-const val inSlotPos = 8
-const val inSlotSize = slotSize - 16
-const val diff = 20
 
 data class Inventory(val xSize: Int, val ySize: Int) {
     val items = Array(xSize) { Array(ySize) { Item(Material.AIR, 0) } }
@@ -19,7 +19,8 @@ data class Inventory(val xSize: Int, val ySize: Int) {
     var selectedHotBar = 0
 
     init {
-        items[5][0] = Item(Material.STONE_HALF_DOWN, 1)
+        items[5][0] = Item(Material.STONE_HALF_DOWN, Material.STONE_HALF_DOWN.maxStackSize)
+        items[6][0] = Item(Material.STONE_HALF_UP, Material.STONE_HALF_UP.maxStackSize)
     }
 
     var opened = false
