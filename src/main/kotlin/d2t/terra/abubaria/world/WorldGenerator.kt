@@ -38,7 +38,7 @@ class WorldGenerator(private val world: World) {
                 if (y == 0) {
                     fillChunkWithAir(chunk)
                 } else {
-//                    fillChunkWithTerrain(chunk)
+                    fillChunkWithTerrain(chunk)
                 }
             }
         }

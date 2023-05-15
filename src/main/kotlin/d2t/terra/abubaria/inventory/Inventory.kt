@@ -2,15 +2,16 @@ package d2t.terra.abubaria.inventory
 
 import d2t.terra.abubaria.GamePanel
 import d2t.terra.abubaria.entity.player.ClientPlayer
-import d2t.terra.abubaria.hud.Hud
 import d2t.terra.abubaria.hitbox.HitBox
+import d2t.terra.abubaria.hud.Hud
 import d2t.terra.abubaria.io.graphics.drawString
 import d2t.terra.abubaria.io.graphics.drawTexture
+import d2t.terra.abubaria.io.graphics.safetyTextures
 import d2t.terra.abubaria.world.diff
 import d2t.terra.abubaria.world.inSlotPos
 import d2t.terra.abubaria.world.inSlotSize
-import d2t.terra.abubaria.world.slotSize
 import d2t.terra.abubaria.world.material.Material
+import d2t.terra.abubaria.world.slotSize
 
 
 data class Inventory(val xSize: Int, val ySize: Int) {
@@ -26,6 +27,11 @@ data class Inventory(val xSize: Int, val ySize: Int) {
     var opened = false
 
     var hoveredSlot = -1 to -1
+
+    private val openBound = HitBox(0 + diff, 0 + diff, xSize * slotSize, ySize * slotSize)
+    private val closeBound = HitBox(0 + diff, 0 + diff, xSize * slotSize, slotSize)
+
+    val inventoryBound get() = if (opened) openBound else closeBound
 
     fun scrollHotBar(i: Int) {
         selectedHotBar += i
@@ -75,8 +81,8 @@ data class Inventory(val xSize: Int, val ySize: Int) {
 
     fun giveItem(item: Item) {
         val slot = firstEmptySlot(false)
-        if (slot.first == -1 || slot.second == -1) {
-            //drop item
+        if (slot.first == -1 || slot.second == -1 || !hasSpace()) {
+            item.drop(ClientPlayer.centerPos)
             return
         }
 
@@ -93,12 +99,6 @@ data class Inventory(val xSize: Int, val ySize: Int) {
         }
     }
 
-
-    private val openBound = HitBox(0 + diff, 0 + diff, xSize * slotSize, ySize * slotSize)
-    private val closeBound = HitBox(0 + diff, 0 + diff, xSize * slotSize, slotSize)
-
-    val inventoryBound get() = if (opened) openBound else closeBound
-
     fun firstEmptySlot(onlyHotBar: Boolean): Pair<Int, Int> {
         items.forEachIndexed { x, items ->
             items.forEachIndexed yFor@{ y, item ->
@@ -107,6 +107,10 @@ data class Inventory(val xSize: Int, val ySize: Int) {
             }
         }
         return -1 to -1
+    }
+
+    fun hasSpace(): Boolean {
+        return items.flatten().any { it.type === Material.AIR }
     }
 
     fun findIdentify(type: Material, onlyHotBar: Boolean): Pair<Int, Int> {
@@ -121,42 +125,44 @@ data class Inventory(val xSize: Int, val ySize: Int) {
 
     fun draw() {
         val inventory = Hud.inventory
-        if (Hud.inventory.opened)
-            for (x in 0 until inventory.xSize) {
+        safetyTextures {
+            if (Hud.inventory.opened) repeat(inventory.xSize) { x ->
                 val invX = (x * slotSize) + diff
-                for (y in 0 until inventory.ySize) {
+                repeat(inventory.ySize) { y ->
                     val invY = (y * slotSize) + diff
                     val selectedItem = selectedHotBar == x && y == 0
 
                     val textureId = if (selectedItem) Hud.selectedSlot.textureId else Hud.slot.textureId
                     drawTexture(textureId, invX, invY, slotSize, slotSize)
 
-                    val item = inventory.getItem(x, y) ?: continue
-                    if (item.type == Material.AIR) continue
+                    val item = inventory.getItem(x, y)
+                    if (item != null && item.type !== Material.AIR) {
+                        item.draw(
+                            invX + inSlotPos,
+                            invY + inSlotPos + (inSlotSize * item.type.state.offset).toInt(),
+                            item.type.invSizes.first, item.type.invSizes.second, true
+                        )
+                    }
+                }
+            }
+            else repeat(inventory.xSize) { x ->
+                val invX = (x * slotSize) + diff
+                val selectedItem = selectedHotBar == x
+
+                val textureId = if (selectedItem) Hud.selectedSlot.textureId else Hud.slot.textureId
+                drawTexture(textureId, invX, diff, slotSize, slotSize)
+
+                val item = inventory.getItem(x, 0)
+                if (item != null && item.type !== Material.AIR) {
                     item.draw(
                         invX + inSlotPos,
-                        invY + inSlotPos + (inSlotSize * item.type.state.offset).toInt(),
+                        diff + inSlotPos + (inSlotSize * item.type.state.offset).toInt(),
                         item.type.invSizes.first,
                         item.type.invSizes.second, true
                     )
                 }
+                drawString(inventory.getItem(selectedHotBar, 0)?.display ?: "", 24, 12, 3)
             }
-        else for (x in 0 until inventory.xSize) {
-            val invX = (x * slotSize) + diff
-            val selectedItem = selectedHotBar == x
-
-            val textureId = if (selectedItem) Hud.selectedSlot.textureId else Hud.slot.textureId
-            drawTexture(textureId, invX, diff, slotSize, slotSize)
-
-            val item = inventory.getItem(x, 0) ?: continue
-            if (item.type == Material.AIR) continue
-            item.draw(
-                invX + inSlotPos,
-                diff + inSlotPos + (inSlotSize * item.type.state.offset).toInt(),
-                item.type.invSizes.first,
-                item.type.invSizes.second, true
-            )
         }
-        drawString(inventory.getItem(selectedHotBar, 0)?.display ?: return, 24, 12, 3)
     }
 }

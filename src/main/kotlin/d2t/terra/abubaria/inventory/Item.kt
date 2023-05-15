@@ -1,7 +1,13 @@
 package d2t.terra.abubaria.inventory
 
+import d2t.terra.abubaria.entity.item.EntityItem
+import d2t.terra.abubaria.entity.player.ClientPlayer
 import d2t.terra.abubaria.io.graphics.drawString
 import d2t.terra.abubaria.io.graphics.drawTexture
+import d2t.terra.abubaria.io.graphics.safetyRects
+import d2t.terra.abubaria.io.graphics.safetyTextures
+import d2t.terra.abubaria.location.Direction
+import d2t.terra.abubaria.location.Location
 import d2t.terra.abubaria.world.material.Material
 import kotlin.math.ceil
 import kotlin.math.floor
@@ -85,11 +91,22 @@ data class Item(private var material: Material = Material.AIR, private var count
         count = 0
     }
 
+    fun drop(location: Location) {
+        EntityItem(clone, location).apply {
+            dx = if (location.direction == Direction.RIGHT) .7 else -.7
+            dy = -.4
+        }.spawn()
+        remove()
+    }
+
     fun draw(x: Int, y: Int, width: Int, height: Int, withText: Boolean = true, txtMod: Int = 5) {
-        drawTexture(type.texture?.textureId, x, y, width, height)
-        if (withText) {
-            drawString("$count", x, y + height + txtMod, txtMod)
-        }
+            drawTexture(type.texture?.textureId, x, y, width, height)
+
+            if (withText) {
+                safetyTextures {
+                    drawString("$count", x, y + height + txtMod, txtMod)
+                }
+            }
     }
 
 }

@@ -5,6 +5,7 @@ import kotlin.math.sqrt
 
 open class Location(var x: Double = .0, var y: Double = .0, var direction: Direction = Direction.LEFT) {
     constructor(x: Int, y: Int) : this(x.toDouble(),y.toDouble(),Direction.LEFT)
+    constructor(x: Int, y: Int, direction: Direction) : this(x.toDouble(),y.toDouble(),direction)
 
     val clone: Location get() = Location(x,y,direction)
 
@@ -19,10 +20,15 @@ open class Location(var x: Double = .0, var y: Double = .0, var direction: Direc
         this.y = y
     }
 
-    fun move(x: Double, y: Double): Location {
-        this.x += x
-        this.y += y
+    fun move(dx: Double, dy: Double): Location {
+        x += dx; y += dy
         return this
+    }
+
+    fun transfer(dx: Double, dy: Double): Location {
+        return clone.also {
+            it.x += dx; it.y += dy
+        }
     }
 
     fun distance(other: Location): Double {

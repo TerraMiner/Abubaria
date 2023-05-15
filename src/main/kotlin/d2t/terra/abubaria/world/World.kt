@@ -4,9 +4,9 @@ import d2t.terra.abubaria.GamePanel
 import d2t.terra.abubaria.GamePanel.tileSize
 import d2t.terra.abubaria.entity.Entity
 import d2t.terra.abubaria.entity.player.Camera
-import d2t.terra.abubaria.light.Light
 import d2t.terra.abubaria.hitbox.BlockHitBox
 import d2t.terra.abubaria.hitbox.HitBox
+import d2t.terra.abubaria.io.graphics.safetyTextures
 import d2t.terra.abubaria.location.Location
 import d2t.terra.abubaria.world.block.Block
 import d2t.terra.abubaria.world.material.Material
@@ -34,7 +34,6 @@ class World {
 
     fun getBlockAt(x: Int, y: Int): Block? {
         val chunk = getChunkAt(x, y) ?: return null
-
         return chunk.blockMap.getOrNull(x - chunk.x * chunkSize)?.getOrNull(y - chunk.y * chunkSize)
     }
 
@@ -74,14 +73,25 @@ class World {
         val topCorner = ((topVertex / tileSize / chunkSize).toInt() - extraDrawDistY)
             .coerceIn(0 until worldSizeY)
 
-        for (chunkX in leftCorner..rightCorner) {
-            for (chunkY in topCorner..bottomCorner) {
-                val chunk = chunkMap[chunkX][chunkY]
-                chunk.draw(location)
-                chunks.add(chunk)
-                drawEntities(location, leftVertex, rightVertex, topVertex, bottomVertex)
+        safetyTextures {
+            for (chunkX in leftCorner..rightCorner) {
+                for (chunkY in topCorner..bottomCorner) {
+                    val chunk = chunkMap[chunkX][chunkY]
+                    chunk.draw(location)
+                    chunks.add(chunk)
+                }
             }
+            drawEntities(location, leftVertex, rightVertex, topVertex, bottomVertex)
         }
+
+//        safetyRects {
+//            for (chunkX in leftCorner..rightCorner) {
+//                for (chunkY in topCorner..bottomCorner) {
+//                    chunkMap[chunkX][chunkY].drawHitBoxes(location)
+//                    drawEntitiesHitBoxes(location, leftVertex, rightVertex, topVertex, bottomVertex)
+//                }
+//            }
+//        }
 
         Camera.chunksOnScreen = chunks
     }
@@ -93,6 +103,16 @@ class World {
             it.draw(location)
         }
     }
+
+//    private fun drawEntitiesHitBoxes(location: Location, lVertex: Double, rVertex: Double, tVertex: Double, bVertex: Double) {
+//        if (Client.debugMode) {
+//            entities.filter {
+//                it.location.run { x in lVertex..rVertex && y in tVertex..bVertex }
+//            }.forEach {
+//                it.drawHitBox(location)
+//            }
+//        }
+//    }
 
 
     fun update() {

@@ -1,15 +1,13 @@
 package d2t.terra.abubaria.entity.player
 
-import d2t.terra.abubaria.Client
 import d2t.terra.abubaria.GamePanel
 import d2t.terra.abubaria.GamePanel.screenHeight
 import d2t.terra.abubaria.GamePanel.screenWidth
 import d2t.terra.abubaria.GamePanel.tileSize
 import d2t.terra.abubaria.GamePanel.world
+import d2t.terra.abubaria.io.graphics.drawTexture
 import d2t.terra.abubaria.location.Direction
 import d2t.terra.abubaria.location.Location
-import d2t.terra.abubaria.io.graphics.drawRect
-import d2t.terra.abubaria.io.graphics.drawTexture
 import d2t.terra.abubaria.world.Chunk
 
 object Camera {
@@ -110,11 +108,17 @@ object Camera {
             val width = (tileSize * width + 4).toInt()
             val height = (tileSize * height + 1).toInt()
 
+
             drawTexture(image?.textureId, offX - 1, offY, width, height)
 
-            if (Client.debugMode) ClientPlayer.hitBox.apply {
-                drawRect(offX, offY, this.width.toInt(), this.height.toInt())
-            }
+
+//            if (Client.debugMode) {
+//                safetyRects {
+//                    ClientPlayer.hitBox.apply {
+//                        drawRect(offX, offY, this.width.toInt(), this.height.toInt())
+//                    }
+//                }
+//            }
         }
     }
 }

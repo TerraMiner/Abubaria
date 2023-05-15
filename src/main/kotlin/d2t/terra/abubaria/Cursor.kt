@@ -3,17 +3,15 @@ package d2t.terra.abubaria
 import d2t.terra.abubaria.GamePanel.screenHeight
 import d2t.terra.abubaria.GamePanel.screenWidth
 import d2t.terra.abubaria.GamePanel.tileSize
-import d2t.terra.abubaria.entity.item.EntityItem
 import d2t.terra.abubaria.entity.player.Camera
 import d2t.terra.abubaria.entity.player.ClientPlayer
 import d2t.terra.abubaria.inventory.Item
 import d2t.terra.abubaria.io.devices.MouseHandler
-import d2t.terra.abubaria.location.Direction
-import d2t.terra.abubaria.location.Location
-import d2t.terra.abubaria.io.graphics.drawRect
 import d2t.terra.abubaria.io.graphics.drawString
 import d2t.terra.abubaria.io.graphics.drawTexture
 import d2t.terra.abubaria.io.graphics.loadImage
+import d2t.terra.abubaria.io.graphics.safetyTextures
+import d2t.terra.abubaria.location.Location
 import d2t.terra.abubaria.world.block.Block
 import d2t.terra.abubaria.world.material.Material
 import java.awt.Color
@@ -76,27 +74,18 @@ class Cursor(private var x: Int, private var y: Int) {
         getBlockPosition().also { block ->
             currentBlock = block
 
-
             if (Client.debugMode && !mouseOnHud) {
-
 
                 block?.apply {
                     val screenX = Camera.worldScreenPosX(x * tileSize, location)
                     val screenY = Camera.worldScreenPosY(y * tileSize, location)
                     val offset = (tileSize * type.state.offset).toInt()
-
-                    drawRect(
-                        screenX,
-                        screenY + offset,
-                        hitBox.width.toInt(),
-                        hitBox.height.toInt(),
-                        Color.GREEN
-                    )
-                    drawString("$x $y", screenX, screenY + offset, 4, Color.GREEN)
+                    safetyTextures {
+                        drawString("$x $y", screenX, screenY + offset, 4, Color.GREEN)
+                    }
                 }
             }
         }
-
 
         drawTexture(image.textureId, x, y, 30, 30)
         cursorItem.type.apply {
@@ -122,7 +111,7 @@ class Cursor(private var x: Int, private var y: Int) {
             if (inventory.items[cursorItemSlot.first][cursorItemSlot.second].type === Material.AIR) {
                 inventory.items[cursorItemSlot.first][cursorItemSlot.second] = cursorItem.clone
             } else {
-                //drop item
+                inventory.giveItem(cursorItem.clone)
             }
             cursorItem.remove()
             cursorItemSlot = -1 to -1
@@ -189,7 +178,6 @@ class Cursor(private var x: Int, private var y: Int) {
         else ""
 
 
-
         if (!leftPress && !rightPress && !midPress) return
 
         currentBlock?.apply {
@@ -203,22 +191,18 @@ class Cursor(private var x: Int, private var y: Int) {
                     } else if (!this.hitBox.clone.transform(1.0, .0, -1.0, .0).intersects(ClientPlayer.hitBox))
                         if (cursorItem.type !== Material.AIR) {
                             if (type === cursorItem.type) return
-                            type = cursorItem.type
+                            place(cursorItem.type)
                             cursorItem.decrement()
                         } else {
                             if (type === hotBarItem.type) return
-                            type = hotBarItem.type
+                            place(hotBarItem.type)
                             hotBarItem.decrement()
                         }
                 }
 
                 rightPress -> {
                     if (cursorItem.type === Material.AIR) return
-                    EntityItem(cursorItem.clone, ClientPlayer).apply {
-                        dx = if (ClientPlayer.location.direction == Direction.RIGHT) .7 else -.7
-                        dy = -.4
-                    }.spawn()
-                    cursorItem.remove()
+                    cursorItem.drop(ClientPlayer.centerPos)
                 }
 
                 midPress -> {

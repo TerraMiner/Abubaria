@@ -3,14 +3,16 @@ package d2t.terra.abubaria
 import DebugDisplay
 import d2t.terra.abubaria.entity.player.Camera
 import d2t.terra.abubaria.entity.player.ClientPlayer
+import d2t.terra.abubaria.event.BlockDestroyEvent
+import d2t.terra.abubaria.event.EventHandler
+import d2t.terra.abubaria.event.EventService
 import d2t.terra.abubaria.hud.Hud
+import d2t.terra.abubaria.io.LagDebugger
 import d2t.terra.abubaria.io.devices.KeyHandler
 import d2t.terra.abubaria.io.fonts.CFont
 import d2t.terra.abubaria.light.LightManager
-import d2t.terra.abubaria.light.LightRect
 import d2t.terra.abubaria.world.World
 import d2t.terra.abubaria.world.WorldGenerator
-import d2t.terra.abubaria.world.material.Material
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL11.*
 import java.awt.Color
@@ -40,9 +42,9 @@ object GamePanel {
 
     val world = World().apply { /*generate()*/
         WorldGenerator(this).generateWorld()
-        val x = (worldWidth / tileSize) / 2
-        val y = 20
-        setBlock(Material.STONE, x, y)
+//        val x = (worldWidth / tileSize) / 2
+//        val y = 20
+//        setBlock(Material.STONE, x, y)
     }
 
     val cursor = Cursor(0, 0)
@@ -100,6 +102,8 @@ object GamePanel {
 
         world.generateWorldLight()
 
+        EventHandler
+
         gameThread = thread(true) {
             tick()
         }
@@ -112,6 +116,8 @@ object GamePanel {
         var currentTime: Long
         var timer = 0L
         var drawCount = 0
+
+//        glEnable(GL_BLEND)
 
         while (!glfwWindowShouldClose(window)) {
 
@@ -173,22 +179,27 @@ object GamePanel {
     }
 
     private fun drawScreen() {
+        val a = LagDebugger()
+        a.enabled = false
         val start = System.currentTimeMillis()
         val loc = ClientPlayer.location.clone
-
-        glEnable(GL_BLEND)
-
-        world.draw(loc)
-        Camera.draw(loc)
-        LightManager.draw(loc)
-
-        Hud.draw()
-        cursor.draw(loc)
-
-        display.draw()
-
+        a.check(180)
+        world.draw(loc)//LAGS 1.8386
+        a.check(182)
+        Camera.draw(loc)//LAGS 0.0021
+        a.check(184)
+        LightManager.draw(loc)//LAGS 1.8529
+        a.check(186)
+        Hud.draw()//LAGS 0.0143
+        a.check(188)
+        cursor.draw(loc)//0.0025
+        a.check(190)
+        display.draw()//LAGS 0.0106
+        a.check(192)
         val end = System.currentTimeMillis()
         videoLag = (end - start) / 1000.0
+        a.check(195)
+        a.debug("drawScreen")
     }
 }
 

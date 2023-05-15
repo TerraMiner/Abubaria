@@ -125,6 +125,8 @@ class Image(byteBuffer: ByteBuffer? = null, texturePath: String? = null) {
             GL11.GL_UNSIGNED_BYTE,
             image
         )
-        drawTexture(textureId, -10, -10, 0, 0)
+        safetyTextures {
+            drawTexture(textureId, -10, -10, 0, 0)
+        }
     }
 }

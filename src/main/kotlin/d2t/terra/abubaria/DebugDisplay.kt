@@ -2,6 +2,7 @@ import d2t.terra.abubaria.Client
 import d2t.terra.abubaria.GamePanel
 import d2t.terra.abubaria.entity.player.ClientPlayer
 import d2t.terra.abubaria.io.graphics.drawString
+import d2t.terra.abubaria.io.graphics.safetyTextures
 import java.awt.Color
 import java.util.*
 
@@ -23,12 +24,15 @@ class DebugDisplay {
         .toString()
 
     fun draw() {
-        text.apply {
-            split("\n").forEachIndexed { index, text ->
-                val y = index * 20 + 20
-                if (index == 0) drawString(text, 4, y, 3, Color.DARK_GRAY)
-                else if (Client.debugMode)
-                    drawString(text, 4, y, 3, Color.DARK_GRAY)
+        safetyTextures {
+            text.apply {
+                split("\n").forEachIndexed { index, text ->
+                    val y = index * 20 + 20
+                    if (index == 0)
+                        drawString(text, 4, y, 3, Color.WHITE)
+                    else if (Client.debugMode)
+                        drawString(text, 4, y, 3, Color.WHITE)
+                }
             }
         }
     }

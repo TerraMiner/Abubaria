@@ -12,7 +12,6 @@ private var id = 0
 open class Entity {
 
     val location = Location()
-
     val entityId = ++id
 
     var removed = false
@@ -108,6 +107,10 @@ open class Entity {
 
     }
 
+//    open fun drawHitBox(playerLoc: Location) {
+//
+//    }
+
     fun remove(unit: () -> Unit) {
         unit.invoke()
         removed = true
@@ -142,10 +145,10 @@ open class Entity {
         if (!isOnGround) ground = Material.AIR
     }
 
-    fun velocity(target: Location, speed: Double) {
+    fun velocity(target: Location, modX: Double, modY: Double) {
 
-        dx = if (target.x < location.x) -speed else if (target.x > location.x) speed else .0
-        dy = if (target.y < location.y) -speed else if (target.y > location.y) speed else .0
+        dx = if (target.x < location.x) -modX else if (target.x > location.x) modX else .0
+        dy = if (target.y < location.y) -modY else if (target.y > location.y) modY else .0
 
         location.direction = if (dx >= 0) Direction.RIGHT else Direction.LEFT
     }

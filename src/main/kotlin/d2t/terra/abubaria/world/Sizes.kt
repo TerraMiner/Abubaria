@@ -11,3 +11,4 @@ const val slotSize = 42
 const val inSlotPos = 8
 const val inSlotSize = slotSize - 16
 const val diff = 20
+const val entityItemSize = 12

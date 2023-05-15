@@ -1,15 +1,18 @@
 package d2t.terra.abubaria.world.block
 
 import d2t.terra.abubaria.GamePanel
-import d2t.terra.abubaria.entity.particle.ParticleDestroy
+import d2t.terra.abubaria.GamePanel.world
 import d2t.terra.abubaria.entity.player.Camera
-import d2t.terra.abubaria.light.Light
+import d2t.terra.abubaria.event.BlockDestroyEvent
+import d2t.terra.abubaria.event.BlockPlaceEvent
+import d2t.terra.abubaria.event.EventService
 import d2t.terra.abubaria.hitbox.BlockHitBox
-import d2t.terra.abubaria.location.Location
-import d2t.terra.abubaria.io.graphics.drawFillRect
 import d2t.terra.abubaria.io.graphics.drawTexture
+import d2t.terra.abubaria.light.Light
+import d2t.terra.abubaria.location.Location
 import d2t.terra.abubaria.world.lCount
 import d2t.terra.abubaria.world.lSize
+import d2t.terra.abubaria.world.lightLevels
 import d2t.terra.abubaria.world.material.Material
 
 class Block(
@@ -20,7 +23,6 @@ class Block(
     var chunkY: Int = 0
 ) {
     var hitBox = BlockHitBox(this)
-    val world = GamePanel.world
     var lightMap = Array(lCount) { Array(lCount) { Light(0, 0, 0, 0, 0, this) } }
 
     var type
@@ -30,13 +32,20 @@ class Block(
             hitBox = BlockHitBox(this)
         }
 
+    val fullShadowed get() = lightMap.flatten().none { l -> l.power != lightLevels }
+
     fun destroy() {
         if (type === Material.AIR) return
-        ParticleDestroy(this).initParticles()
+        EventService.launch(BlockDestroyEvent(this))
         type = Material.AIR
     }
 
-    fun getBlockAt(dx: Int, dy: Int) = world.getBlockAt(x + dx, y + dy)
+    fun place(type: Material) {
+        if (type === Material.AIR) return
+        this.type = type
+        EventService.launch(BlockPlaceEvent(this))
+    }
+
 
     fun relative(blockFace: BlockFace): Block? {
 
@@ -60,6 +69,7 @@ class Block(
     }
 
     fun draw(worldX: Int, worldY: Int, location: Location) {
+        if (fullShadowed) return
         val screenX = Camera.worldScreenPosX(worldX, location)
         val screenY = (Camera.worldScreenPosY(worldY, location) + (GamePanel.tileSize * type.state.offset).toInt())
 
@@ -80,11 +90,11 @@ class Block(
 
     fun updateLightAround() {
         val around = mutableListOf<Block?>()
-        for (i in 0 until lCount) {
-            around.add(getBlockAt(i, i))
-            around.add(getBlockAt(i, -i))
-            around.add(getBlockAt(-i, -i))
-            around.add(getBlockAt(-i, i))
+        for (dx in -lCount-1 .. lCount+1) {
+            for (dy in -lCount-1 .. lCount+1) {
+                around.add(this)
+                around.add(world.getBlockAt(x + dx, y + dy))
+            }
         }
 
         around.filterNotNull().forEach { block ->

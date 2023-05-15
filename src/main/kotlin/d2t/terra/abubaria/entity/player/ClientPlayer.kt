@@ -16,6 +16,8 @@ object ClientPlayer : Entity() {
 
     var inventory = Inventory(10, 5)
 
+    val centerPos get() = location.transfer(width/2,height/2)
+
     fun initialize() {
         setDefaultValues()
         getPlayerImage()

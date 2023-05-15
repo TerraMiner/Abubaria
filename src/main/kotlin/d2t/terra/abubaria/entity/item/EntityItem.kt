@@ -1,24 +1,23 @@
 package d2t.terra.abubaria.entity.item
 
 import CollisionHandler.checkCollision
-import d2t.terra.abubaria.Client
 import d2t.terra.abubaria.GamePanel
 import d2t.terra.abubaria.entity.Entity
 import d2t.terra.abubaria.entity.player.Camera
 import d2t.terra.abubaria.entity.player.ClientPlayer
-import d2t.terra.abubaria.inventory.Item
 import d2t.terra.abubaria.hitbox.EntityHitBox
-import d2t.terra.abubaria.location.Location
-import d2t.terra.abubaria.io.graphics.drawRect
+import d2t.terra.abubaria.inventory.Item
 import d2t.terra.abubaria.io.graphics.drawTexture
+import d2t.terra.abubaria.location.Direction
+import d2t.terra.abubaria.location.Location
+import d2t.terra.abubaria.world.entityItemSize
 
-class EntityItem(val item: Item, throwOwner: Entity?) : Entity() {
+class EntityItem(val item: Item, location: Location) : Entity() {
 
-    private val entityItemSize = 12.0
     private val deathTime = System.currentTimeMillis() + 30 * 60 * 1000
-    private val canPickUpAfter = System.currentTimeMillis() + 4000
+    private val canPickUpAfter = System.currentTimeMillis() + 3000
     private val texture = item.type.texture!!
-    private val spawnLocation = throwOwner?.location?.clone?.move(throwOwner.width / 2.0, throwOwner.height / 2.0)
+    private val spawnLocation = location.clone
 
     fun spawn() {
         autoClimb = false
@@ -27,9 +26,9 @@ class EntityItem(val item: Item, throwOwner: Entity?) : Entity() {
         maxYspeed = 1.5
         maxXspeed = 1.5
 
-        location.setLocation(spawnLocation ?: Location())
-        width = entityItemSize
-        height = entityItemSize
+        location.setLocation(spawnLocation)
+        width = entityItemSize.toDouble()
+        height = entityItemSize.toDouble()
         hitBox = EntityHitBox(this, width, height)
         GamePanel.world.entities.add(this)
     }
@@ -46,21 +45,19 @@ class EntityItem(val item: Item, throwOwner: Entity?) : Entity() {
             texture.textureId, screenX, screenY,
             width.toInt(), height
         )
-
-        if (Client.debugMode) {
-            drawRect(screenX, screenY, hitBox.width.toInt(), height)
-        }
-
     }
 
     private fun tryPickUp() {
-        val target = ClientPlayer.location.clone.move(width / 2.0, height / 2.0)
+        val dx = (if (ClientPlayer.location.direction === Direction.LEFT) -ClientPlayer.dx else ClientPlayer.dx) + width / 2.0
+        val target = ClientPlayer.location.transfer(dx, .0)
 
         val distToPlayer = location.distance(target)
 
         if (distToPlayer < 60 && canPickUpAfter < System.currentTimeMillis()) {
 
-            velocity(target,distToPlayer / 50.0)
+            val speed = (60 - distToPlayer)/70.0
+
+            velocity(target, speed ,speed)
 
             if (distToPlayer <= width) {
                 ClientPlayer.inventory.giveItem(item)
@@ -93,7 +90,7 @@ class EntityItem(val item: Item, throwOwner: Entity?) : Entity() {
 //        println(" after checks dx $dx")
 //        println(" after checks dy $dy")
 
-        location.move(dx,dy)
+        location.move(dx, dy)
 
         hitBox.setLocation(location)
     }

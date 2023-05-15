@@ -9,38 +9,41 @@ import java.awt.Color
 
 fun loadImage(texturePath: String) = Image(null, texturePath)
 
-fun drawRect(x: Int, y: Int, width: Int, height: Int, color: Color = Color.BLACK) {
+fun safetyTextures(action: () -> Unit) {
     glPushAttrib(GL_CURRENT_BIT or GL_ENABLE_BIT or GL_TRANSFORM_BIT)
-    glDisable(GL_TEXTURE_2D)
-    glColor4i(color.red, color.green, color.blue, color.alpha)
-    glBegin(GL_LINE_LOOP)
-    glVertex2i(x, y)
-    glVertex2i(x + width, y)
-    glVertex2i(x + width, y + height)
-    glVertex2i(x, y + height)
-    glEnd()
+    action.invoke()
     glPopAttrib()
 }
 
-fun drawFillRect(x: Int, y: Int, width: Int, height: Int, alpha: Int) {
-    glPushAttrib(GL_ENABLE_BIT)
+fun safetyRects(action: () -> Unit) {
+    glPushAttrib(GL_CURRENT_BIT or GL_ENABLE_BIT or GL_TRANSFORM_BIT)
     glDisable(GL_TEXTURE_2D)
+    action.invoke()
+    glPopAttrib()
+}
 
-    glPushAttrib(GL_CURRENT_BIT)
+//fun drawRect(x: Int, y: Int, width: Int, height: Int, color: Color = Color.BLACK) {
+//    glColor4i(color.red, color.green, color.blue, color.alpha)
+//    glBegin(GL_LINE_LOOP)
+//    glVertex2i(x, y)
+//    glVertex2i(x + width, y)
+//    glVertex2i(x + width, y + height)
+//    glVertex2i(x, y + height)
+//    glEnd()
+//}
+
+fun drawFillRect(x: Int, y: Int, width: Int, height: Int, alpha: Int) {
     glColor4f(0f, 0f, 0f, alpha / 255f)
-
     glBegin(GL_QUADS)
     glVertex2i(x, y)
     glVertex2i(x + width, y)
     glVertex2i(x + width, y + height)
     glVertex2i(x, y + height)
     glEnd()
-
-    glPopAttrib()
-    glPopAttrib()
 }
 
 fun drawString(string: String, x: Int, y: Int, sizeMod: Int, color: Color = Color.WHITE) {
+    if (string.isEmpty()) return
     GamePanel.font.apply {
         var xMod = x
         string.forEach {
