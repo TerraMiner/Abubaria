@@ -7,10 +7,11 @@ import d2t.terra.abubaria.entity.player.Camera
 import d2t.terra.abubaria.entity.player.ClientPlayer
 import d2t.terra.abubaria.hitbox.EntityHitBox
 import d2t.terra.abubaria.inventory.Item
-import d2t.terra.abubaria.io.graphics.drawTexture
+import d2t.terra.abubaria.io.graphics.drawRotatedTexture
 import d2t.terra.abubaria.location.Direction
 import d2t.terra.abubaria.location.Location
 import d2t.terra.abubaria.world.entityItemSize
+import d2t.terra.abubaria.world.material.MaterialSize
 import kotlin.math.pow
 
 class EntityItem(val item: Item, location: Location, pickupDelay: Int = 3000) : Entity() {
@@ -38,14 +39,13 @@ class EntityItem(val item: Item, location: Location, pickupDelay: Int = 3000) : 
         if (!GamePanel.world.entities.contains(this)) return
 
         val screenX = Camera.worldScreenPosX((location.x).toInt(), playerLoc)
-        val screenY =
-            (Camera.worldScreenPosY((location.y).toInt(), playerLoc) + height * item.type.state.offset).toInt()
-        val height = (height * (1.0 - item.type.state.offset)).toInt()
+        val modY = if (item.type.size != MaterialSize.FULL) height / item.type.size.size else .0
+        val screenY = (Camera.worldScreenPosY((location.y).toInt(), playerLoc) + modY).toInt()
+        val height = (height / item.type.size.size).toInt()
 
-        drawTexture(
-            texture.textureId, screenX, screenY,
-            width.toInt(), height
-        )
+        val angle = (dy * 60.0).toFloat().coerceIn(-45f,45f)
+
+        drawRotatedTexture(texture.textureId, screenX.toDouble(), screenY.toDouble(), width, height.toDouble(), angle, location.direction)
     }
 
     private fun tryPickUp() {

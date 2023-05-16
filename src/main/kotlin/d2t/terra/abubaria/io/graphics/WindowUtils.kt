@@ -1,6 +1,7 @@
 package d2t.terra.abubaria.io.graphics
 
 import d2t.terra.abubaria.GamePanel
+import d2t.terra.abubaria.location.Direction
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE
 import org.lwjgl.opengl.GL12.GL_NEAREST
@@ -31,6 +32,25 @@ fun safetyRects(action: () -> Unit) {
 //    glVertex2i(x, y + height)
 //    glEnd()
 //}
+
+fun drawRotatedTexture(textureId: Int?, x: Double, y: Double, width: Double, height: Double, angle: Float, direction: Direction) {
+    if (textureId === null) return
+    glBindTexture(GL_TEXTURE_2D, textureId)
+    glPushMatrix()
+    glTranslated(x + width / 2, y + height / 2, .0)
+    when (direction) {
+        Direction.RIGHT -> {
+            glRotatef(angle, 0f, 0f, 1f)
+            glTranslated(-width/2, -height / 2, .0)
+        }
+        Direction.LEFT -> {
+            glRotatef(-angle, 0f, 0f, 1f)
+            glTranslated(-width/2, -height / 2, .0)
+        }
+    }
+    drawQuadWithTexCoords(0, 0, width.toInt(), height.toInt())
+    glPopMatrix()
+}
 
 fun drawFillRect(x: Int, y: Int, width: Int, height: Int, alpha: Int) {
     glColor4f(0f, 0f, 0f, alpha / 255f)
@@ -87,15 +107,12 @@ fun drawTexture(textureId: Int?, x: Int, y: Int, width: Int, height: Int, color:
     glEnable(GL_BLEND)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
     glColor4f(color.red / 255f, color.green / 255f, color.blue / 255f, color.alpha / 255f)
-    glBegin(GL_QUADS)
 
     drawQuadWithTexCoords(x, y, width, height)
-
-    glEnd()
-
 }
 
 fun drawQuadWithTexCoords(x: Int, y: Int, width: Int, height: Int) {
+    glBegin(GL_QUADS)
     glTexCoord2f(0.0f, 1.0f)
     glVertex2i(x, y + height)
     glTexCoord2f(1.0f, 1.0f)
@@ -104,6 +121,7 @@ fun drawQuadWithTexCoords(x: Int, y: Int, width: Int, height: Int) {
     glVertex2i(x + width, y)
     glTexCoord2f(0.0f, 0.0f)
     glVertex2i(x, y)
+    glEnd()
 }
 
 fun setupTextureParameters() {

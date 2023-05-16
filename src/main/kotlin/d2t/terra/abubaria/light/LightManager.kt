@@ -13,14 +13,20 @@ import d2t.terra.abubaria.world.lSize
 import d2t.terra.abubaria.world.material.Material
 import org.lwjgl.glfw.GLFW
 import java.util.concurrent.ConcurrentLinkedDeque
+import java.util.concurrent.ConcurrentLinkedQueue
+import javax.xml.bind.JAXBElement.GlobalScope
 
 object LightManager {
 
-    val forUpDate = ConcurrentLinkedDeque<Block>()
+    val forUpDate = ConcurrentLinkedQueue<Block>()
 
-    fun draw(location: Location) {
+    var rectsToDraw = listOf<LightRect>()
+
+
+    fun calculateToDraw(location: Location) {
+
         val tileChunkSize = tileSize * chunkSize
-        val rectsToDraw: List<LightRect> = Camera.chunksOnScreen.flatMap { chunk ->
+        val rects: List<LightRect> = Camera.chunksOnScreen.flatMap { chunk ->
             if (chunk.fullShadowed) {
                 listOf(
                     LightRect(
@@ -31,11 +37,10 @@ object LightManager {
                 )
             } else {
                 chunk.blockMap.flatMapIndexed { x, col ->
+                    val screenX = Camera.worldScreenPosX((chunk.x * chunkSize + x) * tileSize, location)
                     col.flatMapIndexed { y, block ->
-                        if (block.type === Material.AIR) {
-                            emptyList() // явное преобразование к типу List<Rect>
+                        if (block.type === Material.AIR) { emptyList()
                         } else {
-                            val screenX = Camera.worldScreenPosX((chunk.x * chunkSize + x) * tileSize, location)
                             val screenY = Camera.worldScreenPosY(
                                 (chunk.y * chunkSize + y) * tileSize,
                                 location
@@ -56,6 +61,11 @@ object LightManager {
                 }
             }
         }
+
+        rectsToDraw = rects
+    }
+
+    fun draw() {
         safetyRects {
             rectsToDraw.forEach { rect ->
                 drawFillRect(rect.x, rect.y, rect.width, rect.height, rect.power)

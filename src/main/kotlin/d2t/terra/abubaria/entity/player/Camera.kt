@@ -108,9 +108,7 @@ object Camera {
             val width = (tileSize * width + 4).toInt()
             val height = (tileSize * height + 1).toInt()
 
-
-            drawTexture(image?.textureId, offX - 1, offY, width, height)
-
+            drawTexture(image?.textureId, offX-1,offY,width,height)
 
 //            if (Client.debugMode) {
 //                safetyRects {

@@ -2,6 +2,7 @@ package d2t.terra.abubaria
 
 object Client {
     var debugMode = false
+    var lightMode = true
 
     var zoom = .001f
 

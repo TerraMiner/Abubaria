@@ -1,6 +1,8 @@
 import d2t.terra.abubaria.GamePanel
+import d2t.terra.abubaria.GamePanel.tileSize
 import d2t.terra.abubaria.entity.Entity
 import d2t.terra.abubaria.hitbox.HitBox
+import d2t.terra.abubaria.location.Location
 import d2t.terra.abubaria.world.block.Block
 
 object CollisionHandler {
@@ -41,7 +43,6 @@ object CollisionHandler {
                 }
             }
         }
-//        hitBox.keepInBounds(GamePanel.world.worldBorder)
     }
 
 

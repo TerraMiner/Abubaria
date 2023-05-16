@@ -1,24 +1,15 @@
 package d2t.terra.abubaria
 
 import DebugDisplay
-import d2t.terra.abubaria.entity.particle.ParticleDestroy
 import d2t.terra.abubaria.entity.player.Camera
 import d2t.terra.abubaria.entity.player.ClientPlayer
-import d2t.terra.abubaria.event.BlockDestroyEvent
-import d2t.terra.abubaria.event.BlockPlaceEvent
 import d2t.terra.abubaria.event.EventHandler
-import d2t.terra.abubaria.event.EventService
 import d2t.terra.abubaria.hud.Hud
-import d2t.terra.abubaria.inventory.Item
-import d2t.terra.abubaria.io.LagDebugger
 import d2t.terra.abubaria.io.devices.KeyHandler
 import d2t.terra.abubaria.io.fonts.CFont
 import d2t.terra.abubaria.light.LightManager
-import d2t.terra.abubaria.location.Direction
-import d2t.terra.abubaria.location.Location
 import d2t.terra.abubaria.world.World
 import d2t.terra.abubaria.world.WorldGenerator
-import d2t.terra.abubaria.world.entityItemSize
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL11.*
 import java.awt.Color
@@ -189,28 +180,21 @@ object GamePanel {
         }
     }
 
+
+
     private fun drawScreen() {
-        val a = LagDebugger()
-        a.enabled = false
         val start = System.currentTimeMillis()
         val loc = ClientPlayer.location.clone
-        a.check(180)
-        world.draw(loc)//LAGS 1.8386
-        a.check(182)
+
+        world.draw(loc)//LAGS 1.5994
         Camera.draw(loc)//LAGS 0.0021
-        a.check(184)
-        LightManager.draw(loc)//LAGS 1.8529
-        a.check(186)
+        LightManager.calculateToDraw(loc)
+        if (Client.lightMode) LightManager.draw()//LAGS 2.0977
         Hud.draw()//LAGS 0.0143
-        a.check(188)
         cursor.draw(loc)//0.0025
-        a.check(190)
         display.draw()//LAGS 0.0106
-        a.check(192)
         val end = System.currentTimeMillis()
         videoLag = (end - start) / 1000.0
-        a.check(195)
-        a.debug("drawScreen")
     }
 }
 

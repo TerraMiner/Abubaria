@@ -89,7 +89,10 @@ object KeyHandler {
 //                GamePanel.setFullScreen(!GamePanel.inFullScreen)
 //            }
                 Keys.VK_B -> {
-                    if (pressed) GamePanel.world.generateWorldLight()
+                    if (pressed) {
+                        Client.lightMode = !Client.lightMode
+                        keyPressed[code] = false
+                    }
                 }
 
                 Keys.VK_E -> {
