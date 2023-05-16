@@ -91,8 +91,8 @@ data class Item(private var material: Material = Material.AIR, private var count
         count = 0
     }
 
-    fun drop(location: Location) {
-        EntityItem(clone, location).apply {
+    fun drop(location: Location, pickupDelay: Int = 3000) {
+        EntityItem(clone, location, pickupDelay).apply {
             dx = if (location.direction == Direction.RIGHT) .7 else -.7
             dy = -.4
         }.spawn()

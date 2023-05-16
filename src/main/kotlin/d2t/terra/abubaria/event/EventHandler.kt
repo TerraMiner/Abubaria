@@ -15,13 +15,15 @@ object EventHandler {
             ParticleDestroy(block).initParticles()
 
             val x = block.x * tileSize + (tileSize - entityItemSize)/2
-            val y = block.y * block.type.height + (block.type.height - entityItemSize)/2
-            Item(block.type,1).drop(Location(x,y, Direction.values().random()))
+            val y = block.y * tileSize + (block.type.height - entityItemSize)/2
+            Item(block.type,1).drop(Location(x,y, Direction.values().random()),500)
 
+//            println(Thread.currentThread().name)
             block.updateLightAround()
         }
 
         registerHandler<BlockPlaceEvent> {
+//            println(Thread.currentThread().name)
             block.updateLightAround()
         }
     }

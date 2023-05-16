@@ -1,18 +1,24 @@
 package d2t.terra.abubaria
 
 import DebugDisplay
+import d2t.terra.abubaria.entity.particle.ParticleDestroy
 import d2t.terra.abubaria.entity.player.Camera
 import d2t.terra.abubaria.entity.player.ClientPlayer
 import d2t.terra.abubaria.event.BlockDestroyEvent
+import d2t.terra.abubaria.event.BlockPlaceEvent
 import d2t.terra.abubaria.event.EventHandler
 import d2t.terra.abubaria.event.EventService
 import d2t.terra.abubaria.hud.Hud
+import d2t.terra.abubaria.inventory.Item
 import d2t.terra.abubaria.io.LagDebugger
 import d2t.terra.abubaria.io.devices.KeyHandler
 import d2t.terra.abubaria.io.fonts.CFont
 import d2t.terra.abubaria.light.LightManager
+import d2t.terra.abubaria.location.Direction
+import d2t.terra.abubaria.location.Location
 import d2t.terra.abubaria.world.World
 import d2t.terra.abubaria.world.WorldGenerator
+import d2t.terra.abubaria.world.entityItemSize
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL11.*
 import java.awt.Color
@@ -38,6 +44,7 @@ object GamePanel {
     var screenHeight = defaultScreenHeight
 
     private var gameThread: Thread? = null
+    private var lightThread: Thread? = null
     private var chatThread: Thread? = null
 
     val world = World().apply { /*generate()*/
@@ -102,9 +109,13 @@ object GamePanel {
 
         world.generateWorldLight()
 
+        lightThread = thread(true,false,null,"lightThread") {
+            LightManager.tick()
+        }
+
         EventHandler
 
-        gameThread = thread(true) {
+        gameThread = thread(true,false,null,"gameThread") {
             tick()
         }
         draw()

@@ -1,3 +1,4 @@
+import d2t.terra.abubaria.GamePanel
 import d2t.terra.abubaria.entity.Entity
 import d2t.terra.abubaria.hitbox.HitBox
 import d2t.terra.abubaria.world.block.Block
@@ -40,6 +41,7 @@ object CollisionHandler {
                 }
             }
         }
+//        hitBox.keepInBounds(GamePanel.world.worldBorder)
     }
 
 

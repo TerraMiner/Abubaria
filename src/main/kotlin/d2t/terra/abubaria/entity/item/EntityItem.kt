@@ -11,11 +11,12 @@ import d2t.terra.abubaria.io.graphics.drawTexture
 import d2t.terra.abubaria.location.Direction
 import d2t.terra.abubaria.location.Location
 import d2t.terra.abubaria.world.entityItemSize
+import kotlin.math.pow
 
-class EntityItem(val item: Item, location: Location) : Entity() {
+class EntityItem(val item: Item, location: Location, pickupDelay: Int = 3000) : Entity() {
 
     private val deathTime = System.currentTimeMillis() + 30 * 60 * 1000
-    private val canPickUpAfter = System.currentTimeMillis() + 3000
+    private val canPickUpAfter = System.currentTimeMillis() + pickupDelay
     private val texture = item.type.texture!!
     private val spawnLocation = location.clone
 
@@ -55,7 +56,7 @@ class EntityItem(val item: Item, location: Location) : Entity() {
 
         if (distToPlayer < 60 && canPickUpAfter < System.currentTimeMillis()) {
 
-            val speed = (60 - distToPlayer)/70.0
+            val speed = ((60 - distToPlayer)/70.0).pow(-0.05)
 
             velocity(target, speed ,speed)
 
@@ -75,8 +76,6 @@ class EntityItem(val item: Item, location: Location) : Entity() {
             return
         }
 
-        hitBox.keepInBounds(GamePanel.world.worldBorder)
-
         chunks = hitBox.intersectionChunks()
 
         applyFriction()
@@ -86,6 +85,8 @@ class EntityItem(val item: Item, location: Location) : Entity() {
         fall()
 
         checkCollision()
+
+        hitBox.keepInBounds(GamePanel.world.worldBorder)
 
 //        println(" after checks dx $dx")
 //        println(" after checks dy $dy")

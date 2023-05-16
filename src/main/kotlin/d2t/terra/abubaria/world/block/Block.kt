@@ -9,6 +9,7 @@ import d2t.terra.abubaria.event.EventService
 import d2t.terra.abubaria.hitbox.BlockHitBox
 import d2t.terra.abubaria.io.graphics.drawTexture
 import d2t.terra.abubaria.light.Light
+import d2t.terra.abubaria.light.LightManager
 import d2t.terra.abubaria.location.Location
 import d2t.terra.abubaria.world.lCount
 import d2t.terra.abubaria.world.lSize
@@ -89,17 +90,11 @@ class Block(
     }
 
     fun updateLightAround() {
-        val around = mutableListOf<Block?>()
         for (dx in -lCount-1 .. lCount+1) {
             for (dy in -lCount-1 .. lCount+1) {
-                around.add(this)
-                around.add(world.getBlockAt(x + dx, y + dy))
-            }
-        }
-
-        around.filterNotNull().forEach { block ->
-            block.lightMap.flatten().forEach {
-                it.initializePower()
+                val block = world.getBlockAt(x + dx, y + dy) ?: continue
+                LightManager.forUpDate.add(this)
+                LightManager.forUpDate.add(block)
             }
         }
     }

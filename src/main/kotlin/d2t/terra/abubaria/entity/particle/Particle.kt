@@ -41,7 +41,7 @@ class Particle(
             owner.tiles.remove(this)
         }
 
-        hitBox.keepInBounds(GamePanel.world.worldBorder)
+//        hitBox.keepInBounds(GamePanel.world.worldBorder)
 
         chunks = hitBox.intersectionChunks()
 
@@ -52,6 +52,8 @@ class Particle(
         fall()
 
         checkCollision()
+
+        hitBox.keepInBounds(GamePanel.world.worldBorder)
 
         if (checkIfStuck(hitBox)) {
             dy = .0; dx = .0
