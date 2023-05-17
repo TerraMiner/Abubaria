@@ -1,11 +1,18 @@
 package d2t.terra.abubaria.world
 
+import d2t.terra.abubaria.Client
 import d2t.terra.abubaria.GamePanel.tileSize
 import d2t.terra.abubaria.entity.player.Camera
 import d2t.terra.abubaria.hitbox.BlockHitBox
 import d2t.terra.abubaria.hitbox.HitBox
+import d2t.terra.abubaria.io.graphics.drawRect
+import d2t.terra.abubaria.io.graphics.drawString
+import d2t.terra.abubaria.io.graphics.safetyDraw
 import d2t.terra.abubaria.location.Location
 import d2t.terra.abubaria.world.block.Block
+import org.lwjgl.opengl.GL11.*
+import org.lwjgl.opengl.GL15
+import java.awt.Color
 
 class Chunk(
     val x: Int = 0,
@@ -42,20 +49,18 @@ class Chunk(
             }
         }
 
-//        if (Client.debugMode) {
-//            val screenX = Camera.worldScreenPosX(x * tileSize * chunkSize, location)
-//            val screenY = Camera.worldScreenPosY(y * tileSize * chunkSize, location)
-//            drawString("x: $x, y: $y", screenX + 3, screenY + 14, 4, Color.GRAY)
-//        }
+        if (Client.debugMode) {
+            val screenX = Camera.worldScreenPosX(x * tileSize * chunkSize, location)
+            val screenY = Camera.worldScreenPosY(y * tileSize * chunkSize, location)
+            drawString("x: $x, y: $y", screenX + 3, screenY + 14, 4, Color.BLACK)
+
+            safetyDraw(GL_LINE_LOOP) {
+                glLineWidth(1f)
+                drawRect(screenX, screenY, hitBox.width.toInt(), hitBox.height.toInt())
+            }
+        }
     }
 
-//    fun drawHitBoxes(location: Location) {
-//        if (Client.debugMode) {
-//            val screenX = Camera.worldScreenPosX(x * tileSize * chunkSize, location)
-//            val screenY = Camera.worldScreenPosY(y * tileSize * chunkSize, location)
-//            drawRect(screenX, screenY, hitBox.width.toInt(), hitBox.height.toInt(), Color.GRAY)
-//        }
-//    }
 
     fun applyForBlocks(action: (x: Int, y: Int) -> Unit) {
         for (x in 0 until chunkSize) {

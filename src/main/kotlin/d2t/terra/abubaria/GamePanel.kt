@@ -5,7 +5,6 @@ import d2t.terra.abubaria.entity.player.Camera
 import d2t.terra.abubaria.entity.player.ClientPlayer
 import d2t.terra.abubaria.event.EventHandler
 import d2t.terra.abubaria.hud.Hud
-import d2t.terra.abubaria.io.LagDebugger
 import d2t.terra.abubaria.io.devices.KeyHandler
 import d2t.terra.abubaria.io.fonts.CFont
 import d2t.terra.abubaria.light.LightManager
@@ -36,17 +35,12 @@ object GamePanel {
     var screenWidth = defaultScreenWidth
     var screenHeight = defaultScreenHeight
 
-    private var gameThread: Thread? = null
-    private var lightThread: Thread? = null
+    var gameThread: Thread? = null
+    var lightThread: Thread? = null
     private var chatThread: Thread? = null
     val service = Executors.newFixedThreadPool(4)
 
-    val world = World().apply { /*generate()*/
-        WorldGenerator(this).generateWorld()
-//        val x = (worldWidth / tileSize) / 2
-//        val y = 20
-//        setBlock(Material.STONE, x, y)
-    }
+    val world = World()
 
     val cursor = Cursor(0, 0)
 
@@ -75,7 +69,7 @@ object GamePanel {
     }
 
     //    private val bgColor = Color(170, 255, 255)
-    private val bgColor = Color(40, 40, 50)
+    private val bgColor = Color(150, 200, 250)
 
     fun setupScreen() {
 
@@ -92,19 +86,23 @@ object GamePanel {
         glEnable(GL_TEXTURE_2D)
 
         glLoadIdentity()
-        glOrtho(0.0, screenWidth.toDouble(), screenHeight.toDouble(), 0.0, 0.0, 1.0)
+        glOrtho(.0, screenWidth.toDouble(), screenHeight.toDouble(), .0, .0, 1.0)
         glMatrixMode(GL_MODELVIEW)
 
         Camera.initialize()
     }
 
     fun startGameThread() {
-        ClientPlayer.initialize()
 
-        world.generateWorldLight()
+        ClientPlayer.initialize()
 
         lightThread = thread(true, false, null, "lightThread") {
             LightManager.tick()
+        }
+
+        service.submit {
+            WorldGenerator(world).generateWorld()
+            world.generateWorldLight()
         }
 
         EventHandler
@@ -146,8 +144,6 @@ object GamePanel {
                 timer = 0
             }
         }
-
-        glfwDestroyWindow(window)
     }
 
 
@@ -187,25 +183,16 @@ object GamePanel {
         val start = System.currentTimeMillis()
         val loc = ClientPlayer.location.clone
 
-        LagDebugger().apply {
+        world.draw(loc)
+        Camera.draw(loc)
+        if (Client.lightMode) service.submit { LightManager.calculateToDraw(loc) }
+        if (Client.lightMode) LightManager.draw()
+        Hud.draw()
+        cursor.draw(loc)
+        display.draw()
+        val end = System.currentTimeMillis()
+        videoLag = (end - start) / 1000.0
 
-            world.draw(loc); check(189)
-            Camera.draw(loc); check(190)
-            if (Client.lightMode) service.submit { LightManager.calculateToDraw(loc) }; check(191)
-            if (Client.lightMode) LightManager.draw(); check(192)
-            Hud.draw(); check(193)
-            cursor.draw(loc); check(194)
-            display.draw(); check(195)
-            val end = System.currentTimeMillis(); check(196)
-            videoLag = (end - start) / 1000.0; check(197)
-
-
-            if (debug) {
-                debug("drawScreen")
-                debug = false
-            }
-
-        }
     }
 }
 

@@ -1,18 +1,23 @@
 package d2t.terra.abubaria.world.block
 
+import d2t.terra.abubaria.Client
 import d2t.terra.abubaria.GamePanel
+import d2t.terra.abubaria.GamePanel.tileSize
 import d2t.terra.abubaria.GamePanel.world
 import d2t.terra.abubaria.event.BlockDestroyEvent
 import d2t.terra.abubaria.event.BlockPlaceEvent
 import d2t.terra.abubaria.event.EventService
 import d2t.terra.abubaria.hitbox.BlockHitBox
+import d2t.terra.abubaria.io.graphics.drawRect
 import d2t.terra.abubaria.io.graphics.drawTexture
+import d2t.terra.abubaria.io.graphics.safetyDraw
 import d2t.terra.abubaria.light.Light
 import d2t.terra.abubaria.light.LightManager
 import d2t.terra.abubaria.world.lCount
 import d2t.terra.abubaria.world.lSize
 import d2t.terra.abubaria.world.lightLevels
 import d2t.terra.abubaria.world.material.Material
+import org.lwjgl.opengl.GL11
 
 class Block(
     private var material: Material = Material.AIR,
@@ -68,7 +73,7 @@ class Block(
     }
 
     fun draw(screenX: Int, screenY: Int) {
-        drawTexture(type.texture?.textureId, screenX, screenY, GamePanel.tileSize, type.height)
+        drawTexture(type.texture?.textureId, screenX, screenY, tileSize, type.height)
     }
 
     fun initLightMap() {

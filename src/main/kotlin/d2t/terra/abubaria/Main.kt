@@ -1,7 +1,5 @@
 package d2t.terra.abubaria
 
-import d2t.terra.abubaria.event.BlockDestroyEvent
-import d2t.terra.abubaria.event.EventService
 import d2t.terra.abubaria.io.devices.KeyHandler
 import d2t.terra.abubaria.io.devices.MouseHandler
 import org.lwjgl.glfw.Callbacks.glfwFreeCallbacks
@@ -10,6 +8,7 @@ import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.glfw.GLFWWindowSizeCallback
 import org.lwjgl.opengl.GL
 import org.lwjgl.system.MemoryUtil.NULL
+import kotlin.system.exitProcess
 
 var window: Long = 0
 val windowWidth = 1280
@@ -40,10 +39,20 @@ fun main() {
 
     GamePanel.startGameThread()
 
+    close()
+}
+
+fun close() {
+    GamePanel.gameThread?.interrupt()
+    GamePanel.lightThread?.interrupt()
+    GamePanel.service.shutdown()
+    GamePanel.gameThread?.join()
+    GamePanel.lightThread?.join()
     glfwFreeCallbacks(window)
-    glfwDestroyWindow(window)
     glfwSetErrorCallback(null)?.free()
+    glfwSetWindowShouldClose(window, true)
     glfwTerminate()
+    glfwDestroyWindow(window)
 }
 
 private fun setCallbacks() {
@@ -58,7 +67,7 @@ private fun setCallbacks() {
             val width = argWidth.coerceIn(800..Int.MAX_VALUE)
             val height = argHeight.coerceIn(600..Int.MAX_VALUE)
 
-            glfwSetWindowSize(window,width,height)
+            glfwSetWindowSize(window, width, height)
 
             GamePanel.setupScreen()
         }

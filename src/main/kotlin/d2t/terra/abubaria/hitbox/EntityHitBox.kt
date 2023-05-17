@@ -1,6 +1,7 @@
 package d2t.terra.abubaria.hitbox
 
 import d2t.terra.abubaria.GamePanel
+import d2t.terra.abubaria.GamePanel.tileSize
 import d2t.terra.abubaria.entity.Entity
 import d2t.terra.abubaria.location.Direction
 import d2t.terra.abubaria.world.Chunk
@@ -24,11 +25,11 @@ class EntityHitBox(val entity: Entity, width: Double, height: Double) :
     fun intersectionChunks(): MutableList<Chunk> {
         val chunks = mutableListOf<Chunk>()
 
-        val leftPos = ((left + entity.dx) / GamePanel.tileSize).toInt()
-        val rightPos = ((right + entity.dx) / GamePanel.tileSize).toInt()
+        val leftPos = ((left + entity.dx - tileSize) / tileSize).toInt()
+        val rightPos = ((right + entity.dx + tileSize) / tileSize).toInt()
 
-        val topPos = ((top + entity.dy) / GamePanel.tileSize).toInt()
-        val bottomPos = ((bottom + entity.dy) / GamePanel.tileSize).toInt()
+        val topPos = ((top + entity.dy - tileSize) / tileSize).toInt()
+        val bottomPos = ((bottom + entity.dy + tileSize) / tileSize).toInt()
 
         val leftTopChunk = GamePanel.world.getChunkAt(leftPos, topPos)
         val leftBottomChunk = GamePanel.world.getChunkAt(leftPos, bottomPos)

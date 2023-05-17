@@ -2,32 +2,38 @@ package d2t.terra.abubaria.io.graphics
 
 import d2t.terra.abubaria.GamePanel
 import d2t.terra.abubaria.location.Direction
-import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE
 import org.lwjgl.opengl.GL12.GL_NEAREST
+import org.lwjgl.opengl.GL15.*
 import java.awt.Color
 
 
 fun loadImage(texturePath: String) = Image(null, texturePath)
 
-fun safetyRects(action: () -> Unit) {
+fun safetyDraw(mode: Int, action: () -> Unit) {
     glPushAttrib(GL_CURRENT_BIT or GL_ENABLE_BIT or GL_TRANSFORM_BIT)
     glDisable(GL_TEXTURE_2D)
-    glBegin(GL_QUADS)
+    glBegin(mode)
     action.invoke()
     glEnd()
     glPopAttrib()
 }
 
-//fun drawRect(x: Int, y: Int, width: Int, height: Int, color: Color = Color.BLACK) {
-//    glColor4i(color.red, color.green, color.blue, color.alpha)
-//    glBegin(GL_LINE_LOOP)
-//    glVertex2i(x, y)
-//    glVertex2i(x + width, y)
-//    glVertex2i(x + width, y + height)
-//    glVertex2i(x, y + height)
-//    glEnd()
-//}
+fun drawRect(x: Int, y: Int, width: Int, height: Int, color: Color = Color.BLACK) {
+    glColor3i(color.red, color.green, color.blue)
+    glVertex2i(x, y)
+    glVertex2i(x + width, y)
+    glVertex2i(x + width, y + height)
+    glVertex2i(x, y + height)
+}
+
+fun drawFillRect(x: Int, y: Int, width: Int, height: Int, alpha: Int) {
+    glColor4f(0f, 0f, 0f, alpha / 255f)
+    glVertex2i(x, y)
+    glVertex2i(x + width, y)
+    glVertex2i(x + width, y + height)
+    glVertex2i(x, y + height)
+}
 
 fun drawRotatedTexture(textureId: Int?, x: Double, y: Double, width: Double, height: Double, angle: Float, direction: Direction) {
     if (textureId === null) return
@@ -37,23 +43,16 @@ fun drawRotatedTexture(textureId: Int?, x: Double, y: Double, width: Double, hei
     when (direction) {
         Direction.RIGHT -> {
             glRotatef(angle, 0f, 0f, 1f)
-            glTranslated(-width/2, -height / 2, .0)
+            glTranslated(-width / 2, -height / 2, .0)
         }
+
         Direction.LEFT -> {
             glRotatef(-angle, 0f, 0f, 1f)
-            glTranslated(-width/2, -height / 2, .0)
+            glTranslated(-width / 2, -height / 2, .0)
         }
     }
     drawQuadWithTexCoords(0, 0, width.toInt(), height.toInt())
     glPopMatrix()
-}
-
-fun drawFillRect(x: Int, y: Int, width: Int, height: Int, alpha: Int) {
-    glColor4f(0f, 0f, 0f, alpha / 255f)
-    glVertex2i(x, y)
-    glVertex2i(x + width, y)
-    glVertex2i(x + width, y + height)
-    glVertex2i(x, y + height)
 }
 
 fun drawString(string: String, x: Int, y: Int, sizeMod: Int, color: Color = Color.WHITE) {

@@ -26,7 +26,7 @@ class WorldGenerator(private val world: World) {
     private val groundHeight = 10
 
     // шанс появления пещеры в каждом блоке (чем ниже, тем больше шанс)
-    private val caveChance = 0.002
+    private val caveChance = 0.01
 
     fun generateWorld() {
 
@@ -42,7 +42,6 @@ class WorldGenerator(private val world: World) {
                 }
             }
         }
-
     }
 
     private fun fillChunkWithAir(chunk: Chunk) {
@@ -56,14 +55,14 @@ class WorldGenerator(private val world: World) {
     private fun fillChunkWithTerrain(chunk: Chunk) {
 
         chunk.applyForBlocks { x, y ->
-            val height = getHeight(x)
+            val height = getHeight(x, y)
             if (y in (height + 1) until groundLevel + groundHeight * 2) {
                 world.setBlock(Material.DIRT, x, y)
             }
         }
 
         chunk.applyForBlocks { x, y ->
-            val height = getHeight(x)
+            val height = getHeight(x, y)
             val stoneLevel = height + groundHeight
 
             if (y >= stoneLevel) {
@@ -73,7 +72,7 @@ class WorldGenerator(private val world: World) {
 
         chunk.applyForBlocks { x, y ->
 
-            val height = getHeight(x)
+            val height = getHeight(x, y)
             val stoneLevel = height + groundHeight
             val currentBlock = world.getBlockAt(x, y) ?: return@applyForBlocks
 
@@ -93,40 +92,56 @@ class WorldGenerator(private val world: World) {
         }
 
         chunk.applyForBlocks { x, y ->
-            if (y >= groundLevel + groundHeight + 10) {
-                if (Random.nextDouble() < caveChance) {
-                    generateCave(x, y)
-                }
-            }
-        }
-
-        chunk.applyForBlocks { x, y ->
             val block = world.getBlockAt(x, y) ?: return@applyForBlocks
             if (block.type === Material.DIRT
                 && world.getBlockAt(x, y - 1)?.type === Material.AIR
             ) block.type = Material.GRASS
         }
+
+        chunk.apply {
+            applyForBlocks { x, y ->
+                if (y >= groundLevel + groundHeight + 10) {
+                    if (Random.nextDouble() < caveChance) {
+                        generateCave(x, y)
+                    }
+                }
+            }
+        }
     }
 
-    // высота блока на заданной координате
-    val seed = Random.nextLong(0L..999999L)
-    private fun getHeight(x: Int): Int {
-        val noise = (SimplexNoise.noise2(seed, (startX + x) / 40.0, 5.0) + 1) * 0.5
+    val seed = Random.nextLong(100000000000L..999999999999L)
+    private fun getHeight(x: Int, y: Int): Int {
+        val noise = (noiseValue((startX + x) / 40.0, (startY + y) / 40.0/*5.0*/) + 1) * 0.5
         return (groundLevel + noise * 10).toInt()
+    }
+
+    private fun noiseValue(x: Double, y: Double): Float {
+        return SimplexNoise.noise2(seed, x, y)
     }
 
     // генерация пещеры в блоке с заданными координатами
     private fun generateCave(x: Int, y: Int) {
-        val caveLength = Random.nextInt(5, 20)
-        val direction = DoubleArray(caveLength) { Random.nextDouble() * 2 * Math.PI }
+        val baseX = x + Random.nextInt(-5, 5)
+        val baseY = y + Random.nextInt(-5, 5)
+        val radius = Random.nextInt(2, 4)
+        val height = Random.nextInt(25, 50)
+        val scale = Random.nextDouble(0.01, 0.03)
+        val noiseSampling = Random.nextDouble(0.05, 0.2)
 
-        for (i in 1..caveLength) {
-            val currentX = x + (i * sin(direction[i - 1])).toInt()
-            val currentY = y - (i * cos(direction[i - 1])).toInt()
+        for (t in 0..height) {
+            val theta = t.toDouble() * 4.0 * Math.PI / height
+            val cosTheta = cos(theta)
+            val sinTheta = sin(theta)
+            val r = radius + scale * noiseValue(baseX.toDouble(), t.toDouble() * noiseSampling)
+            for (phi in 0..360) {
+                val angle = phi.toDouble() * 2.0 * Math.PI / 360.0
+                val dx = (r * cosTheta * cos(angle)).toInt()
+                val dy = (r * sinTheta * cos(angle)).toInt()
+                val currentX = baseX + dx
+                val currentY = baseY + dy
 
-//            if (world.getBlockAt(currentX, currentY)?.material != Material.AIR) continue
-
-            world.setBlock(Material.AIR, currentX, currentY)
+                world.setBlock(Material.AIR, currentX, currentY)
+            }
         }
     }
 

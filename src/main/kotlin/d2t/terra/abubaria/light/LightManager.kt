@@ -1,11 +1,10 @@
 package d2t.terra.abubaria.light
 
 import d2t.terra.abubaria.GamePanel
-import d2t.terra.abubaria.GamePanel.service
 import d2t.terra.abubaria.GamePanel.tileSize
 import d2t.terra.abubaria.entity.player.Camera
 import d2t.terra.abubaria.io.graphics.drawFillRect
-import d2t.terra.abubaria.io.graphics.safetyRects
+import d2t.terra.abubaria.io.graphics.safetyDraw
 import d2t.terra.abubaria.location.Location
 import d2t.terra.abubaria.window
 import d2t.terra.abubaria.world.block.Block
@@ -13,10 +12,8 @@ import d2t.terra.abubaria.world.chunkSize
 import d2t.terra.abubaria.world.lSize
 import d2t.terra.abubaria.world.material.Material
 import org.lwjgl.glfw.GLFW
+import org.lwjgl.opengl.GL11.GL_QUADS
 import java.util.concurrent.ConcurrentLinkedQueue
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
-import kotlin.concurrent.thread
 
 object LightManager {
 
@@ -67,7 +64,7 @@ object LightManager {
     }
 
     fun draw() {
-        safetyRects {
+        safetyDraw(GL_QUADS) {
             rectsToDraw.forEach { rect ->
                 drawFillRect(rect.x, rect.y, rect.width, rect.height, rect.power)
             }
@@ -93,7 +90,6 @@ object LightManager {
             }
 
             ++tickCount
-
 
             if (timer >= 1000000000) {
                 GamePanel.display.lps = tickCount
