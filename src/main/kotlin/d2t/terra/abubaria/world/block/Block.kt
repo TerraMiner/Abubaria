@@ -2,7 +2,6 @@ package d2t.terra.abubaria.world.block
 
 import d2t.terra.abubaria.GamePanel
 import d2t.terra.abubaria.GamePanel.world
-import d2t.terra.abubaria.entity.player.Camera
 import d2t.terra.abubaria.event.BlockDestroyEvent
 import d2t.terra.abubaria.event.BlockPlaceEvent
 import d2t.terra.abubaria.event.EventService
@@ -10,7 +9,6 @@ import d2t.terra.abubaria.hitbox.BlockHitBox
 import d2t.terra.abubaria.io.graphics.drawTexture
 import d2t.terra.abubaria.light.Light
 import d2t.terra.abubaria.light.LightManager
-import d2t.terra.abubaria.location.Location
 import d2t.terra.abubaria.world.lCount
 import d2t.terra.abubaria.world.lSize
 import d2t.terra.abubaria.world.lightLevels
@@ -69,11 +67,7 @@ class Block(
         }
     }
 
-    fun draw(worldX: Int, worldY: Int, location: Location) {
-        if (fullShadowed) return
-        val screenX = Camera.worldScreenPosX(worldX, location)
-        val screenY = (Camera.worldScreenPosY(worldY, location) + (GamePanel.tileSize * type.state.offset).toInt())
-
+    fun draw(screenX: Int, screenY: Int) {
         drawTexture(type.texture?.textureId, screenX, screenY, GamePanel.tileSize, type.height)
     }
 
@@ -90,8 +84,8 @@ class Block(
     }
 
     fun updateLightAround() {
-        for (dx in -lCount-1 .. lCount+1) {
-            for (dy in -lCount-1 .. lCount+1) {
+        for (dx in -lCount - 1..lCount + 1) {
+            for (dy in -lCount - 1..lCount + 1) {
                 val block = world.getBlockAt(x + dx, y + dy) ?: continue
                 LightManager.forUpDate.add(this)
                 LightManager.forUpDate.add(block)

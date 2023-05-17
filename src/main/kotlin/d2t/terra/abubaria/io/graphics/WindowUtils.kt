@@ -10,16 +10,12 @@ import java.awt.Color
 
 fun loadImage(texturePath: String) = Image(null, texturePath)
 
-fun safetyTextures(action: () -> Unit) {
-    glPushAttrib(GL_CURRENT_BIT or GL_ENABLE_BIT or GL_TRANSFORM_BIT)
-    action.invoke()
-    glPopAttrib()
-}
-
 fun safetyRects(action: () -> Unit) {
     glPushAttrib(GL_CURRENT_BIT or GL_ENABLE_BIT or GL_TRANSFORM_BIT)
     glDisable(GL_TEXTURE_2D)
+    glBegin(GL_QUADS)
     action.invoke()
+    glEnd()
     glPopAttrib()
 }
 
@@ -54,16 +50,15 @@ fun drawRotatedTexture(textureId: Int?, x: Double, y: Double, width: Double, hei
 
 fun drawFillRect(x: Int, y: Int, width: Int, height: Int, alpha: Int) {
     glColor4f(0f, 0f, 0f, alpha / 255f)
-    glBegin(GL_QUADS)
     glVertex2i(x, y)
     glVertex2i(x + width, y)
     glVertex2i(x + width, y + height)
     glVertex2i(x, y + height)
-    glEnd()
 }
 
 fun drawString(string: String, x: Int, y: Int, sizeMod: Int, color: Color = Color.WHITE) {
     if (string.isEmpty()) return
+    glPushAttrib(GL_CURRENT_BIT or GL_ENABLE_BIT or GL_TRANSFORM_BIT)
     GamePanel.font.apply {
         var xMod = x
         string.forEach {
@@ -75,8 +70,8 @@ fun drawString(string: String, x: Int, y: Int, sizeMod: Int, color: Color = Colo
 
             val widthAdjusted = char.width / sizeMod
             val heightAdjusted = char.height / sizeMod
-            glBegin(GL_QUADS)
             glColor4f(color.red / 255f, color.green / 255f, color.blue / 255f, color.alpha / 255f)
+            glBegin(GL_QUADS)
 
             glTexCoord2f(0.0f, 0.0f)
             glVertex2i(xMod, y - fontMetrics.descent)
@@ -95,6 +90,7 @@ fun drawString(string: String, x: Int, y: Int, sizeMod: Int, color: Color = Colo
             xMod += widthAdjusted
         }
     }
+    glPopAttrib()
 }
 
 fun drawTexture(textureId: Int?, x: Int, y: Int, width: Int, height: Int, color: Color = Color.WHITE) {

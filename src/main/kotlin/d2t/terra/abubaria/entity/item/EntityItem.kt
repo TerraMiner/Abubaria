@@ -43,22 +43,31 @@ class EntityItem(val item: Item, location: Location, pickupDelay: Int = 3000) : 
         val screenY = (Camera.worldScreenPosY((location.y).toInt(), playerLoc) + modY).toInt()
         val height = (height / item.type.size.size).toInt()
 
-        val angle = (dy * 60.0).toFloat().coerceIn(-45f,45f)
+        val angle = (dy * 60.0).toFloat().coerceIn(-45f, 45f)
 
-        drawRotatedTexture(texture.textureId, screenX.toDouble(), screenY.toDouble(), width, height.toDouble(), angle, location.direction)
+        drawRotatedTexture(
+            texture.textureId,
+            screenX.toDouble(),
+            screenY.toDouble(),
+            width,
+            height.toDouble(),
+            angle,
+            location.direction
+        )
     }
 
     private fun tryPickUp() {
-        val dx = (if (ClientPlayer.location.direction === Direction.LEFT) -ClientPlayer.dx else ClientPlayer.dx) + width / 2.0
+        val dx =
+            (if (ClientPlayer.location.direction === Direction.LEFT) -ClientPlayer.dx else ClientPlayer.dx) + width / 2.0
         val target = ClientPlayer.location.transfer(dx, .0)
 
         val distToPlayer = location.distance(target)
 
         if (distToPlayer < 60 && canPickUpAfter < System.currentTimeMillis()) {
 
-            val speed = ((60 - distToPlayer)/70.0).pow(-0.05)
+            val speed = ((60 - distToPlayer) / 70.0).pow(-0.05)
 
-            velocity(target, speed ,speed)
+            velocity(target, speed, speed)
 
             if (distToPlayer <= width) {
                 ClientPlayer.inventory.giveItem(item)

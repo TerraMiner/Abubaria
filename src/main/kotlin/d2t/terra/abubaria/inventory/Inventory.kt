@@ -6,7 +6,6 @@ import d2t.terra.abubaria.hitbox.HitBox
 import d2t.terra.abubaria.hud.Hud
 import d2t.terra.abubaria.io.graphics.drawString
 import d2t.terra.abubaria.io.graphics.drawTexture
-import d2t.terra.abubaria.io.graphics.safetyTextures
 import d2t.terra.abubaria.world.diff
 import d2t.terra.abubaria.world.inSlotPos
 import d2t.terra.abubaria.world.inSlotSize
@@ -125,44 +124,43 @@ data class Inventory(val xSize: Int, val ySize: Int) {
 
     fun draw() {
         val inventory = Hud.inventory
-        safetyTextures {
-            if (Hud.inventory.opened) repeat(inventory.xSize) { x ->
-                val invX = (x * slotSize) + diff
-                repeat(inventory.ySize) { y ->
-                    val invY = (y * slotSize) + diff
-                    val selectedItem = selectedHotBar == x && y == 0
-
-                    val textureId = if (selectedItem) Hud.selectedSlot.textureId else Hud.slot.textureId
-                    drawTexture(textureId, invX, invY, slotSize, slotSize)
-
-                    val item = inventory.getItem(x, y)
-                    if (item != null && item.type !== Material.AIR) {
-                        item.draw(
-                            invX + inSlotPos,
-                            invY + inSlotPos + (inSlotSize * item.type.state.offset).toInt(),
-                            item.type.invSizes.first, item.type.invSizes.second, true
-                        )
-                    }
-                }
-            }
-            else repeat(inventory.xSize) { x ->
-                val invX = (x * slotSize) + diff
-                val selectedItem = selectedHotBar == x
+        if (Hud.inventory.opened) repeat(inventory.xSize) { x ->
+            val invX = (x * slotSize) + diff
+            repeat(inventory.ySize) { y ->
+                val invY = (y * slotSize) + diff
+                val selectedItem = selectedHotBar == x && y == 0
 
                 val textureId = if (selectedItem) Hud.selectedSlot.textureId else Hud.slot.textureId
-                drawTexture(textureId, invX, diff, slotSize, slotSize)
+                drawTexture(textureId, invX, invY, slotSize, slotSize)
 
-                val item = inventory.getItem(x, 0)
+                val item = inventory.getItem(x, y)
                 if (item != null && item.type !== Material.AIR) {
                     item.draw(
                         invX + inSlotPos,
-                        diff + inSlotPos + (inSlotSize * item.type.state.offset).toInt(),
-                        item.type.invSizes.first,
-                        item.type.invSizes.second, true
+                        invY + inSlotPos + (inSlotSize * item.type.state.offset).toInt(),
+                        item.type.invSizes.first, item.type.invSizes.second, true
                     )
                 }
-                drawString(inventory.getItem(selectedHotBar, 0)?.display ?: "", 24, 12, 3)
             }
         }
+        else repeat(inventory.xSize) { x ->
+            val invX = (x * slotSize) + diff
+            val selectedItem = selectedHotBar == x
+
+            val textureId = if (selectedItem) Hud.selectedSlot.textureId else Hud.slot.textureId
+            drawTexture(textureId, invX, diff, slotSize, slotSize)
+
+            val item = inventory.getItem(x, 0)
+            if (item != null && item.type !== Material.AIR) {
+                item.draw(
+                    invX + inSlotPos,
+                    diff + inSlotPos + (inSlotSize * item.type.state.offset).toInt(),
+                    item.type.invSizes.first,
+                    item.type.invSizes.second, true
+                )
+            }
+            drawString(inventory.getItem(selectedHotBar, 0)?.display ?: "", 24, 12, 3)
+        }
     }
+
 }

@@ -1,11 +1,8 @@
 package d2t.terra.abubaria.inventory
 
 import d2t.terra.abubaria.entity.item.EntityItem
-import d2t.terra.abubaria.entity.player.ClientPlayer
 import d2t.terra.abubaria.io.graphics.drawString
 import d2t.terra.abubaria.io.graphics.drawTexture
-import d2t.terra.abubaria.io.graphics.safetyRects
-import d2t.terra.abubaria.io.graphics.safetyTextures
 import d2t.terra.abubaria.location.Direction
 import d2t.terra.abubaria.location.Location
 import d2t.terra.abubaria.world.material.Material
@@ -100,13 +97,11 @@ data class Item(private var material: Material = Material.AIR, private var count
     }
 
     fun draw(x: Int, y: Int, width: Int, height: Int, withText: Boolean = true, txtMod: Int = 5) {
-            drawTexture(type.texture?.textureId, x, y, width, height)
+        drawTexture(type.texture?.textureId, x, y, width, height)
 
-            if (withText) {
-                safetyTextures {
-                    drawString("$count", x, y + height + txtMod, txtMod)
-                }
-            }
+        if (withText) {
+                drawString("$count", x, y + height + txtMod, txtMod)
+        }
     }
 
 }

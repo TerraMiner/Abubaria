@@ -1,9 +1,14 @@
 package d2t.terra.abubaria.io
 
-class LagDebugger {
+import jdk.nashorn.internal.AssertsEnabled
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.forEach
+import kotlin.time.measureTime
+
+class LagDebugger(private val enabled: Boolean = true) {
     private var startTime = System.nanoTime()
     private val list = mutableMapOf<Int, Long>()
-    var enabled = true
+
     fun check(id: Int) {
         if (!enabled) return
         list[id] = System.nanoTime() - startTime

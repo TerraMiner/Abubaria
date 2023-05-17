@@ -77,6 +77,13 @@ object KeyHandler {
                     }
                 }
 
+                Keys.VK_F9 -> {
+                    if (pressed) {
+                        GamePanel.debug = true
+                        keyPressed[code] = false
+                    }
+                }
+
                 Keys.VK_UP -> {
                     if (pressed) Client.zoomIn()
                 }

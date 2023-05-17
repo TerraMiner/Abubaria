@@ -6,7 +6,6 @@ import d2t.terra.abubaria.entity.Entity
 import d2t.terra.abubaria.entity.player.Camera
 import d2t.terra.abubaria.hitbox.BlockHitBox
 import d2t.terra.abubaria.hitbox.HitBox
-import d2t.terra.abubaria.io.graphics.safetyTextures
 import d2t.terra.abubaria.location.Location
 import d2t.terra.abubaria.world.block.Block
 import d2t.terra.abubaria.world.material.Material
@@ -54,26 +53,26 @@ class World {
     }
 
     fun draw(location: Location) {
-        val extraDrawDistX = abs((Camera.playerScreenPosX(location) - Camera.cameraX) / tileSize / chunkSize) + 1
-        val extraDrawDistY = abs((Camera.playerScreenPosY(location) - Camera.cameraY) / tileSize / chunkSize) + 1
+        val extraDrawDistX = abs(Camera.playerScreenPosX(location) - Camera.cameraX) + tileSize * chunkSize
+        val extraDrawDistY = abs(Camera.playerScreenPosY(location) - Camera.cameraY) + tileSize * chunkSize
 
-        val leftVertex = Camera.leftCameraX(location)
-        val rightVertex = Camera.rightCameraX(location)
-        val bottomVertex = Camera.bottomCameraY(location)
-        val topVertex = Camera.topCameraY(location)
+        val leftVertex = Camera.leftCameraX(location) - extraDrawDistX
+        val rightVertex = Camera.rightCameraX(location) + extraDrawDistX
+        val bottomVertex = Camera.bottomCameraY(location) + extraDrawDistY
+        val topVertex = Camera.topCameraY(location) - extraDrawDistY
 
         val chunks = mutableListOf<Chunk>()
 
-        val leftCorner = ((leftVertex / tileSize / chunkSize).toInt() - extraDrawDistX)
+        val leftCorner = (leftVertex / tileSize / chunkSize).toInt()
             .coerceIn(0 until worldSizeX)
-        val rightCorner = ((rightVertex / tileSize / chunkSize).toInt() + extraDrawDistX)
+        val rightCorner = (rightVertex / tileSize / chunkSize).toInt()
             .coerceIn(0 until worldSizeX)
-        val bottomCorner = ((bottomVertex / tileSize / chunkSize).toInt() + extraDrawDistY)
+        val bottomCorner = (bottomVertex / tileSize / chunkSize).toInt()
             .coerceIn(0 until worldSizeY)
-        val topCorner = ((topVertex / tileSize / chunkSize).toInt() - extraDrawDistY)
+        val topCorner = (topVertex / tileSize / chunkSize).toInt()
             .coerceIn(0 until worldSizeY)
 
-        safetyTextures {
+//        safetyTextures {
             for (chunkX in leftCorner..rightCorner) {
                 for (chunkY in topCorner..bottomCorner) {
                     val chunk = chunkMap[chunkX][chunkY]
@@ -81,8 +80,9 @@ class World {
                     chunks.add(chunk)
                 }
             }
+
             drawEntities(location, leftVertex, rightVertex, topVertex, bottomVertex)
-        }
+//        }
 
 //        safetyRects {
 //            for (chunkX in leftCorner..rightCorner) {

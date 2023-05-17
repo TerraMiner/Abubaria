@@ -4,7 +4,6 @@ import d2t.terra.abubaria.GamePanel.screenWidth
 import d2t.terra.abubaria.entity.player.ClientPlayer
 import d2t.terra.abubaria.io.graphics.drawString
 import d2t.terra.abubaria.io.graphics.loadImage
-import d2t.terra.abubaria.io.graphics.safetyTextures
 
 object Hud {
     var healthBar = ""
@@ -18,9 +17,8 @@ object Hud {
 
         healthBar = ClientPlayer.run { "HP $health / $maxHealth" }
 
-        safetyTextures {
             drawString(healthBar, screenWidth - healthBar.length * 12, 15, 3)
-        }
+
 
         inventory.draw()
 

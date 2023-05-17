@@ -10,7 +10,6 @@ import d2t.terra.abubaria.io.devices.MouseHandler
 import d2t.terra.abubaria.io.graphics.drawString
 import d2t.terra.abubaria.io.graphics.drawTexture
 import d2t.terra.abubaria.io.graphics.loadImage
-import d2t.terra.abubaria.io.graphics.safetyTextures
 import d2t.terra.abubaria.location.Location
 import d2t.terra.abubaria.world.block.Block
 import d2t.terra.abubaria.world.material.Material
@@ -80,9 +79,9 @@ class Cursor(private var x: Int, private var y: Int) {
                     val screenX = Camera.worldScreenPosX(x * tileSize, location)
                     val screenY = Camera.worldScreenPosY(y * tileSize, location)
                     val offset = (tileSize * type.state.offset).toInt()
-                    safetyTextures {
-                        drawString("$x $y", screenX, screenY + offset, 4, Color.GREEN)
-                    }
+
+                    drawString("$x $y", screenX, screenY + offset, 4, Color.GREEN)
+
                 }
             }
         }
