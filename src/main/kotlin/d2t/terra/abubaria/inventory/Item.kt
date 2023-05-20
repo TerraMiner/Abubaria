@@ -90,13 +90,13 @@ data class Item(private var material: Material = Material.AIR, private var count
 
     fun drop(location: Location, pickupDelay: Int = 3000) {
         EntityItem(clone, location, pickupDelay).apply {
-            dx = if (location.direction == Direction.RIGHT) .7 else -.7
-            dy = -.4
+            dx = if (location.direction == Direction.RIGHT) .7F else -.7F
+            dy = -.4F
         }.spawn()
         remove()
     }
 
-    fun draw(x: Int, y: Int, width: Int, height: Int, withText: Boolean = true, txtMod: Int = 5) {
+    fun draw(x: Float, y: Float, width: Float, height: Float, withText: Boolean = true, txtMod: Int = 5) {
         drawTexture(type.texture?.textureId, x, y, width, height)
 
         if (withText) {

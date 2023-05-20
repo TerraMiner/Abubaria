@@ -26,11 +26,11 @@ class DebugDisplay {
 
         text.apply {
             split("\n").forEachIndexed { index, text ->
-                val y = index * 20 + 20
+                val y = index * 20 + 20F
                 if (index == 0)
-                    drawString(text, 4, y, 3)
+                    drawString(text, 4F, y, 3)
                 else if (Client.debugMode)
-                    drawString(text, 4, y, 3)
+                    drawString(text, 4F, y, 3)
             }
         }
     }

@@ -39,11 +39,11 @@ data class Inventory(val xSize: Int, val ySize: Int) {
     }
 
     fun getItemOfMouse(mouseX: Int, mouseY: Int) =
-        items.getOrNull((mouseX - diff) / slotSize)?.getOrNull((mouseY - diff) / slotSize)
+        items.getOrNull((mouseX - diff.toInt()) / slotSize.toInt())?.getOrNull((mouseY - diff.toInt()) / slotSize.toInt())
 
     fun updateMouseSlot(mouseX: Int, mouseY: Int) {
-        val x = (mouseX - diff) / slotSize
-        val y = (mouseY - diff) / slotSize
+        val x = (mouseX - diff.toInt()) / slotSize.toInt()
+        val y = (mouseY - diff.toInt()) / slotSize.toInt()
 
         if (0 > x || x >= items.size) {
             hoveredSlot = -1 to -1
@@ -58,8 +58,8 @@ data class Inventory(val xSize: Int, val ySize: Int) {
     }
 
     fun setItemFromMouse(mouseX: Int, mouseY: Int, item: Item) {
-        val x = (mouseX - diff) / slotSize
-        val y = (mouseY - diff) / slotSize
+        val x = (mouseX - diff.toInt()) / slotSize.toInt()
+        val y = (mouseY - diff.toInt()) / slotSize.toInt()
 
         GamePanel.cursor.cursorItemSlot = if (item.type === Material.AIR) x to y
         else -1 to -1
@@ -159,7 +159,7 @@ data class Inventory(val xSize: Int, val ySize: Int) {
                     item.type.invSizes.second, true
                 )
             }
-            drawString(inventory.getItem(selectedHotBar, 0)?.display ?: "", 24, 12, 3)
+            drawString(inventory.getItem(selectedHotBar, 0)?.display ?: "", 24F, 12F, 3)
         }
     }
 

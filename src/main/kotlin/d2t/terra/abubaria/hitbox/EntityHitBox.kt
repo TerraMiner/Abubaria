@@ -7,7 +7,7 @@ import d2t.terra.abubaria.location.Direction
 import d2t.terra.abubaria.world.Chunk
 import kotlin.math.min
 
-class EntityHitBox(val entity: Entity, width: Double, height: Double) :
+class EntityHitBox(val entity: Entity, width: Float, height: Float) :
     HitBox(entity.location, width, height) {
 
     val clone
@@ -16,7 +16,7 @@ class EntityHitBox(val entity: Entity, width: Double, height: Double) :
             it.y = y
         }
 
-    override fun move(dx: Double, dy: Double): EntityHitBox {
+    override fun move(dx: Float, dy: Float): EntityHitBox {
         x += dx
         y += dy
         return this
@@ -48,21 +48,21 @@ class EntityHitBox(val entity: Entity, width: Double, height: Double) :
         var isOnWorldBorder = false
         if (x < other.x) {
             x = other.x
-            entity.dx = .0
+            entity.dx = 0F
             entity.location.x = x
         } else if (x + width > other.x + other.width) {
             x = other.x + other.width - width
-            entity.dx = .0
+            entity.dx = 0F
             entity.location.x = x
         }
 
         if (y < other.y) {
             y = other.y
-            entity.dy = .0
+            entity.dy = 0F
             entity.location.y = y
         } else if (y + height > other.y + other.height) {
             y = other.y + other.height - height
-            entity.dy = .0
+            entity.dy = 0F
             entity.location.y = y
             isOnWorldBorder = true
         }
@@ -74,10 +74,10 @@ class EntityHitBox(val entity: Entity, width: Double, height: Double) :
         val dx2 = ((other.x + other.width) - x)
 
         if (entity.location.direction === Direction.RIGHT) {
-            entity.dx = .0
+            entity.dx = 0F
             x -= dx1
         } else {
-            entity.dx = .0
+            entity.dx = 0F
             x += dx2
         }
 
@@ -89,11 +89,11 @@ class EntityHitBox(val entity: Entity, width: Double, height: Double) :
 
         if (dy1 < dy2) {
             y -= dy1
-            entity.dy = .0
+            entity.dy = 0F
             entity.location.y = y
         } else if (dy2 < dy1) {
             y += dy2
-            entity.dy = .0
+            entity.dy = 0F
             entity.location.y = y
         }
     }
@@ -110,20 +110,20 @@ class EntityHitBox(val entity: Entity, width: Double, height: Double) :
 
         if (minDx < minDy) {
             if (entity.location.direction === Direction.RIGHT) {
-                entity.dx = .0
+                entity.dx = 0F
                 x -= dx1
             } else {
-                entity.dx = .0
+                entity.dx = 0F
                 x += dx2
             }
         } else {
             if (dy1 < dy2) {
                 y -= dy1
-                entity.dy = .0
+                entity.dy = 0F
                 entity.location.y = y
             } else if (dy2 < dy1) {
                 y += dy2
-                entity.dy = .0
+                entity.dy = 0F
                 entity.location.y = y
             }
         }

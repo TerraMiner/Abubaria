@@ -72,18 +72,15 @@ class World {
         val topCorner = (topVertex / tileSize / chunkSize).toInt()
             .coerceIn(0 until worldSizeY)
 
-//        safetyTextures {
-            for (chunkX in leftCorner..rightCorner) {
-                for (chunkY in topCorner..bottomCorner) {
-                    val chunk = chunkMap[chunkX][chunkY]
-                    chunk.draw(location)
-                    chunks.add(chunk)
-                }
+        for (chunkX in leftCorner..rightCorner) {
+            for (chunkY in topCorner..bottomCorner) {
+                val chunk = chunkMap[chunkX][chunkY]
+                chunk.draw(location)
+                chunks.add(chunk)
             }
+        }
 
-            drawEntities(location, leftVertex, rightVertex, topVertex, bottomVertex)
-//        }
-
+        drawEntities(location, leftVertex, rightVertex, topVertex, bottomVertex)
 //        safetyRects {
 //            for (chunkX in leftCorner..rightCorner) {
 //                for (chunkY in topCorner..bottomCorner) {
@@ -96,7 +93,7 @@ class World {
         Camera.chunksOnScreen = chunks
     }
 
-    private fun drawEntities(location: Location, lVertex: Double, rVertex: Double, tVertex: Double, bVertex: Double) {
+    private fun drawEntities(location: Location, lVertex: Float, rVertex: Float, tVertex: Float, bVertex: Float) {
         entities.filter {
             it.location.run { x in lVertex..rVertex && y in tVertex..bVertex }
         }.forEach {

@@ -2,13 +2,13 @@ package d2t.terra.abubaria.hitbox
 
 import d2t.terra.abubaria.location.Location
 
-open class HitBox(var x: Double, var y: Double, var width: Double, var height: Double) {
+open class HitBox(var x: Float, var y: Float, var width: Float, var height: Float) {
     val bottom get() = y + height
     val top get() = y
     val right get() = x + width
     val left get() = x
 
-    constructor(location: Location, sizeX: Double, sizeY: Double) : this(
+    constructor(location: Location, sizeX: Float, sizeY: Float) : this(
         location.x,
         location.y,
         sizeX,
@@ -16,13 +16,13 @@ open class HitBox(var x: Double, var y: Double, var width: Double, var height: D
     )
 
     constructor(x: Int, y: Int, width: Int, height: Int) : this(
-        x.toDouble(),
-        y.toDouble(),
-        width.toDouble(),
-        height.toDouble()
+        x.toFloat(),
+        y.toFloat(),
+        width.toFloat(),
+        height.toFloat()
     )
 
-    fun setCoords(x: Double, y: Double) {
+    fun setCoords(x: Float, y: Float) {
         this.x = x
         this.y = y
     }
@@ -34,13 +34,13 @@ open class HitBox(var x: Double, var y: Double, var width: Double, var height: D
         }
     }
 
-    open fun move(dx: Double, dy: Double): HitBox {
+    open fun move(dx: Float, dy: Float): HitBox {
         x += dx
         y += dy
         return this
     }
 
-    fun transform(x: Double, y: Double, width: Double, height: Double): HitBox {
+    fun transform(x: Float, y: Float, width: Float, height: Float): HitBox {
         this.x += x
         this.y += y
         this.width += width

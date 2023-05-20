@@ -4,6 +4,7 @@ package d2t.terra.abubaria.entity.player
 import CollisionHandler.checkCollision
 import CollisionHandler.checkIfStuck
 import d2t.terra.abubaria.GamePanel.tileSize
+import d2t.terra.abubaria.GamePanel.tileSizeF
 import d2t.terra.abubaria.GamePanel.world
 import d2t.terra.abubaria.entity.Entity
 import d2t.terra.abubaria.inventory.Inventory
@@ -25,13 +26,13 @@ object ClientPlayer : Entity() {
 
     private fun setDefaultValues() {
 
-        maxXspeed = 0.8
+        maxXspeed = 0.8F
 
-        hitBox.height = height * tileSize.toDouble()
-        hitBox.width = width * tileSize.toDouble()
+        hitBox.height = height * tileSizeF
+        hitBox.width = width * tileSizeF
 
-        location.x = world.worldWidth / 2.0
-        location.y = 0 + tileSize * 10.0
+        location.x = world.worldWidth / 2F
+        location.y = tileSize * 10F
 
         location.direction = Direction.LEFT
     }
@@ -77,8 +78,8 @@ object ClientPlayer : Entity() {
         checkCollision()
 
         if (checkIfStuck(prevHitBox)) {
-            dx = .0
-            dy = .0
+            dx = .0F
+            dy = .0F
         }
 
         location.x += dx
@@ -96,10 +97,10 @@ object ClientPlayer : Entity() {
         onJump = System.currentTimeMillis() in jumpStart..jumpEnd
 
         if (onJump && KeyHandler.spacePressed) {
-            val mod = (System.currentTimeMillis() - jumpStart) / 17.0
+            val mod = (System.currentTimeMillis() - jumpStart) / 17F
 
             if (dy < 0 && onJump || onGround || onWorldBorder) {
-                dy -= (jumpHeight / if (mod < 1.0) 1.0 else mod)
+                dy -= (jumpHeight / if (mod < 1F) 1F else mod)
             } else if (onJump) {
                 onJump = false
                 KeyHandler.timeSpaceReleased = System.currentTimeMillis()

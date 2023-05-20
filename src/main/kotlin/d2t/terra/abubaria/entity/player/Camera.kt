@@ -11,11 +11,11 @@ import d2t.terra.abubaria.location.Location
 import d2t.terra.abubaria.world.Chunk
 
 object Camera {
-    var cameraX = 0
-    var cameraY = 0
+    var cameraX = 0f
+    var cameraY = 0f
 
-    var centerX = (screenWidth / 2.0 - (tileSize / 2)).toInt()
-    var centerY = (screenHeight / 2.0 - (tileSize / 2)).toInt()
+    var centerX = (screenWidth / 2.0 - (tileSize / 2)).toFloat()
+    var centerY = (screenHeight / 2.0 - (tileSize / 2)).toFloat()
 
     var chunksOnScreen = mutableListOf<Chunk>()
 
@@ -27,8 +27,8 @@ object Camera {
 
     fun initialize() {
 
-        centerX = (screenWidth / 2.0 - (tileSize / 2)).toInt()
-        centerY = (screenHeight / 2.0 - (tileSize / 2)).toInt()
+        centerX = (screenWidth / 2.0 - (tileSize / 2)).toFloat()
+        centerY = (screenHeight / 2.0 - (tileSize / 2)).toFloat()
 
     }
 
@@ -40,49 +40,49 @@ object Camera {
 
     fun topCameraY(targetLocation: Location) = targetLocation.y - cameraY
 
-    fun worldScreenPosX(defaultX: Int, targetLocation: Location): Int {
+    fun worldScreenPosX(defaultX: Int, targetLocation: Location): Float {
         var offX = defaultX - leftCameraX(targetLocation)
         val world = GamePanel.world
 
         if (cameraX > targetLocation.x)
-            offX = defaultX.toDouble()
+            offX = defaultX.toFloat()
         if (screenWidth - cameraX > world.worldWidth - targetLocation.x)
-            offX = (screenWidth - (world.worldWidth - defaultX)).toDouble()
+            offX = (screenWidth - (world.worldWidth - defaultX)).toFloat()
 
-        return offX.toInt()
+        return offX
     }
 
-    fun worldScreenPosY(defaultY: Int, targetLocation: Location): Int {
+    fun worldScreenPosY(defaultY: Int, targetLocation: Location): Float {
 
         var offY = defaultY - topCameraY(targetLocation)
         val world = GamePanel.world
 
         if (cameraY > targetLocation.y)
-            offY = defaultY.toDouble()
+            offY = defaultY.toFloat()
         if (screenHeight - cameraY > world.worldHeight - targetLocation.y)
-            offY = (screenHeight - (world.worldHeight - defaultY)).toDouble()
+            offY = (screenHeight - (world.worldHeight - defaultY)).toFloat()
 
-        return offY.toInt()
+        return offY
     }
 
-    fun playerScreenPosX(targetLocation: Location): Int {
+    fun playerScreenPosX(targetLocation: Location): Float {
         var offX = cameraX
 
-        if (cameraX > targetLocation.x) offX = targetLocation.x.toInt()
+        if (cameraX > targetLocation.x) offX = targetLocation.x
 
         if (screenWidth - cameraX > world.worldWidth - targetLocation.x) offX =
-            (screenWidth - (world.worldWidth - targetLocation.x)).toInt()
+            (screenWidth - (world.worldWidth - targetLocation.x))
 
         return offX
     }
 
-    fun playerScreenPosY(targetLocation: Location): Int {
+    fun playerScreenPosY(targetLocation: Location): Float {
         var offY = cameraY
 
-        if (cameraY > targetLocation.y) offY = targetLocation.y.toInt()
+        if (cameraY > targetLocation.y) offY = targetLocation.y
 
         if (screenHeight - cameraY > world.worldHeight - targetLocation.y) offY =
-            (screenHeight - (world.worldHeight - targetLocation.y)).toInt()
+            (screenHeight - (world.worldHeight - targetLocation.y))
 
         return offY
     }
@@ -105,10 +105,10 @@ object Camera {
             val offX = playerScreenPosX(location)
             val offY = playerScreenPosY(location)
 
-            val width = (tileSize * width + 4).toInt()
-            val height = (tileSize * height + 1).toInt()
+            val width = (tileSize * width + 4)
+            val height = (tileSize * height + 1)
 
-            drawTexture(image?.textureId, offX-1,offY,width,height)
+            drawTexture(image?.textureId, offX - 1, offY, width, height)
 
 //            if (Client.debugMode) {
 //                safetyRects {

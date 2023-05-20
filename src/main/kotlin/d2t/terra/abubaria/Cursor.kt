@@ -86,9 +86,9 @@ class Cursor(private var x: Int, private var y: Int) {
             }
         }
 
-        drawTexture(image.textureId, x, y, 30, 30)
+        drawTexture(image.textureId, x.toFloat(), y.toFloat(), 30F, 30F)
         cursorItem.type.apply {
-            drawTexture(texture?.textureId, x + 5, y + 15, 15, (15.0 / size.size).toInt())
+            drawTexture(texture?.textureId, x + 5F, y + 15F, 15F, 15F / size.size)
         }
     }
 
@@ -187,7 +187,7 @@ class Cursor(private var x: Int, private var y: Int) {
                 leftPress -> {
                     if (cursorItem.type === Material.AIR && hotBarItem.type === Material.AIR) {
                         destroy()
-                    } else if (!this.hitBox.clone.transform(1.0, .0, -1.0, .0).intersects(ClientPlayer.hitBox))
+                    } else if (!this.hitBox.clone.transform(1F, 0F, -1F, 0F).intersects(ClientPlayer.hitBox))
                         if (cursorItem.type !== Material.AIR) {
                             if (type === cursorItem.type) return
                             place(cursorItem.type)

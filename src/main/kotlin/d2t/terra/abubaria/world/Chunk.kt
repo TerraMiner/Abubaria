@@ -10,8 +10,8 @@ import d2t.terra.abubaria.io.graphics.drawString
 import d2t.terra.abubaria.io.graphics.safetyDraw
 import d2t.terra.abubaria.location.Location
 import d2t.terra.abubaria.world.block.Block
-import org.lwjgl.opengl.GL11.*
-import org.lwjgl.opengl.GL15
+import org.lwjgl.opengl.GL11.GL_LINE_LOOP
+import org.lwjgl.opengl.GL11.glLineWidth
 import java.awt.Color
 
 class Chunk(
@@ -38,25 +38,31 @@ class Chunk(
 
     fun draw(location: Location) {
         if (fullShadowed) return
+        val worldSizeX = x * chunkSize
+        val worldSizeY = y * chunkSize
         blockMap.forEachIndexed { x, blockCols ->
-            val screenX = Camera.worldScreenPosX((this.x * chunkSize + x) * tileSize, location)
+            val screenX = Camera.worldScreenPosX((worldSizeX + x) * tileSize, location)
+
             blockCols.forEachIndexed yEachIndexed@{ y, block ->
                 if (block.fullShadowed) return@yEachIndexed
 
-                val screenY = (Camera.worldScreenPosY((this.y * chunkSize + y) * tileSize, location ) + (tileSize * block.type.state.offset).toInt())
+                val screenY = (Camera.worldScreenPosY(
+                    (worldSizeY + y) * tileSize,
+                    location
+                ) + (tileSize * block.type.state.offset).toInt())
 
                 block.draw(screenX, screenY)
             }
         }
 
         if (Client.debugMode) {
-            val screenX = Camera.worldScreenPosX(x * tileSize * chunkSize, location)
-            val screenY = Camera.worldScreenPosY(y * tileSize * chunkSize, location)
+            val screenX = Camera.worldScreenPosX(worldSizeX * tileSize, location)
+            val screenY = Camera.worldScreenPosY(worldSizeY * tileSize, location)
             drawString("x: $x, y: $y", screenX + 3, screenY + 14, 4, Color.BLACK)
 
             safetyDraw(GL_LINE_LOOP) {
                 glLineWidth(1f)
-                drawRect(screenX, screenY, hitBox.width.toInt(), hitBox.height.toInt())
+                drawRect(screenX, screenY, hitBox.width, hitBox.height)
             }
         }
     }

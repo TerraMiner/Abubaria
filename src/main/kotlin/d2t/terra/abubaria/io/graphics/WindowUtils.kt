@@ -19,43 +19,43 @@ fun safetyDraw(mode: Int, action: () -> Unit) {
     glPopAttrib()
 }
 
-fun drawRect(x: Int, y: Int, width: Int, height: Int, color: Color = Color.BLACK) {
+fun drawRect(x: Float, y: Float, width: Float, height: Float, color: Color = Color.BLACK) {
     glColor3i(color.red, color.green, color.blue)
-    glVertex2i(x, y)
-    glVertex2i(x + width, y)
-    glVertex2i(x + width, y + height)
-    glVertex2i(x, y + height)
+    glVertex2f(x, y)
+    glVertex2f(x + width, y)
+    glVertex2f(x + width, y + height)
+    glVertex2f(x, y + height)
 }
 
-fun drawFillRect(x: Int, y: Int, width: Int, height: Int, alpha: Int) {
+fun drawFillRect(x: Float, y: Float, width: Float, height: Float, alpha: Int) {
     glColor4f(0f, 0f, 0f, alpha / 255f)
-    glVertex2i(x, y)
-    glVertex2i(x + width, y)
-    glVertex2i(x + width, y + height)
-    glVertex2i(x, y + height)
+    glVertex2f(x, y)
+    glVertex2f(x + width, y)
+    glVertex2f(x + width, y + height)
+    glVertex2f(x, y + height)
 }
 
-fun drawRotatedTexture(textureId: Int?, x: Double, y: Double, width: Double, height: Double, angle: Float, direction: Direction) {
+fun drawRotatedTexture(textureId: Int?, x: Float, y: Float, width: Float, height: Float, angle: Float, direction: Direction) {
     if (textureId === null) return
     glBindTexture(GL_TEXTURE_2D, textureId)
     glPushMatrix()
-    glTranslated(x + width / 2, y + height / 2, .0)
+    glTranslatef(x + width / 2, y + height / 2, 0f)
     when (direction) {
         Direction.RIGHT -> {
             glRotatef(angle, 0f, 0f, 1f)
-            glTranslated(-width / 2, -height / 2, .0)
+            glTranslatef(-width / 2, -height / 2, 0f)
         }
 
         Direction.LEFT -> {
             glRotatef(-angle, 0f, 0f, 1f)
-            glTranslated(-width / 2, -height / 2, .0)
+            glTranslatef(-width / 2, -height / 2, 0f)
         }
     }
-    drawQuadWithTexCoords(0, 0, width.toInt(), height.toInt())
+    drawQuadWithTexCoords(0f, 0f, width, height)
     glPopMatrix()
 }
 
-fun drawString(string: String, x: Int, y: Int, sizeMod: Int, color: Color = Color.WHITE) {
+fun drawString(string: String, x: Float, y: Float, sizeMod: Int, color: Color = Color.WHITE) {
     if (string.isEmpty()) return
     glPushAttrib(GL_CURRENT_BIT or GL_ENABLE_BIT or GL_TRANSFORM_BIT)
     GamePanel.font.apply {
@@ -73,16 +73,16 @@ fun drawString(string: String, x: Int, y: Int, sizeMod: Int, color: Color = Colo
             glBegin(GL_QUADS)
 
             glTexCoord2f(0.0f, 0.0f)
-            glVertex2i(xMod, y - fontMetrics.descent)
+            glVertex2f(xMod, y - fontMetrics.descent)
 
             glTexCoord2f(0.0f, 1.0f)
-            glVertex2i(xMod, y + heightAdjusted - fontMetrics.descent)
+            glVertex2f(xMod, y + heightAdjusted - fontMetrics.descent)
 
             glTexCoord2f(1.0f, 1.0f)
-            glVertex2i(xMod + widthAdjusted, y + heightAdjusted - fontMetrics.descent)
+            glVertex2f(xMod + widthAdjusted, y + heightAdjusted - fontMetrics.descent)
 
             glTexCoord2f(1.0f, 0.0f)
-            glVertex2i(xMod + widthAdjusted, y - fontMetrics.descent)
+            glVertex2f(xMod + widthAdjusted, y - fontMetrics.descent)
 
             glEnd()
 
@@ -92,7 +92,7 @@ fun drawString(string: String, x: Int, y: Int, sizeMod: Int, color: Color = Colo
     glPopAttrib()
 }
 
-fun drawTexture(textureId: Int?, x: Int, y: Int, width: Int, height: Int, color: Color = Color.WHITE) {
+fun drawTexture(textureId: Int?, x: Float, y: Float, width: Float, height: Float) {
 
     if (textureId === null) return
 
@@ -101,21 +101,20 @@ fun drawTexture(textureId: Int?, x: Int, y: Int, width: Int, height: Int, color:
     glBindTexture(GL_TEXTURE_2D, textureId)
     glEnable(GL_BLEND)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-    glColor4f(color.red / 255f, color.green / 255f, color.blue / 255f, color.alpha / 255f)
 
     drawQuadWithTexCoords(x, y, width, height)
 }
 
-fun drawQuadWithTexCoords(x: Int, y: Int, width: Int, height: Int) {
+fun drawQuadWithTexCoords(x: Float, y: Float, width: Float, height: Float) {
     glBegin(GL_QUADS)
     glTexCoord2f(0.0f, 1.0f)
-    glVertex2i(x, y + height)
+    glVertex2f(x, y + height)
     glTexCoord2f(1.0f, 1.0f)
-    glVertex2i(x + width, y + height)
+    glVertex2f(x + width, y + height)
     glTexCoord2f(1.0f, 0.0f)
-    glVertex2i(x + width, y)
+    glVertex2f(x + width, y)
     glTexCoord2f(0.0f, 0.0f)
-    glVertex2i(x, y)
+    glVertex2f(x, y)
     glEnd()
 }
 

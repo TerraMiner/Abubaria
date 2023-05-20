@@ -14,7 +14,7 @@ import d2t.terra.abubaria.world.entityItemSize
 import d2t.terra.abubaria.world.material.MaterialSize
 import kotlin.math.pow
 
-class EntityItem(val item: Item, location: Location, pickupDelay: Int = 3000) : Entity() {
+class EntityItem(private val item: Item, location: Location, pickupDelay: Int = 3000) : Entity() {
 
     private val deathTime = System.currentTimeMillis() + 30 * 60 * 1000
     private val canPickUpAfter = System.currentTimeMillis() + pickupDelay
@@ -24,13 +24,13 @@ class EntityItem(val item: Item, location: Location, pickupDelay: Int = 3000) : 
     fun spawn() {
         autoClimb = false
         onGround = false
-        dyModifier = 0.008
-        maxYspeed = 1.5
-        maxXspeed = 1.5
+        dyModifier = 0.008f
+        maxYspeed = 1.5f
+        maxXspeed = 1.5f
 
         location.setLocation(spawnLocation)
-        width = entityItemSize.toDouble()
-        height = entityItemSize.toDouble()
+        width = entityItemSize.toFloat()
+        height = entityItemSize.toFloat()
         hitBox = EntityHitBox(this, width, height)
         GamePanel.world.entities.add(this)
     }
@@ -39,18 +39,18 @@ class EntityItem(val item: Item, location: Location, pickupDelay: Int = 3000) : 
         if (!GamePanel.world.entities.contains(this)) return
 
         val screenX = Camera.worldScreenPosX((location.x).toInt(), playerLoc)
-        val modY = if (item.type.size != MaterialSize.FULL) height / item.type.size.size else .0
-        val screenY = (Camera.worldScreenPosY((location.y).toInt(), playerLoc) + modY).toInt()
-        val height = (height / item.type.size.size).toInt()
+        val modY = if (item.type.size != MaterialSize.FULL) height / item.type.size.size else 0f
+        val screenY = (Camera.worldScreenPosY((location.y).toInt(), playerLoc) + modY)
+        val height = height / item.type.size.size
 
         val angle = (dy * 60.0).toFloat().coerceIn(-45f, 45f)
 
         drawRotatedTexture(
             texture.textureId,
-            screenX.toDouble(),
-            screenY.toDouble(),
+            screenX,
+            screenY,
             width,
-            height.toDouble(),
+            height,
             angle,
             location.direction
         )
@@ -58,14 +58,14 @@ class EntityItem(val item: Item, location: Location, pickupDelay: Int = 3000) : 
 
     private fun tryPickUp() {
         val dx =
-            (if (ClientPlayer.location.direction === Direction.LEFT) -ClientPlayer.dx else ClientPlayer.dx) + width / 2.0
-        val target = ClientPlayer.location.transfer(dx, .0)
+            (if (ClientPlayer.location.direction === Direction.LEFT) -ClientPlayer.dx else ClientPlayer.dx) + width / 2.0f
+        val target = ClientPlayer.location.transfer(dx, .0f)
 
         val distToPlayer = location.distance(target)
 
         if (distToPlayer < 60 && canPickUpAfter < System.currentTimeMillis()) {
 
-            val speed = ((60 - distToPlayer) / 70.0).pow(-0.05)
+            val speed = ((60 - distToPlayer) / 70.0f).pow(-0.05f)
 
             velocity(target, speed, speed)
 

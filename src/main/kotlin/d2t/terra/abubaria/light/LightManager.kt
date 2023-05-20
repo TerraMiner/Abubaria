@@ -2,6 +2,7 @@ package d2t.terra.abubaria.light
 
 import d2t.terra.abubaria.GamePanel
 import d2t.terra.abubaria.GamePanel.tileSize
+import d2t.terra.abubaria.GamePanel.tileSizeF
 import d2t.terra.abubaria.entity.player.Camera
 import d2t.terra.abubaria.io.graphics.drawFillRect
 import d2t.terra.abubaria.io.graphics.safetyDraw
@@ -10,6 +11,7 @@ import d2t.terra.abubaria.window
 import d2t.terra.abubaria.world.block.Block
 import d2t.terra.abubaria.world.chunkSize
 import d2t.terra.abubaria.world.lSize
+import d2t.terra.abubaria.world.lSizeF
 import d2t.terra.abubaria.world.material.Material
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.opengl.GL11.GL_QUADS
@@ -23,13 +25,13 @@ object LightManager {
 
     fun calculateToDraw(location: Location) {
 
-           val tileChunkSize = tileSize * chunkSize
+           val tileChunkSize = tileSizeF * chunkSize
            rectsToDraw = Camera.chunksOnScreen.flatMap { chunk ->
                if (chunk.fullShadowed) {
                    listOf(
                        LightRect(
-                           Camera.worldScreenPosX(chunk.x * tileChunkSize, location),
-                           Camera.worldScreenPosY(chunk.y * tileChunkSize, location),
+                           Camera.worldScreenPosX(chunk.x * tileChunkSize.toInt(), location),
+                           Camera.worldScreenPosY(chunk.y * tileChunkSize.toInt(), location),
                            tileChunkSize, tileChunkSize, 255
                        )
                    )
@@ -49,11 +51,11 @@ object LightManager {
                                    block.lightMap.flatten().map { light ->
                                        LightRect(
                                            screenX + light.inBlockX * lSize, screenY + light.inBlockY * lSize,
-                                           lSize, lSize, light.power * 16
+                                           lSizeF, lSizeF, light.power * 16
                                        )
                                    }
                                } else {
-                                   listOf(LightRect(screenX, screenY, tileSize, block.type.height, 255))
+                                   listOf(LightRect(screenX, screenY, tileSizeF, block.type.height, 255))
                                }
                            }
                        }

@@ -6,7 +6,7 @@ import d2t.terra.abubaria.world.lCount
 import d2t.terra.abubaria.world.lightLevels
 import d2t.terra.abubaria.world.material.Material
 
-class Light(val x: Int, val y: Int, val inBlockX: Int, val inBlockY: Int, var power: Int, val block: Block? = null) {
+class Light(val x: Float, val y: Float, val inBlockX: Int, val inBlockY: Int, var power: Int, val block: Block? = null) {
 
     val world = GamePanel.world
 

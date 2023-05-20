@@ -17,7 +17,7 @@ object Hud {
 
         healthBar = ClientPlayer.run { "HP $health / $maxHealth" }
 
-            drawString(healthBar, screenWidth - healthBar.length * 12, 15, 3)
+            drawString(healthBar, screenWidth - healthBar.length * 12F, 15F, 3)
 
 
         inventory.draw()

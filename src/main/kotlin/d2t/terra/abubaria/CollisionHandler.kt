@@ -31,12 +31,12 @@ object CollisionHandler {
                     }
 
                     //Horizontal
-                    if (hitBox.clone.move(dx, .0).intersects(block.hitBox) && block.type.collideable) {
+                    if (hitBox.clone.move(dx, 0F).intersects(block.hitBox) && block.type.collideable) {
                         hitBox.pushOutX(block.hitBox)
                     }
 
                     //Vertical
-                    if (hitBox.clone.move(.0, dy).intersects(block.hitBox) && block.type.collideable) {
+                    if (hitBox.clone.move(0F, dy).intersects(block.hitBox) && block.type.collideable) {
                         hitBox.pushOutY(block.hitBox)
                     }
 

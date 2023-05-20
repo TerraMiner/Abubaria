@@ -23,6 +23,7 @@ object GamePanel {
     private const val scale = 2
 
     const val tileSize = originalTileSize * scale
+    const val tileSizeF = originalTileSize.toFloat() * scale.toFloat()
 
     val defaultScreenPosX = 1
     val defaultScreenPosY = 1
