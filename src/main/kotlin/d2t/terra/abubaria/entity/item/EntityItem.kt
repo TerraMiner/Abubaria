@@ -30,7 +30,7 @@ class EntityItem(private val item: Item, location: Location, pickupDelay: Int = 
 
         location.setLocation(spawnLocation)
         width = entityItemSize.toFloat()
-        height = entityItemSize.toFloat()
+        height = entityItemSize.toFloat() / item.type.size.size
         hitBox = EntityHitBox(this, width, height)
         GamePanel.world.entities.add(this)
     }
@@ -39,9 +39,8 @@ class EntityItem(private val item: Item, location: Location, pickupDelay: Int = 
         if (!GamePanel.world.entities.contains(this)) return
 
         val screenX = Camera.worldScreenPosX((location.x).toInt(), playerLoc)
-        val modY = if (item.type.size != MaterialSize.FULL) height / item.type.size.size else 0f
-        val screenY = (Camera.worldScreenPosY((location.y).toInt(), playerLoc) + modY)
-        val height = height / item.type.size.size
+        //val modY = if (item.type.size != MaterialSize.FULL) height else 0f
+        val screenY = Camera.worldScreenPosY((location.y).toInt(), playerLoc)// + modY)
 
         val angle = (dy * 60.0).toFloat().coerceIn(-45f, 45f)
 

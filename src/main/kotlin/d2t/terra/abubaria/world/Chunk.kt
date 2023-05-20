@@ -2,6 +2,7 @@ package d2t.terra.abubaria.world
 
 import d2t.terra.abubaria.Client
 import d2t.terra.abubaria.GamePanel.tileSize
+import d2t.terra.abubaria.GamePanel.tileSizeF
 import d2t.terra.abubaria.entity.player.Camera
 import d2t.terra.abubaria.hitbox.BlockHitBox
 import d2t.terra.abubaria.hitbox.HitBox
@@ -22,7 +23,7 @@ class Chunk(
     val hitBox = HitBox(x, y, chunkSize * tileSize, chunkSize * tileSize)
     //block in world size = x * chunkSize + blockX
 
-    val fullShadowed get() = blockMap.flatten().none { !it.fullShadowed }
+    val lighed get() = blockMap.flatten().any { it.lighted }
 
     fun initBlocks() {
         blockMap.forEachIndexed { x, blocks ->
@@ -37,22 +38,21 @@ class Chunk(
     }
 
     fun draw(location: Location) {
-        if (fullShadowed) return
+//        if (!lighed) return
         val worldSizeX = x * chunkSize
         val worldSizeY = y * chunkSize
+
         blockMap.forEachIndexed { x, blockCols ->
             val screenX = Camera.worldScreenPosX((worldSizeX + x) * tileSize, location)
 
-            blockCols.forEachIndexed yEachIndexed@{ y, block ->
-                if (block.fullShadowed) return@yEachIndexed
+            blockCols
+//                .filter { it.lighted }
+                .forEachIndexed { y, block ->
+                    val screenY = Camera.worldScreenPosY((worldSizeY + y) * tileSize, location)
+                            + tileSizeF * block.type.state.offset
 
-                val screenY = (Camera.worldScreenPosY(
-                    (worldSizeY + y) * tileSize,
-                    location
-                ) + (tileSize * block.type.state.offset).toInt())
-
-                block.draw(screenX, screenY)
-            }
+                    block.draw(screenX, screenY)
+                }
         }
 
         if (Client.debugMode) {

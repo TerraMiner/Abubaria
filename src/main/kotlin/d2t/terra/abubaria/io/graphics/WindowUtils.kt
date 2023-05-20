@@ -94,15 +94,15 @@ fun drawString(string: String, x: Float, y: Float, sizeMod: Int, color: Color = 
 
 fun drawTexture(textureId: Int?, x: Float, y: Float, width: Float, height: Float) {
 
-    if (textureId === null) return
+    textureId?.let {
+        setupTextureParameters()
 
-    setupTextureParameters()
+        glBindTexture(GL_TEXTURE_2D, textureId)
+        glEnable(GL_BLEND)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-    glBindTexture(GL_TEXTURE_2D, textureId)
-    glEnable(GL_BLEND)
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-
-    drawQuadWithTexCoords(x, y, width, height)
+        drawQuadWithTexCoords(x, y, width, height)
+    }
 }
 
 fun drawQuadWithTexCoords(x: Float, y: Float, width: Float, height: Float) {

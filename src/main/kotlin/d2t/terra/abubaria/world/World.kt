@@ -1,14 +1,18 @@
 package d2t.terra.abubaria.world
 
+import d2t.terra.abubaria.Client
 import d2t.terra.abubaria.GamePanel
 import d2t.terra.abubaria.GamePanel.tileSize
 import d2t.terra.abubaria.entity.Entity
 import d2t.terra.abubaria.entity.player.Camera
 import d2t.terra.abubaria.hitbox.BlockHitBox
 import d2t.terra.abubaria.hitbox.HitBox
+import d2t.terra.abubaria.io.graphics.drawRect
+import d2t.terra.abubaria.io.graphics.safetyDraw
 import d2t.terra.abubaria.location.Location
 import d2t.terra.abubaria.world.block.Block
 import d2t.terra.abubaria.world.material.Material
+import org.lwjgl.opengl.GL11.GL_LINE_LOOP
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.math.abs
 
@@ -81,14 +85,6 @@ class World {
         }
 
         drawEntities(location, leftVertex, rightVertex, topVertex, bottomVertex)
-//        safetyRects {
-//            for (chunkX in leftCorner..rightCorner) {
-//                for (chunkY in topCorner..bottomCorner) {
-//                    chunkMap[chunkX][chunkY].drawHitBoxes(location)
-//                    drawEntitiesHitBoxes(location, leftVertex, rightVertex, topVertex, bottomVertex)
-//                }
-//            }
-//        }
 
         Camera.chunksOnScreen = chunks
     }
@@ -96,10 +92,21 @@ class World {
     private fun drawEntities(location: Location, lVertex: Float, rVertex: Float, tVertex: Float, bVertex: Float) {
         entities.filter {
             it.location.run { x in lVertex..rVertex && y in tVertex..bVertex }
-        }.forEach {
-            it.draw(location)
+        }.apply {
+            forEach {
+                it.draw(location)
+            }
+
+            if (Client.debugMode) {
+                safetyDraw(GL_LINE_LOOP) {
+                    forEach {
+                        it.hitBox.draw(location)
+                    }
+                }
+            }
         }
     }
+
 
 //    private fun drawEntitiesHitBoxes(location: Location, lVertex: Double, rVertex: Double, tVertex: Double, bVertex: Double) {
 //        if (Client.debugMode) {
@@ -112,16 +119,16 @@ class World {
 //    }
 
 
-    fun update() {
-        updateEntities()
-    }
+        fun update() {
+            updateEntities()
+        }
 
-    private fun updateEntities() {
-        entities.forEach {
-            it.update()
-            if (it.removed) {
-                entities.remove(it)
+        private fun updateEntities() {
+            entities.forEach {
+                it.update()
+                if (it.removed) {
+                    entities.remove(it)
+                }
             }
         }
     }
-}

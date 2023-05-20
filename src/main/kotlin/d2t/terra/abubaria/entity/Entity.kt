@@ -107,10 +107,6 @@ open class Entity {
 
     }
 
-//    open fun drawHitBox(playerLoc: Location) {
-//
-//    }
-
     fun remove(unit: () -> Unit) {
         unit.invoke()
         removed = true
