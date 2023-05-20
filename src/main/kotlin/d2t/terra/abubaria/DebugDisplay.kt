@@ -1,8 +1,7 @@
-import d2t.terra.abubaria.Client
-import d2t.terra.abubaria.GamePanel
+package d2t.terra.abubaria
+
 import d2t.terra.abubaria.entity.player.ClientPlayer
 import d2t.terra.abubaria.io.graphics.drawString
-import java.awt.Color
 import java.util.*
 
 class DebugDisplay {

@@ -33,6 +33,8 @@ fun main() {
 
     GL.createCapabilities()
 
+    glfwSwapInterval(1)
+
     GamePanel.setupScreen()
 
     setCallbacks()

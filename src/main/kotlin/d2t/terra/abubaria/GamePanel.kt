@@ -1,6 +1,5 @@
 package d2t.terra.abubaria
 
-import DebugDisplay
 import d2t.terra.abubaria.entity.player.Camera
 import d2t.terra.abubaria.entity.player.ClientPlayer
 import d2t.terra.abubaria.event.EventHandler
