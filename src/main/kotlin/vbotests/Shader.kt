@@ -1,11 +1,14 @@
 package vbotests
 
+import org.joml.Matrix4f
+import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.ARBGpuShaderFp64.glUniform1
 import org.lwjgl.opengl.GL20.*
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileReader
 import java.lang.StringBuilder
+import java.nio.FloatBuffer
 import kotlin.system.exitProcess
 
 class Shader(fileName: String) {
@@ -50,6 +53,20 @@ class Shader(fileName: String) {
         val location = glGetUniformLocation(program, name)
         if (location != -1) {
             glUniform1i(location, value)
+        }
+    }
+
+    fun setUniform(name: String, value: Matrix4f) {
+        val location = glGetUniformLocation(program, name)
+        val buffer = BufferUtils.createFloatBuffer(16)
+        for (col in 0..3) {
+            for (row in 0..3) {
+                buffer.put(value.get(col, row))
+            }
+        }
+        buffer.flip()
+        if (location != -1) {
+            glUniformMatrix4fv(location,false,buffer)
         }
     }
 

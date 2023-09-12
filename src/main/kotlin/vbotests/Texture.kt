@@ -2,7 +2,6 @@ package vbotests
 
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL11.*
-import org.lwjgl.opengl.GL13
 import org.lwjgl.stb.STBImage.stbi_image_free
 import org.lwjgl.stb.STBImage.stbi_load
 import java.nio.ByteBuffer
@@ -33,11 +32,8 @@ class Texture(fileName: String) {
     }
 
 
-    fun bind(sampler: Int) {
-        if (sampler in 0..31) {
-            GL13.glActiveTexture(GL13.GL_TEXTURE0 + sampler)
-            glBindTexture(GL_TEXTURE_2D, id)
-        }
+    fun bind() {
+        glBindTexture(GL_TEXTURE_2D, id)
     }
 
     fun unbind() {

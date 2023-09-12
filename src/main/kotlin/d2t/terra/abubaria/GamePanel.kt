@@ -6,14 +6,19 @@ import d2t.terra.abubaria.event.EventHandler
 import d2t.terra.abubaria.hud.Hud
 import d2t.terra.abubaria.io.devices.KeyHandler
 import d2t.terra.abubaria.io.fonts.CFont
+import d2t.terra.abubaria.io.graphics.drawTexture
 import d2t.terra.abubaria.light.LightManager
 import d2t.terra.abubaria.world.World
 import d2t.terra.abubaria.world.WorldGenerator
 import org.lwjgl.glfw.GLFW.*
+import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL11.*
 import java.awt.Color
+import java.awt.image.BufferedImage
+import java.nio.ByteBuffer
 import java.util.concurrent.Executors
 import kotlin.concurrent.thread
+import kotlin.math.ceil
 
 
 object GamePanel {
@@ -92,7 +97,11 @@ object GamePanel {
         Camera.initialize()
     }
 
+    val gradient = createGradient(128,32)
+
     fun startGameThread() {
+
+
 
         ClientPlayer.initialize()
 
@@ -113,12 +122,14 @@ object GamePanel {
         draw()
     }
 
+
     private fun draw() {
 
         var lastTime = System.nanoTime()
         var currentTime: Long
         var timer = 0L
         var drawCount = 0
+        val testid = createTextureFromBufferedImage(d2t.terra.abubaria.GamePanel.gradient)
 
         while (!glfwWindowShouldClose(window)) {
 
@@ -134,6 +145,8 @@ object GamePanel {
 
             drawScreen()
 
+            drawTexture(testid, 32f, 32f, gradient.width.toFloat(), gradient.height.toFloat())
+
             glfwSwapBuffers(window)
 
             drawCount++
@@ -144,6 +157,105 @@ object GamePanel {
                 timer = 0
             }
         }
+    }
+
+    fun createGradient(sizeX: Int, sizeY: Int): BufferedImage {
+        val fullSpectre = 255 * 6
+
+        val mod = fullSpectre.toDouble() / sizeX.toDouble()
+
+        val image = BufferedImage(sizeX, sizeY, BufferedImage.TYPE_INT_ARGB).apply {
+            val max = 0..255
+
+            var x = 0
+
+            val graph = createGraphics()
+
+            run {
+                var r = 255
+                var g = 0
+                var b = 0
+                repeat(ceil(fullSpectre / mod).toInt()) {
+                    if (r == 255 && g + 1 in max && b == 0) {
+                        val newG = ceil(g + mod).toInt().coerceAtMost(255)
+                        g = newG
+                    }
+                    if (r - 1 in max && g == 255 && b == 0) {
+                        val newR = ceil(r - mod).toInt().coerceAtLeast(0)
+                        r = newR
+                    }
+                    if (r == 0 && g == 255 && b + 1 in max) {
+                        val newB = ceil(b + mod).toInt().coerceAtMost(255)
+                        b = newB
+                    }
+                    if (r == 0 && g - 1 in max && b == 255) {
+                        val newG = ceil(g - mod).toInt().coerceAtLeast(0)
+                        g = newG
+                    }
+                    if (r + 1 in max && g == 0 && b == 255) {
+                        val newR = ceil(r + mod).toInt().coerceAtMost(255)
+                        r = newR
+                    }
+                    if (r == 255 && g == 0 && b - 1 in max) {
+                        val newB = ceil(b - mod).toInt().coerceAtLeast(0)
+                        b = newB
+                    }
+                    graph.color = Color(r, g, b)
+                    graph.fillRect(x++, 0, 1, sizeY)
+                }
+            }
+        }
+        return image
+    }
+
+    fun createTextureFromBufferedImage(image: BufferedImage): Int {
+        val textureID = GL11.glGenTextures()
+        GL11.glBindTexture(GL11.GL_TEXTURE_2D, textureID)
+
+        val width = image.width
+        val height = image.height
+
+        val pixels = IntArray(width * height)
+        image.getRGB(0, 0, width, height, pixels, 0, width)
+
+        val buffer = ByteBuffer.allocateDirect(width * height * 4)
+
+        for (pixel in pixels) {
+            buffer.put((pixel shr 16 and 0xFF).toByte()) // Red
+            buffer.put((pixel shr 8 and 0xFF).toByte())  // Green
+            buffer.put((pixel and 0xFF).toByte())         // Blue
+            buffer.put((pixel shr 24 and 0xFF).toByte()) // Alpha
+        }
+
+        buffer.flip()
+
+        GL11.glTexImage2D(
+            GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA, width, height, 0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, buffer
+        )
+
+        return textureID
+    }
+
+    private fun test() {
+
+
+//        fun createSubGradientImage(width: Int, height: Int, mainColor: Color): BufferedImage {
+//            val image = BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
+//            val g2d = image.createGraphics()
+//
+//            val colors = arrayOf(Color.WHITE, mainColor, Color.BLACK)
+//            val fractions = floatArrayOf(0.0f, 0.5f, 1.0f)
+//
+//            g2d.paint = LinearGradientPaint(
+//                0f, height.toFloat()/2, width.toFloat() , height.toFloat()/2,
+//                fractions, colors
+//            )
+//            g2d.fillRect(0, 0, width, height)
+//
+//            g2d.dispose()
+//
+//            return image
+//        }
     }
 
 

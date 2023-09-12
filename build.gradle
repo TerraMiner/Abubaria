@@ -54,6 +54,7 @@ dependencies {
 	implementation "org.lwjgl:lwjgl-opengl"
 	implementation "org.lwjgl:lwjgl-stb"
     implementation "org.slick2d:slick2d-core:1.0.2"
+    implementation "org.joml:joml-gwt:1.10.1"
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.1")
 
