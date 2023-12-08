@@ -1,9 +1,11 @@
-package vbotests
+package vbotests.render
 
+import d2t.terra.abubaria.io.LagDebugger
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.stb.STBImage.stbi_image_free
 import org.lwjgl.stb.STBImage.stbi_load
+import vbotests.game.cleaner
 import java.nio.ByteBuffer
 import java.nio.IntBuffer
 
@@ -13,11 +15,11 @@ class Texture(fileName: String) {
     val width: IntBuffer = BufferUtils.createIntBuffer(1)
     val height: IntBuffer = BufferUtils.createIntBuffer(1)
 
-    var WIDTH = 0
-    var HEIGHT = 0
+    private var WIDTH = 0
+    private var HEIGHT = 0
 
-    val comp: IntBuffer = BufferUtils.createIntBuffer(1)
-    val data: ByteBuffer = stbi_load(fileName, width, height, comp, 4)!!
+    private val comp: IntBuffer = BufferUtils.createIntBuffer(1)
+    private val data: ByteBuffer = stbi_load(fileName, width, height, comp, 4)!!
 
     init {
         id = glGenTextures()
@@ -29,15 +31,17 @@ class Texture(fileName: String) {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, this.WIDTH, this.HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, data)
         glBindTexture(GL_TEXTURE_2D, 0)
         stbi_image_free(data)
-    }
 
-
-    fun bind() {
-        glBindTexture(GL_TEXTURE_2D, id)
+        cleaner.register(this) {
+            glDeleteTextures(id)
+        }
     }
 
     fun unbind() {
         glBindTexture(GL_TEXTURE_2D, 0)
+    }
 
+    fun bind() {
+        glBindTexture(GL_TEXTURE_2D, id)
     }
 }

@@ -1,14 +1,16 @@
-package vbotests
+package vbotests.render
 
+import d2t.terra.abubaria.io.LagDebugger
 import org.joml.Matrix4f
 import org.lwjgl.BufferUtils
-import org.lwjgl.opengl.ARBGpuShaderFp64.glUniform1
 import org.lwjgl.opengl.GL20.*
+import vbotests.game.cleaner
+import vbotests.util.loopWhile
+import java.lang.ref.Cleaner
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileReader
 import java.lang.StringBuilder
-import java.nio.FloatBuffer
 import kotlin.system.exitProcess
 
 class Shader(fileName: String) {
@@ -47,27 +49,36 @@ class Shader(fileName: String) {
             System.err.println(glGetProgramInfoLog(program))
             exitProcess(1)
         }
-    }
 
-    fun setUniform(name: String, value: Int) {
-        val location = glGetUniformLocation(program, name)
-        if (location != -1) {
-            glUniform1i(location, value)
+        cleaner.register(this) {
+            glDetachShader(program,vs)
+            glDetachShader(program,fs)
+            glDeleteShader(vs)
+            glDeleteShader(fs)
+            glDeleteProgram(program)
         }
     }
 
-    fun setUniform(name: String, value: Matrix4f) {
-        val location = glGetUniformLocation(program, name)
-        val buffer = BufferUtils.createFloatBuffer(16)
-        for (col in 0..3) {
-            for (row in 0..3) {
+    val samplerLoc = glGetUniformLocation(program, "sampler")
+    val projectionLoc = glGetUniformLocation(program, "projection")
+
+    fun setSamplerUniform(value: Int) {
+        glUniform1i(samplerLoc, value)
+    }
+
+    val buffer = BufferUtils.createFloatBuffer(16)
+
+    fun setProjectionUniform(value: Matrix4f) {
+        buffer.clear()
+
+        loopWhile(0,3) { col ->
+            loopWhile(0,3) { row ->
                 buffer.put(value.get(col, row))
             }
         }
+
         buffer.flip()
-        if (location != -1) {
-            glUniformMatrix4fv(location,false,buffer)
-        }
+        glUniformMatrix4fv(projectionLoc,false,buffer)
     }
 
     fun bind() {
