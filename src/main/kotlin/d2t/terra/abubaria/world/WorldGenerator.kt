@@ -2,7 +2,6 @@ package d2t.terra.abubaria.world
 
 import d2t.terra.abubaria.GamePanel.tileSize
 import d2t.terra.abubaria.SimplexNoise
-import d2t.terra.abubaria.world.block.Block
 import d2t.terra.abubaria.world.material.Material
 import kotlin.math.cos
 import kotlin.math.sin
@@ -12,25 +11,20 @@ import kotlin.random.nextLong
 
 class WorldGenerator(private val world: World) {
 
-    // количество чанков в мире
     private val chunksX = world.worldSizeX
     private val chunksY = world.worldSizeY
 
-    // координаты стартовой точки генерации мира
     private val startX = 0
     private val startY = 0
 
-    // высота земли и слоя камня
     private val worldHeight = world.worldHeight / tileSize
     private val groundLevel = worldHeight / 5
     private val groundHeight = 10
 
-    // шанс появления пещеры в каждом блоке (чем ниже, тем больше шанс)
     private val caveChance = 0.01
 
     fun generateWorld() {
 
-        // инициализация всех чанков и блоков в них
         for (x in 0 until chunksX) {
             for (y in 0 until chunksY) {
                 val chunk = Chunk(x, y).apply { initBlocks() }
@@ -98,15 +92,15 @@ class WorldGenerator(private val world: World) {
             ) block.type = Material.GRASS
         }
 
-        chunk.apply {
-            applyForBlocks { x, y ->
-                if (y >= groundLevel + groundHeight + 10) {
-                    if (Random.nextDouble() < caveChance) {
-                        generateCave(x, y)
-                    }
-                }
-            }
-        }
+//        chunk.apply {
+//            applyForBlocks { x, y ->
+//                if (y >= groundLevel + groundHeight + 10) {
+//                    if (Random.nextDouble() < caveChance) {
+//                        generateCave(x, y)
+//                    }
+//                }
+//            }
+//        }
     }
 
     val seed = Random.nextLong(100000000000L..999999999999L)
@@ -119,7 +113,6 @@ class WorldGenerator(private val world: World) {
         return SimplexNoise.noise2(seed, x, y)
     }
 
-    // генерация пещеры в блоке с заданными координатами
     private fun generateCave(x: Int, y: Int) {
         val baseX = x + Random.nextInt(-5, 5)
         val baseY = y + Random.nextInt(-5, 5)
@@ -143,10 +136,5 @@ class WorldGenerator(private val world: World) {
                 world.setBlock(Material.AIR, currentX, currentY)
             }
         }
-    }
-
-    private fun setBlock(block: Block) {
-        val chunk = world.getChunkAt(block.x, block.y) ?: return
-        chunk.blockMap[block.x - chunk.x * chunkSize][block.y - chunk.y * chunkSize] = block
     }
 }

@@ -2,7 +2,8 @@ package vbotests.world
 
 import org.joml.Matrix4f
 import vbotests.render.Model
-import vbotests.world.TileRenderer.getTexture
+import vbotests.render.Texture
+//import vbotests.world.TileRenderer.getTexture
 import java.lang.IllegalArgumentException
 
 class Tile(texturePath: String) {
@@ -18,7 +19,7 @@ class Tile(texturePath: String) {
         }
     }
 
-    val texture = getTexture(texturePath)
+    val texture = Texture.getTexture(texturePath)
 
     val model = Model(0f, 0f, 1f, 1f)
 

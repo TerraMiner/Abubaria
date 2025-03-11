@@ -6,6 +6,7 @@ import org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE
 import org.lwjgl.opengl.GL12.GL_NEAREST
 import org.lwjgl.opengl.GL15.*
 import java.awt.Color
+import java.nio.FloatBuffer
 
 
 fun loadImage(texturePath: String) = Image(null, texturePath)
@@ -93,14 +94,11 @@ fun drawString(string: String, x: Float, y: Float, sizeMod: Int, color: Color = 
 }
 
 fun drawTexture(textureId: Int?, x: Float, y: Float, width: Float, height: Float) {
-
     textureId?.let {
         setupTextureParameters()
-
         glBindTexture(GL_TEXTURE_2D, textureId)
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-
         drawQuadWithTexCoords(x, y, width, height)
     }
 }

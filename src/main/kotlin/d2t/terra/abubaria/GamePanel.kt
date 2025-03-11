@@ -97,12 +97,7 @@ object GamePanel {
         Camera.initialize()
     }
 
-    val gradient = createGradient(128,32)
-
     fun startGameThread() {
-
-
-
         ClientPlayer.initialize()
 
         lightThread = thread(true, false, null, "lightThread") {
@@ -129,7 +124,6 @@ object GamePanel {
         var currentTime: Long
         var timer = 0L
         var drawCount = 0
-        val testid = createTextureFromBufferedImage(d2t.terra.abubaria.GamePanel.gradient)
 
         while (!glfwWindowShouldClose(window)) {
 
@@ -144,8 +138,6 @@ object GamePanel {
             Camera.interpolate()
 
             drawScreen()
-
-            drawTexture(testid, 32f, 32f, gradient.width.toFloat(), gradient.height.toFloat())
 
             glfwSwapBuffers(window)
 
@@ -236,29 +228,6 @@ object GamePanel {
         return textureID
     }
 
-    private fun test() {
-
-
-//        fun createSubGradientImage(width: Int, height: Int, mainColor: Color): BufferedImage {
-//            val image = BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
-//            val g2d = image.createGraphics()
-//
-//            val colors = arrayOf(Color.WHITE, mainColor, Color.BLACK)
-//            val fractions = floatArrayOf(0.0f, 0.5f, 1.0f)
-//
-//            g2d.paint = LinearGradientPaint(
-//                0f, height.toFloat()/2, width.toFloat() , height.toFloat()/2,
-//                fractions, colors
-//            )
-//            g2d.fillRect(0, 0, width, height)
-//
-//            g2d.dispose()
-//
-//            return image
-//        }
-    }
-
-
     private fun tick() {
         val tickInterval = 1e9 / 256.0
         var deltaTicks = .0
@@ -281,7 +250,7 @@ object GamePanel {
                 tickCount++
             }
 
-            if (timer >= 1000000000) {
+            if (timer >= 1e9) {
                 display.tps = tickCount
                 tickCount = 0
                 timer = 0
@@ -294,17 +263,13 @@ object GamePanel {
     private fun drawScreen() {
         val start = System.currentTimeMillis()
         val loc = ClientPlayer.location.clone
-
         world.draw(loc)
         Camera.draw(loc)
-        if (Client.lightMode) service.submit { LightManager.calculateToDraw(loc) }
-        if (Client.lightMode) LightManager.draw()
         Hud.draw()
         cursor.draw(loc)
         display.draw()
         val end = System.currentTimeMillis()
         videoLag = (end - start) / 1000.0
-
     }
 }
 

@@ -6,23 +6,28 @@ import d2t.terra.abubaria.event.BlockDestroyEvent
 import d2t.terra.abubaria.event.BlockPlaceEvent
 import d2t.terra.abubaria.event.EventService
 import d2t.terra.abubaria.hitbox.BlockHitBox
+import d2t.terra.abubaria.io.graphics.drawFillRect
 import d2t.terra.abubaria.io.graphics.drawTexture
 import d2t.terra.abubaria.light.Light
+import d2t.terra.abubaria.light.LightInBlockPosition
 import d2t.terra.abubaria.light.LightManager
 import d2t.terra.abubaria.world.lCount
+import d2t.terra.abubaria.world.lSize
 import d2t.terra.abubaria.world.lSizeF
-import d2t.terra.abubaria.world.lightLevels
 import d2t.terra.abubaria.world.material.Material
 
 class Block(
     private var material: Material = Material.AIR,
-    var x: Int = 0,
-    var y: Int = 0,
-    var chunkX: Int = 0,
-    var chunkY: Int = 0
+    val pos: Position = Position(0, 0)
 ) {
+    var x by pos::x
+    var y by pos::y
+
+    val chunkX get() = pos.chunkX
+    val chunkY get() = pos.chunkY
+
     var hitBox = BlockHitBox(this)
-    var lightMap = Array(lCount) { Array(lCount) { Light(0f, 0f, 0, 0, 0, this) } }
+    var lightMap = Array(lCount * lCount) { Light(LightInBlockPosition(it.toByte()), pos) }
 
     var type
         get() = material
@@ -31,7 +36,7 @@ class Block(
             hitBox = BlockHitBox(this)
         }
 
-    val lighted get() = lightMap.flatten().any { l -> l.power != lightLevels }
+//    val lighted get() = lightMap.flatten().any { l -> l.power != lightLevels }
 
     fun destroy() {
         if (type === Material.AIR) return
@@ -67,27 +72,32 @@ class Block(
         }
     }
 
-    fun draw(screenX: Float, screenY: Float) {
+    fun drawTexture(screenX: Float, screenY: Float) {
         drawTexture(type.texture?.textureId, screenX, screenY, tileSizeF, type.height)
     }
 
-    fun initLightMap() {
-        for (lightX in 0 until lCount) {
-            for (lightY in 0 until lCount) {
-                val light = Light(
-                    lightX * lSizeF + x, lightY * lSizeF + y,
-                    lightX, lightY, 0, this
-                ).apply { initializePower() }
-                lightMap[lightX][lightY] = light
+    fun drawLight(screenX: Float, screenY: Float) {
+        if (type !== Material.AIR) {
+            lightMap.forEach { light ->
+                drawFillRect(
+                    screenX + light.lightPos.x * lSize,
+                    screenY + light.lightPos.y * lSize,
+                    lSizeF, lSizeF, light.power * 16
+                )
             }
         }
     }
 
+    fun initLightMap() {
+        lightMap.forEach(Light::initializePower)
+    }
+
     fun updateLightAround() {
+        LightManager.forUpDate.add(this)
+
         for (dx in -lCount - 1..lCount + 1) {
             for (dy in -lCount - 1..lCount + 1) {
                 val block = world.getBlockAt(x + dx, y + dy) ?: continue
-                LightManager.forUpDate.add(this)
                 LightManager.forUpDate.add(block)
             }
         }

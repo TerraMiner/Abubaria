@@ -12,17 +12,6 @@ import kotlin.io.path.exists
 
 object TileRenderer {
 
-    val imageTextures = HashMap<String, Texture?>()
-
-    fun getTexture(path: String) = imageTextures.getOrPut(path) {
-        val res = javaClass.getClassLoader().getResource(path.replace("res/",""))
-        println(res?.toURI()?.let { Paths.get(it).exists() } != true)
-        if (path == "" || res?.toURI()?.let { Paths.get(it).exists() } != true) {
-            null
-        } else Texture(path)
-    }
-
-
     fun renderTile(tile: Tile, x: Int, y: Int, shader: Shader, world: Matrix4f, cam: Camera) {
         tile.texture?.bind() ?: return
 

@@ -9,6 +9,7 @@ import d2t.terra.abubaria.world.material.Material
 import d2t.terra.abubaria.io.graphics.Image
 
 private var id = 0
+
 open class Entity {
 
     val location = Location()
@@ -51,7 +52,7 @@ open class Entity {
 
     var chunks = mutableListOf<Chunk>()
 
-    var hitBox = EntityHitBox(this, .0f,.0f)
+    var hitBox = EntityHitBox(this, .0f, .0f)
 
 
     private fun moveLeft() {
@@ -117,20 +118,17 @@ open class Entity {
 
         if (dy == .0f)
             chunks.forEach chunks@{ chunk ->
-                chunk.blockMap.forEach blocksCols@{ blockCols ->
-                    blockCols.forEach blocks@{
-                        if (it.hitBox.top <= hitBox.bottom
-                            && hitBox.bottom - it.hitBox.top == .0f
-                            && it.type.collideable
-                            && hitBox.run { x < it.hitBox.x + it.hitBox.width && x + width - 1 > it.hitBox.x }
-                        ) {
-                            isOnGround = true
-                            ground = it.type
-                            return@blocks
-                        }
+                chunk.blockMap.forEach {
+                    if (it.hitBox.top <= hitBox.bottom
+                        && hitBox.bottom - it.hitBox.top == .0f
+                        && it.type.collideable
+                        && hitBox.run { x < it.hitBox.x + it.hitBox.width && x + width - 1 > it.hitBox.x }
+                    ) {
+                        isOnGround = true
+                        ground = it.type
+                        return@forEach
                     }
-
-                    if (isOnGround) return@blocksCols
+                    if (isOnGround) return@forEach
                 }
                 if (isOnGround) return@chunks
             }

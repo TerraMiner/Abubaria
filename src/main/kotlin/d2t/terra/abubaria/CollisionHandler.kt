@@ -9,11 +9,15 @@ object CollisionHandler {
 
     fun Entity.checkIfStuck(hitBox: HitBox): Boolean {
         chunks.forEach chunks@{ chunk ->
-            chunk.blockMap.forEach blockCols@{ blockCols ->
-                blockCols.forEach blocks@{ block ->
-                    if (block.hitBox.clone.transform(hitBox.width/2, hitBox.height/2, -(hitBox.width/2), -(hitBox.height/2)).intersects(hitBox) && block.type.collideable) {
-                        return true
-                    }
+            chunk.blockMap.forEach { block ->
+                if (block.hitBox.clone.transform(
+                        hitBox.width / 2,
+                        hitBox.height / 2,
+                        -(hitBox.width / 2),
+                        -(hitBox.height / 2)
+                    ).intersects(hitBox) && block.type.collideable
+                ) {
+                    return true
                 }
             }
         }
@@ -22,24 +26,21 @@ object CollisionHandler {
 
     fun Entity.checkCollision() {
         chunks.forEach chunks@{ chunk ->
-            chunk.blockMap.forEach blockCols@{ blockCols ->
-                blockCols.forEach blocks@{ block ->
+            chunk.blockMap.forEach blockCols@{ block ->
+                if (hitBox.clone.move(dx, dy)
+                        .intersects(block.hitBox) && block.type.collideable
+                ) {
+                    climb(block)
+                }
 
-                    if (hitBox.clone.move(dx, dy)
-                            .intersects(block.hitBox) && block.type.collideable) {
-                        climb(block)
-                    }
+                //Horizontal
+                if (hitBox.clone.move(dx, 0F).intersects(block.hitBox) && block.type.collideable) {
+                    hitBox.pushOutX(block.hitBox)
+                }
 
-                    //Horizontal
-                    if (hitBox.clone.move(dx, 0F).intersects(block.hitBox) && block.type.collideable) {
-                        hitBox.pushOutX(block.hitBox)
-                    }
-
-                    //Vertical
-                    if (hitBox.clone.move(0F, dy).intersects(block.hitBox) && block.type.collideable) {
-                        hitBox.pushOutY(block.hitBox)
-                    }
-
+                //Vertical
+                if (hitBox.clone.move(0F, dy).intersects(block.hitBox) && block.type.collideable) {
+                    hitBox.pushOutY(block.hitBox)
                 }
             }
         }
@@ -53,7 +54,9 @@ object CollisionHandler {
             futureBox.x += dx
             futureBox.y = block.hitBox.top - hitBox.height
 
-            if (futureBox.intersectionChunks().any { it.blockMap.flatten().any { b -> b != block && b.type.collideable && b.hitBox.intersects(futureBox) } }) return
+            if (futureBox.intersectionChunks().any {
+                    it.blockMap.any { b -> b != block && b.type.collideable && b.hitBox.intersects(futureBox) }
+                }) return
 
             location.x = futureBox.x
             location.y = futureBox.y

@@ -13,9 +13,11 @@ import vbotests.io.Window
 import vbotests.world.Tile
 import vbotests.world.TileRenderer
 import vbotests.world.World
+import java.awt.Color
 import java.lang.ref.Cleaner
 
 val cleaner = Cleaner.create()
+val bgColor = Color(150, 200, 250)
 fun main() {
     
     Window.setCallBacks()
@@ -31,7 +33,7 @@ fun main() {
 
     GL.createCapabilities()
 
-    glClearColor(0f, 0f, 0f, 0f)
+    glClearColor(bgColor.red / 255f, bgColor.green / 255f, bgColor.blue / 255f, bgColor.alpha / 255f)
 
     val camera = Camera(window.width, window.height)
 

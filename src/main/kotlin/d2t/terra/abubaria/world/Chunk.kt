@@ -11,6 +11,7 @@ import d2t.terra.abubaria.io.graphics.drawString
 import d2t.terra.abubaria.io.graphics.safetyDraw
 import d2t.terra.abubaria.location.Location
 import d2t.terra.abubaria.world.block.Block
+import d2t.terra.abubaria.world.block.BlockInChunkPosition
 import org.lwjgl.opengl.GL11.GL_LINE_LOOP
 import org.lwjgl.opengl.GL11.glLineWidth
 import java.awt.Color
@@ -18,41 +19,43 @@ import java.awt.Color
 class Chunk(
     val x: Int = 0,
     val y: Int = 0,
-    val blockMap: Array<Array<Block>> = Array(chunkSize) { Array(chunkSize) { Block() } }
+    val blockMap: Array<Block> = Array(chunkSize * chunkSize) { Block() }
 ) {
     val hitBox = HitBox(x, y, chunkSize * tileSize, chunkSize * tileSize)
     //block in world size = x * chunkSize + blockX
 
-    val lighed get() = blockMap.flatten().any { it.lighted }
+//    val lighed get() = blockMap.flatten().any { it.lighted }
 
     fun initBlocks() {
-        blockMap.forEachIndexed { x, blocks ->
-            blocks.forEachIndexed { y, block ->
-                block.x = this.x * chunkSize + x
-                block.y = this.y * chunkSize + y
-                block.chunkX = this.x
-                block.chunkY = this.y
-                block.hitBox = BlockHitBox(block)
-            }
+//        blockMap.forEachIndexed { x, blocks ->
+//            blocks.forEachIndexed { y, block ->
+//                block.x = this.x * chunkSize + x
+//                block.y = this.y * chunkSize + y
+//                block.chunkX = this.x
+//                block.chunkY = this.y
+//                block.hitBox = BlockHitBox(block)
+//            }
+//        }
+        blockMap.forEachIndexed { index, block ->
+            val position = BlockInChunkPosition(index.toByte())
+            block.x = (x shl chunkBitMask) + position.x
+            block.y = (y shl chunkBitMask) + position.y
+            block.hitBox = BlockHitBox(block)
         }
     }
 
-    fun draw(location: Location) {
-//        if (!lighed) return
+    fun drawTextures(location: Location) {
         val worldSizeX = x * chunkSize
         val worldSizeY = y * chunkSize
 
-        blockMap.forEachIndexed { x, blockCols ->
-            val screenX = Camera.worldScreenPosX((worldSizeX + x) * tileSize, location)
-
-            blockCols
-//                .filter { it.lighted }
-                .forEachIndexed { y, block ->
-                    val screenY = Camera.worldScreenPosY((worldSizeY + y) * tileSize, location)
-                            + tileSizeF * block.type.state.offset
-
-                    block.draw(screenX, screenY)
-                }
+        blockMap.forEachIndexed { index, block ->
+            val position = BlockInChunkPosition(index.toByte())
+            val screenX = Camera.worldScreenPosX((worldSizeX + position.x) * tileSize, location)
+            val screenY = Camera.worldScreenPosY(
+                (worldSizeY + position.y) * tileSize,
+                location
+            ) + tileSizeF * block.type.state.offset
+            block.drawTexture(screenX, screenY)
         }
 
         if (Client.debugMode) {
@@ -67,6 +70,18 @@ class Chunk(
         }
     }
 
+    fun drawLights(location: Location) {
+        val worldSizeX = x * chunkSize
+        val worldSizeY = y * chunkSize
+
+        blockMap.forEachIndexed { index, block ->
+            val position = BlockInChunkPosition(index.toByte())
+            val screenX = Camera.worldScreenPosX((worldSizeX + position.x) * tileSize, location)
+            val screenY = Camera.worldScreenPosY((worldSizeY + position.y) * tileSize, location) + tileSizeF * block.type.state.offset
+            block.drawLight(screenX, screenY)
+        }
+    }
+
 
     fun applyForBlocks(action: (x: Int, y: Int) -> Unit) {
         for (x in 0 until chunkSize) {
@@ -76,5 +91,15 @@ class Chunk(
                 action(worldX, worldY)
             }
         }
+    }
+
+    companion object {
+        fun getCoords(inChunkId: Short): Pair<Int, Int> {
+            val x = (inChunkId.toInt() shr 3) and 0x7
+            val y = inChunkId.toInt() and 0x7
+            return Pair(x, y)
+        }
+
+        val Pair<Int, Int>.inChunkId get() = (((first and 0x7) shl 3) or (second and 0x7)).toShort()
     }
 }

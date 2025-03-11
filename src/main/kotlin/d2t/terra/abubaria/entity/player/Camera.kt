@@ -17,8 +17,6 @@ object Camera {
     var centerX = (screenWidth / 2.0 - (tileSize / 2)).toFloat()
     var centerY = (screenHeight / 2.0 - (tileSize / 2)).toFloat()
 
-    var chunksOnScreen = mutableListOf<Chunk>()
-
     fun interpolate() {
         cameraX = centerX
         cameraY = centerY

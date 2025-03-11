@@ -18,7 +18,7 @@
 
 ---------------  T H R E A D  ---------------
 
-Current thread (0x000001c058f4d000):  JavaThread "main" [_thread_in_native, id=11892, stack(0x0000001415b00000,0x0000001415c00000)]
+Current thread (0x000001c058f4d000):  JavaThread ".main" [_thread_in_native, id=11892, stack(0x0000001415b00000,0x0000001415c00000)]
 
 siginfo: ExceptionCode=0xc0000005, reading address 0x0000000000000000
 
@@ -83,8 +83,8 @@ C  0x000001c05b24e061
 Java frames: (J=compiled Java code, j=interpreted, Vv=VM code)
 J 2165  org.lwjgl.system.JNI.invokePV(JJ)V (0 bytes) @ 0x000001c05b24dfc4 [0x000001c05b24df80+0x44]
 j  org.lwjgl.glfw.GLFW.glfwDestroyWindow(J)V+6
-j  d2t.terra.abubaria.MainKt.main()V+107
-j  d2t.terra.abubaria.MainKt.main([Ljava/lang/String;)V+0
+j  d2t.terra.abubaria.MainKt..main()V+107
+j  d2t.terra.abubaria.MainKt..main([Ljava/lang/String;)V+0
 v  ~StubRoutines::call_stub
 
 ---------------  P R O C E S S  ---------------
@@ -113,7 +113,7 @@ Java Threads: ( => current thread )
   0x000001c0764e0000 JavaThread "Signal Dispatcher" daemon [_thread_blocked, id=20436, stack(0x0000001416c00000,0x0000001416d00000)]
   0x000001c0737ca000 JavaThread "Finalizer" daemon [_thread_blocked, id=23044, stack(0x0000001416b00000,0x0000001416c00000)]
   0x000001c0764c0800 JavaThread "Reference Handler" daemon [_thread_blocked, id=3552, stack(0x0000001416a00000,0x0000001416b00000)]
-=>0x000001c058f4d000 JavaThread "main" [_thread_in_native, id=11892, stack(0x0000001415b00000,0x0000001415c00000)]
+=>0x000001c058f4d000 JavaThread ".main" [_thread_in_native, id=11892, stack(0x0000001415b00000,0x0000001415c00000)]
 
 Other Threads:
   0x000001c0737b4800 VMThread [stack: 0x0000001416900000,0x0000001416a00000] [id=21088]
@@ -404,7 +404,7 @@ Dynamic libraries:
 VM Arguments:
 jvm_args: -Dfile.encoding=windows-1251 -Duser.country=RU -Duser.language=ru -Duser.variant 
 java_command: d2t.terra.abubaria.MainKt
-java_class_path (initial): C:\Users\sasha\Desktop\DEV\SimpleGame\build\classes\java\main;C:\Users\sasha\Desktop\DEV\SimpleGame\build\classes\kotlin\main;C:\Users\sasha\Desktop\DEV\SimpleGame\build\resources\main;C:\Users\sasha\.gradle\caches\modules-2\files-2.1\org.jetbrains.kotlinx\kotlinx-coroutines-core-jvm\1.7.1\63a0779cf668e2a47d13fda7c3b0c4f8dc7762f4\kotlinx-coroutines-core-jvm-1.7.1.jar;C:\Users\sasha\.m2\repository\org\jetbrains\kotlin\kotlin-stdlib-jdk8\1.8.20\kotlin-stdlib-jdk8-1.8.20.jar;C:\Users\sasha\.m2\repository\org\jetbrains\kotlin\kotlin-stdlib-jdk7\1.8.20\kotlin-stdlib-jdk7-1.8.20.jar;C:\Users\sasha\.m2\repository\org\jetbrains\kotlin\kotlin-stdlib\1.8.20\kotlin-stdlib-1.8.20.jar;C:\Users\sasha\.gradle\caches\modules-2\files-2.1\org.lwjgl\lwjgl-assimp\3.2.3\f62aa07a20afbdd3097efc296c4841e0d29700eb\lwjgl-assimp-3.2.3.jar;C:\Users\sasha\.gradle\caches\modules-2\files-2.1\org.lwjgl\lwjgl-assimp\3.2.3\4e60aeb75f0343c4a9ede4ef8b6b32ca702a00a3\lwjgl-assimp-3.2.3-natives-windows.jar;C:\Users\sasha\.gradle\caches\modules-2\files-2.1\org.lwjgl\lwjgl-glfw\3.2.3\5e520d5c290c8b012545a8d34fa5db5ab051ea53\lwjgl-glfw-3.2.3.jar;C:\Users\sasha\.gradle\caches\modules-2\files-2.1\org.lwjgl\lwjgl-glfw\3.2.3\b4d8a3477cdc2edcf7a5f1e822926be846223f54\lwjgl-glfw-3.2.3-natives-windows.jar;C:\Users\sasha\.gradle\caches\modules-2\files-2.1\org.lwjgl\lwjgl-nfd\3.2.3\c44fee1043c022cf6614a28872d44cf114ca7737\lwjgl-nfd-3.2.3.jar;C:\Users\sasha\.gradle\caches\modules-2\files-2.1\org.lwjgl\lwjgl-nfd\3.2.3\32782f5f5c57769efb82af864e70b819c77bc891\lwjgl-nfd-3.2.3-natives-windows.jar;C:\Users\sasha\.gradle\caches\modules-2\files-2.1\org.lwjgl\lwjgl-openal\3.2.3\106742e805803ab9eab8e343f0fb31a3d263903c\lwjgl-openal-3.2.3.jar;C:\Users\sasha\.gradle\caches\modules-2\files-2.1\org.lwjgl\lwjgl-openal\3.2.3\ec898e8ce11b5886f4f532a1536283ef2817758d\lwjgl-openal-3.2.3-natives-windows.jar;C:\Users\sasha\.gradle\caches\modules-2\files-2.1\org.lwjgl\lwjgl-opengl\3.2.3\bdd534a323d0c8f54969b95
+java_class_path (initial): C:\Users\sasha\Desktop\DEV\SimpleGame\build\classes\java\.main;C:\Users\sasha\Desktop\DEV\SimpleGame\build\classes\kotlin\.main;C:\Users\sasha\Desktop\DEV\SimpleGame\build\resources\.main;C:\Users\sasha\.gradle\caches\modules-2\files-2.1\org.jetbrains.kotlinx\kotlinx-coroutines-core-jvm\1.7.1\63a0779cf668e2a47d13fda7c3b0c4f8dc7762f4\kotlinx-coroutines-core-jvm-1.7.1.jar;C:\Users\sasha\.m2\repository\org\jetbrains\kotlin\kotlin-stdlib-jdk8\1.8.20\kotlin-stdlib-jdk8-1.8.20.jar;C:\Users\sasha\.m2\repository\org\jetbrains\kotlin\kotlin-stdlib-jdk7\1.8.20\kotlin-stdlib-jdk7-1.8.20.jar;C:\Users\sasha\.m2\repository\org\jetbrains\kotlin\kotlin-stdlib\1.8.20\kotlin-stdlib-1.8.20.jar;C:\Users\sasha\.gradle\caches\modules-2\files-2.1\org.lwjgl\lwjgl-assimp\3.2.3\f62aa07a20afbdd3097efc296c4841e0d29700eb\lwjgl-assimp-3.2.3.jar;C:\Users\sasha\.gradle\caches\modules-2\files-2.1\org.lwjgl\lwjgl-assimp\3.2.3\4e60aeb75f0343c4a9ede4ef8b6b32ca702a00a3\lwjgl-assimp-3.2.3-natives-windows.jar;C:\Users\sasha\.gradle\caches\modules-2\files-2.1\org.lwjgl\lwjgl-glfw\3.2.3\5e520d5c290c8b012545a8d34fa5db5ab051ea53\lwjgl-glfw-3.2.3.jar;C:\Users\sasha\.gradle\caches\modules-2\files-2.1\org.lwjgl\lwjgl-glfw\3.2.3\b4d8a3477cdc2edcf7a5f1e822926be846223f54\lwjgl-glfw-3.2.3-natives-windows.jar;C:\Users\sasha\.gradle\caches\modules-2\files-2.1\org.lwjgl\lwjgl-nfd\3.2.3\c44fee1043c022cf6614a28872d44cf114ca7737\lwjgl-nfd-3.2.3.jar;C:\Users\sasha\.gradle\caches\modules-2\files-2.1\org.lwjgl\lwjgl-nfd\3.2.3\32782f5f5c57769efb82af864e70b819c77bc891\lwjgl-nfd-3.2.3-natives-windows.jar;C:\Users\sasha\.gradle\caches\modules-2\files-2.1\org.lwjgl\lwjgl-openal\3.2.3\106742e805803ab9eab8e343f0fb31a3d263903c\lwjgl-openal-3.2.3.jar;C:\Users\sasha\.gradle\caches\modules-2\files-2.1\org.lwjgl\lwjgl-openal\3.2.3\ec898e8ce11b5886f4f532a1536283ef2817758d\lwjgl-openal-3.2.3-natives-windows.jar;C:\Users\sasha\.gradle\caches\modules-2\files-2.1\org.lwjgl\lwjgl-opengl\3.2.3\bdd534a323d0c8f54969b95
 Launcher Type: SUN_STANDARD
 
 Environment Variables:
@@ -426,6 +426,6 @@ Memory: 4k page, physical 16092312k(3158896k free), swap 27108312k(4272820k free
 vm_info: OpenJDK 64-Bit Server VM (25.372-b07) for windows-amd64 JRE (1.8.0_372-b07), built on Apr 17 2023 22:43:30 by "Administrator" with MS VC++ 12.0 (VS2013)
 
 time: Wed May 17 18:44:08 2023
-timezone: Центральноевропейский (лето)
+timezone: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅ)
 elapsed time: 66.509517 seconds (0d 0h 1m 6s)
 

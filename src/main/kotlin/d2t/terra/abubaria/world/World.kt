@@ -7,12 +7,14 @@ import d2t.terra.abubaria.entity.Entity
 import d2t.terra.abubaria.entity.player.Camera
 import d2t.terra.abubaria.hitbox.BlockHitBox
 import d2t.terra.abubaria.hitbox.HitBox
-import d2t.terra.abubaria.io.graphics.drawRect
 import d2t.terra.abubaria.io.graphics.safetyDraw
 import d2t.terra.abubaria.location.Location
 import d2t.terra.abubaria.world.block.Block
+import d2t.terra.abubaria.world.block.BlockInChunkPosition
+import d2t.terra.abubaria.world.block.Position
 import d2t.terra.abubaria.world.material.Material
 import org.lwjgl.opengl.GL11.GL_LINE_LOOP
+import org.lwjgl.opengl.GL11.GL_QUADS
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.math.abs
 
@@ -31,13 +33,16 @@ class World {
     val entities = ConcurrentLinkedQueue<Entity>()
 
     fun getChunkAt(x: Int, y: Int): Chunk? {
-        return chunkMap.getOrNull(x / chunkSize)
-            ?.getOrNull(y / chunkSize)
+            return chunkMap.getOrNull(x shr chunkBitMask)
+            ?.getOrNull(y shr chunkBitMask)
     }
+
+    fun getBlockAt(pos: Position) = getBlockAt(pos.x,pos.y)
 
     fun getBlockAt(x: Int, y: Int): Block? {
         val chunk = getChunkAt(x, y) ?: return null
-        return chunk.blockMap.getOrNull(x - chunk.x * chunkSize)?.getOrNull(y - chunk.y * chunkSize)
+        val position = BlockInChunkPosition.decode(x and blockBitMask, y and blockBitMask)
+        return chunk.blockMap.getOrNull(position.value.toInt())
     }
 
     fun setBlock(material: Material, x: Int, y: Int) {
@@ -65,8 +70,6 @@ class World {
         val bottomVertex = Camera.bottomCameraY(location) + extraDrawDistY
         val topVertex = Camera.topCameraY(location) - extraDrawDistY
 
-        val chunks = mutableListOf<Chunk>()
-
         val leftCorner = (leftVertex / tileSize / chunkSize).toInt()
             .coerceIn(0 until worldSizeX)
         val rightCorner = (rightVertex / tileSize / chunkSize).toInt()
@@ -79,14 +82,22 @@ class World {
         for (chunkX in leftCorner..rightCorner) {
             for (chunkY in topCorner..bottomCorner) {
                 val chunk = chunkMap[chunkX][chunkY]
-                chunk.draw(location)
-                chunks.add(chunk)
+                chunk.drawTextures(location)
+            }
+        }
+
+        if (Client.lightMode) {
+            safetyDraw(GL_QUADS) {
+                for (chunkX in leftCorner..rightCorner) {
+                    for (chunkY in topCorner..bottomCorner) {
+                        val chunk = chunkMap[chunkX][chunkY]
+                        chunk.drawLights(location)
+                    }
+                }
             }
         }
 
         drawEntities(location, leftVertex, rightVertex, topVertex, bottomVertex)
-
-        Camera.chunksOnScreen = chunks
     }
 
     private fun drawEntities(location: Location, lVertex: Float, rVertex: Float, tVertex: Float, bVertex: Float) {
@@ -119,16 +130,16 @@ class World {
 //    }
 
 
-        fun update() {
-            updateEntities()
-        }
+    fun update() {
+        updateEntities()
+    }
 
-        private fun updateEntities() {
-            entities.forEach {
-                it.update()
-                if (it.removed) {
-                    entities.remove(it)
-                }
+    private fun updateEntities() {
+        entities.forEach {
+            it.update()
+            if (it.removed) {
+                entities.remove(it)
             }
         }
     }
+}
