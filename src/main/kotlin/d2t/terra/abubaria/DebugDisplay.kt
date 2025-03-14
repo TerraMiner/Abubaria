@@ -1,7 +1,7 @@
 package d2t.terra.abubaria
 
 import d2t.terra.abubaria.entity.player.ClientPlayer
-import d2t.terra.abubaria.io.graphics.drawString
+import d2t.terra.abubaria.io.graphics.render.RendererManager
 import java.util.*
 
 class DebugDisplay {
@@ -23,15 +23,9 @@ class DebugDisplay {
             .toString()
 
     fun draw() {
-
         text.apply {
-            split("\n").forEachIndexed { index, text ->
-                val y = index * 20 + 20F
-                if (index == 0)
-                    drawString(text, 4F, y, 3)
-                else if (Client.debugMode)
-                    drawString(text, 4F, y, 3)
-            }
+            if (Client.debugMode) RendererManager.UIRenderer.renderText(text, 4f, 4f, .4f)
+            else RendererManager.UIRenderer.renderText(split("\n")[0],4f,4f,.4f)
         }
     }
 

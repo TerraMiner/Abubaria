@@ -4,13 +4,12 @@ import d2t.terra.abubaria.GamePanel
 import d2t.terra.abubaria.entity.player.ClientPlayer
 import d2t.terra.abubaria.hitbox.HitBox
 import d2t.terra.abubaria.hud.Hud
-import d2t.terra.abubaria.io.graphics.drawString
-import d2t.terra.abubaria.io.graphics.drawTexture
+import d2t.terra.abubaria.io.graphics.render.RendererManager
 import d2t.terra.abubaria.world.diff
 import d2t.terra.abubaria.world.inSlotPos
-import d2t.terra.abubaria.world.inSlotSize
 import d2t.terra.abubaria.world.material.Material
 import d2t.terra.abubaria.world.slotSize
+import d2t.terra.abubaria.io.graphics.Model
 
 
 data class Inventory(val xSize: Int, val ySize: Int) {
@@ -39,7 +38,8 @@ data class Inventory(val xSize: Int, val ySize: Int) {
     }
 
     fun getItemOfMouse(mouseX: Int, mouseY: Int) =
-        items.getOrNull((mouseX - diff.toInt()) / slotSize.toInt())?.getOrNull((mouseY - diff.toInt()) / slotSize.toInt())
+        items.getOrNull((mouseX - diff.toInt()) / slotSize.toInt())
+            ?.getOrNull((mouseY - diff.toInt()) / slotSize.toInt())
 
     fun updateMouseSlot(mouseX: Int, mouseY: Int) {
         val x = (mouseX - diff.toInt()) / slotSize.toInt()
@@ -124,43 +124,52 @@ data class Inventory(val xSize: Int, val ySize: Int) {
 
     fun draw() {
         val inventory = Hud.inventory
-        if (Hud.inventory.opened) repeat(inventory.xSize) { x ->
+        val width = inventory.xSize
+        val height = if (inventory.opened) inventory.ySize else 1
+        repeat(width) { x ->
             val invX = (x * slotSize) + diff
-            repeat(inventory.ySize) { y ->
+            repeat(height) { y ->
                 val invY = (y * slotSize) + diff
                 val selectedItem = selectedHotBar == x && y == 0
+                val texture = if (selectedItem) Hud.selectedSlot else Hud.slot
 
-                val textureId = if (selectedItem) Hud.selectedSlot.textureId else Hud.slot.textureId
-                drawTexture(textureId, invX, invY, slotSize, slotSize)
+                RendererManager.UIRenderer.render(texture, Model.DEFAULT, invX, invY, slotSize, slotSize)
 
                 val item = inventory.getItem(x, y)
                 if (item != null && item.type !== Material.AIR) {
+                    val size = slotSize - inSlotPos * 2f
                     item.draw(
                         invX + inSlotPos,
-                        invY + inSlotPos + (inSlotSize * item.type.state.offset).toInt(),
-                        item.type.invSizes.first, item.type.invSizes.second, true
+                        invY + inSlotPos + (size * item.type.state.offset).toInt(),
+                        size,
+                        size - (size * item.type.state.scale)
                     )
+//                    drawString("${item.amount}", x, y + height, textScale, renderer) TODO После того как сделаю цвета и алигны, тут надо рендерить в правом нижнем углу слота
+                }
+
+                if (y == 0) {
+                    RendererManager.UIRenderer.renderText(inventory.getItem(selectedHotBar, 0)?.display ?: "", 24F, -3f, .3f)
                 }
             }
         }
-        else repeat(inventory.xSize) { x ->
-            val invX = (x * slotSize) + diff
-            val selectedItem = selectedHotBar == x
-
-            val textureId = if (selectedItem) Hud.selectedSlot.textureId else Hud.slot.textureId
-            drawTexture(textureId, invX, diff, slotSize, slotSize)
-
-            val item = inventory.getItem(x, 0)
-            if (item != null && item.type !== Material.AIR) {
-                item.draw(
-                    invX + inSlotPos,
-                    diff + inSlotPos + (inSlotSize * item.type.state.offset).toInt(),
-                    item.type.invSizes.first,
-                    item.type.invSizes.second, true
-                )
-            }
-            drawString(inventory.getItem(selectedHotBar, 0)?.display ?: "", 24F, 12F, 3)
-        }
+//        else repeat(inventory.xSize) { x ->
+//            val invX = (x * slotSize) + diff
+//            val selectedItem = selectedHotBar == x
+//
+//            val texture = if (selectedItem) Hud.selectedSlot else Hud.slot
+//            RendererManager.UIRenderer.render(texture, Model.DEFAULT, invX, diff, slotSize, slotSize)
+//
+//            val item = inventory.getItem(x, 0)
+//            if (item != null && item.type !== Material.AIR) {
+//                item.draw(
+//                    invX + inSlotPos,
+//                    diff + inSlotPos + (inSlotSize * item.type.state.offset).toInt(),
+//                    item.type.invSizes.first,
+//                    item.type.invSizes.second, withText = true
+//                )
+//            }
+//            drawString(inventory.getItem(selectedHotBar, 0)?.display ?: "", 24F, 12F, .5f)
+//        }
     }
 
 }

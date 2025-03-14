@@ -1,9 +1,8 @@
 package d2t.terra.abubaria.light
 
 import d2t.terra.abubaria.GamePanel
-import d2t.terra.abubaria.window
+import d2t.terra.abubaria.io.graphics.Window
 import d2t.terra.abubaria.world.block.Block
-import org.lwjgl.glfw.GLFW
 import java.util.concurrent.ConcurrentLinkedQueue
 
 object LightManager {
@@ -17,7 +16,7 @@ object LightManager {
         var currentTime: Long
         var timer = 0L
         var tickCount = 0
-        while (!GLFW.glfwWindowShouldClose(window)) {
+        Window.whileWindowOpened {
             currentTime = System.nanoTime()
             deltaTicks += (currentTime - lastTime) / tickInterval
             timer += (currentTime - lastTime)

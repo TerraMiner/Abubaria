@@ -6,25 +6,24 @@ import d2t.terra.abubaria.GamePanel
 import d2t.terra.abubaria.GamePanel.tileSizeF
 import d2t.terra.abubaria.entity.Entity
 import d2t.terra.abubaria.entity.player.Camera
-import d2t.terra.abubaria.io.graphics.Image
-import d2t.terra.abubaria.io.graphics.drawTexture
 import d2t.terra.abubaria.location.Location
 import d2t.terra.abubaria.world.particleSize
+import d2t.terra.abubaria.io.graphics.Texture
 
 class Particle(
-    private val texture: Image, val x: Int, val y: Int, private val owner: ParticleOwner
+    private val texture: Texture, val x: Int, val y: Int, private val owner: ParticleOwner
 ) : Entity() {
 
     private val dSize = tileSizeF / particleSize
     private val mod get() = (health / maxHealth).coerceIn(0.0F, 1.0F)
 
-    override fun draw(playerLoc: Location) {
+    override fun draw() {
         if (!GamePanel.world.entities.contains(this)) return
 
-        val screenX = Camera.worldScreenPosX((location.x).toInt(), playerLoc) + (dSize / 2.0F * (1.0F - mod)).toInt()
-        val screenY = Camera.worldScreenPosY((location.y).toInt(), playerLoc) + (dSize * (1.0F - mod)).toInt()
+//        val screenX = Camera.worldScreenPosX((location.x).toInt(), playerLoc) + (dSize / 2.0F * (1.0F - mod)).toInt()
+//        val screenY = Camera.worldScreenPosY((location.y).toInt(), playerLoc) + (dSize * (1.0F - mod)).toInt()
 
-        drawTexture(texture.textureId, screenX, screenY, dSize * mod, dSize * mod)
+//        drawTexture(texture.textureId, screenX, screenY, dSize * mod, dSize * mod)
     }
 
 //    override fun drawHitBox(playerLoc: Location) {

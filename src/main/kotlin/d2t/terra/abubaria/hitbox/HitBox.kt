@@ -1,9 +1,7 @@
 package d2t.terra.abubaria.hitbox
 
 import d2t.terra.abubaria.entity.player.Camera
-import d2t.terra.abubaria.io.graphics.drawRect
 import d2t.terra.abubaria.location.Location
-import d2t.terra.abubaria.world.material.MaterialSize
 
 open class HitBox(var x: Float, var y: Float, var width: Float, var height: Float) {
     val bottom get() = y + height
@@ -63,9 +61,9 @@ open class HitBox(var x: Float, var y: Float, var width: Float, var height: Floa
                 (y + height + 1 >= other.y && y + height <= other.y + 1 || y + 1 <= other.y + other.height && y >= other.y + other.height - 1)
 
     fun draw(playerLoc: Location) {
-        val screenX = Camera.worldScreenPosX((x).toInt(), playerLoc)
-        val screenY = Camera.worldScreenPosY((y).toInt(), playerLoc)
-        drawRect(screenX,screenY,width,height)
+//        val screenX = Camera.worldScreenPosX((x).toInt(), playerLoc)
+//        val screenY = Camera.worldScreenPosY((y).toInt(), playerLoc)
+//        drawRect(screenX,screenY,width,height)
     }
 
 }

@@ -1,12 +1,11 @@
 package d2t.terra.abubaria.world.material
 
-import d2t.terra.abubaria.GamePanel.tileSize
 import d2t.terra.abubaria.GamePanel.tileSizeF
-import d2t.terra.abubaria.io.graphics.Image
-import d2t.terra.abubaria.io.graphics.loadImage
-import d2t.terra.abubaria.world.inSlotSize
+import d2t.terra.abubaria.util.getCoords
 import d2t.terra.abubaria.world.material.MaterialState.*
 import d2t.terra.abubaria.world.particleSize
+import d2t.terra.abubaria.io.graphics.Model
+import d2t.terra.abubaria.io.graphics.Texture
 
 enum class Material(
     path: String?,
@@ -14,45 +13,52 @@ enum class Material(
     val maxStackSize: Int = 9999,
     val state: MaterialState = FULL,
     val collideable: Boolean = true,
-    val height: Float = tileSizeF,
-    val size: MaterialSize = MaterialSize.FULL,
+    val scale: Float = 1f,
     val friction: Float = .03f
 ) {
-    AIR(null, "", 0, FULL, false, tileSizeF, MaterialSize.FULL, .005f),
+    AIR(null, "", 0, FULL, false, tileSizeF, .005f),
     STONE("stone", "Stone"),
     GRASS("grass", "Grass"),
     DIRT("dirt", "Dirt"),
-    STONE_HALF_DOWN("stone_half_down", "Stone Slab", 9999, BOTTOM, true, tileSizeF / 2, MaterialSize.HALF),
-    STONE_HALF_UP("stone_half_up", "Stone Slab", 9999, UPPER, true, tileSizeF / 2, MaterialSize.HALF);
+    STONE_HALF_DOWN("stone_half_down", "Stone Slab Bottom", 9999, BOTTOM, true, .5f),
+    STONE_HALF_UP("stone_half_up", "Stone Slab Upper", 9999, UPPER, true, .5f);
 
-    val texture: Image? = if (path === null) null else loadImage("block/$path.png")
-    val invSizes = scaleToSlotSize()
-    val slices = Array(particleSize) { Array(particleSize) { Image() } }.apply {
-        if (texture === null) return@apply
-        for (y in 0 until particleSize) {
-            for (x in 0 until particleSize) {
-                val tileWidth = texture.width / particleSize
-                val tileHeight = texture.height / particleSize
-                this[x][y] = texture.subImage(x * tileWidth, y * tileHeight, tileWidth, tileHeight)
-                this[x][y].apply a@{
-                    if (width == 0) width = tileWidth
-                    if (height == 0) height = tileHeight
-                }
-            }
+//    val image: Image? = if (path === null) null else loadImage("block/$path.png")
+    val texture: Texture? = if (path === null) null else Texture("block/$path.png")
+
+    val particles = (particleSize * particleSize).let { particlesCapacity ->
+        val texture = texture ?: return@let emptyArray<Model>()
+        Array(particlesCapacity) {
+            val pos = getCoords(it, texture.width, texture.height)
+            Model(let {
+                val normalizedTexX = pos.x.toFloat() / texture.width
+                val normalizedTexY = pos.y.toFloat() / texture.height
+                val normalizedTexWidth = particleSize.toFloat() / texture.width
+                val normalizedTexHeight = particleSize.toFloat() / texture.height
+                floatArrayOf(
+                    /*0f, 1f,*/ normalizedTexX, normalizedTexY + normalizedTexHeight,
+                    /*1f, 1f,*/ normalizedTexX + normalizedTexWidth, normalizedTexY + normalizedTexHeight,
+                    /*1f, 0f,*/ normalizedTexX + normalizedTexWidth, normalizedTexY,
+                    /*0f, 0f,*/ normalizedTexX, normalizedTexY
+                )
+            })
         }
     }
 
-    private fun scaleToSlotSize(): Pair<Float, Float> {
-        var width = tileSizeF
-        var height = height
-
-        while (width < inSlotSize && height < inSlotSize) {
-            width += 1F
-            height += 1F / size.size
-        }
-
-        return width to height
-    }
+//    val slices = Array(particleSize) { Array(particleSize) { Model() } }.apply {
+//        if (image === null) return@apply
+//        for (y in 0 until particleSize) {
+//            for (x in 0 until particleSize) {
+//                val tileWidth = image.width / particleSize
+//                val tileHeight = image.height / particleSize
+//                this[x][y] = image.subImage(x * tileWidth, y * tileHeight, tileWidth, tileHeight)
+//                this[x][y].apply a@{
+//                    if (width == 0) width = tileWidth
+//                    if (height == 0) height = tileHeight
+//                }
+//            }
+//        }
+//    }
 
 
 }

@@ -1,11 +1,12 @@
 package d2t.terra.abubaria.inventory
 
 import d2t.terra.abubaria.entity.item.EntityItem
-import d2t.terra.abubaria.io.graphics.drawString
-import d2t.terra.abubaria.io.graphics.drawTexture
+import d2t.terra.abubaria.io.graphics.render.RendererManager
+import d2t.terra.abubaria.io.graphics.render.TextureRenderer
 import d2t.terra.abubaria.location.Direction
 import d2t.terra.abubaria.location.Location
 import d2t.terra.abubaria.world.material.Material
+import d2t.terra.abubaria.io.graphics.Model
 import kotlin.math.ceil
 import kotlin.math.floor
 
@@ -96,12 +97,14 @@ data class Item(private var material: Material = Material.AIR, private var count
         remove()
     }
 
-    fun draw(x: Float, y: Float, width: Float, height: Float, withText: Boolean = true, txtMod: Int = 5) {
-        drawTexture(type.texture?.textureId, x, y, width, height)
-
-        if (withText) {
-                drawString("$count", x, y + height + txtMod, txtMod)
-        }
+    fun draw(
+        x: Float,
+        y: Float,
+        width: Float,
+        height: Float,
+        renderer: TextureRenderer = RendererManager.UIRenderer,
+    ) {
+        type.texture?.let { renderer.render(it, Model.DEFAULT, x, y, width, height) }
     }
 
 }

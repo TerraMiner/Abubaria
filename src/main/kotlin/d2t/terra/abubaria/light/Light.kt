@@ -1,16 +1,16 @@
 package d2t.terra.abubaria.light
 
 import d2t.terra.abubaria.GamePanel
+import d2t.terra.abubaria.util.loopIndicy
 import d2t.terra.abubaria.world.block.Position
 import d2t.terra.abubaria.world.lChunkBitMask
 import d2t.terra.abubaria.world.lightLevels
 import d2t.terra.abubaria.world.material.Material
-import vbotests.util.loopWhile
 
 class Light(
     val lightPos: LightInBlockPosition,
     val pos: Position?,
-    var power: Int = 1,
+    var power: Float = 1 / 16f,
 ) {
 
     val world get() = GamePanel.world
@@ -18,16 +18,16 @@ class Light(
 
     fun initializePower() {
         pos ?: run {
-            power = 0
+            power = 0f
             return
         }
 
         if (block?.type === Material.AIR) {
-            power = 1
+            power = 1 / 16f
             return
         }
 
-        power = findDistanceToAir()
+        power = findDistanceToAir() / 16f
 
     }
 
@@ -38,8 +38,8 @@ class Light(
         val offsetX = (block.x shl lChunkBitMask) + lightPos.x
         val offsetY = (block.y shl lChunkBitMask) + lightPos.y
 
-        loopWhile(1, lightLevels) { r ->
-            loopWhile(0, r) { x ->
+        loopIndicy(1, lightLevels) { r ->
+            loopIndicy(0, r) { x ->
                 val y = r - x
                 val px1 = (x + offsetX) shr lChunkBitMask
                 val py1 = (y + offsetY) shr lChunkBitMask

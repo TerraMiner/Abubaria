@@ -6,13 +6,14 @@ import d2t.terra.abubaria.hitbox.EntityHitBox
 import d2t.terra.abubaria.location.Location
 import d2t.terra.abubaria.world.Chunk
 import d2t.terra.abubaria.world.material.Material
-import d2t.terra.abubaria.io.graphics.Image
+import d2t.terra.abubaria.io.graphics.Model
+import d2t.terra.abubaria.io.graphics.Texture
 
 private var id = 0
 
 open class Entity {
 
-    val location = Location()
+    open val location = Location()
     val entityId = ++id
 
     var removed = false
@@ -23,12 +24,12 @@ open class Entity {
     var maxXspeed = 1.0f
     var maxYspeed = 7.0f
 
-    var height: Float = 2.9f
-    var width: Float = 1.4f
-    var leftIdle: Image? = null
-    var leftJump: Image? = null
-    var rightIdle: Image? = null
-    var rightJump: Image? = null
+    var height: Float = 2.9f //
+    var width: Float = 1.4f // 22pix
+    var leftIdle: Texture? = null
+    var leftJump: Texture? = null
+    var rightIdle: Texture? = null
+    var rightJump: Texture? = null
 
     var dx = .0f
     var dy = .0f
@@ -55,22 +56,14 @@ open class Entity {
     var hitBox = EntityHitBox(this, .0f, .0f)
 
 
-    private fun moveLeft() {
+    fun moveLeft() {
+        location.direction = Direction.LEFT
         dx -= dxModifier
     }
 
-    private fun moveRight() {
+    fun moveRight() {
+        location.direction = Direction.RIGHT
         dx += dxModifier
-    }
-
-
-    open fun applyMovement() {
-
-        when (location.direction) {
-            Direction.LEFT -> if (KeyHandler.leftPressed) moveLeft()
-            Direction.RIGHT -> if (KeyHandler.rightPressed) moveRight()
-        }
-
     }
 
     fun applyFriction() {
@@ -104,7 +97,7 @@ open class Entity {
 
     }
 
-    open fun draw(playerLoc: Location) {
+    open fun draw() {
 
     }
 

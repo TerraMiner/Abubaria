@@ -1,7 +1,9 @@
 package d2t.terra.abubaria.io.fonts
 
-import d2t.terra.abubaria.io.graphics.Image
-import d2t.terra.abubaria.io.graphics.loadImage
+import d2t.terra.abubaria.io.graphics.Model
+import d2t.terra.abubaria.io.graphics.Texture
+import d2t.terra.abubaria.util.loopIndicy
+import d2t.terra.abubaria.util.loopWhile
 import java.awt.*
 import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_ARGB
@@ -12,16 +14,14 @@ import kotlin.math.sqrt
 
 
 class CFont(private val path: String, private val name: String, val size: Int) {
-
     private var width: Int = 0
     private var height: Int = 0
     private var lineHeight: Int = 0
     private val characterMap: MutableMap<Int, CharInfo> = mutableMapOf()
     private val ge: GraphicsEnvironment = GraphicsEnvironment.getLocalGraphicsEnvironment()
-    private val imageFile = "fonts/${name}_map.png"
-    private lateinit var imageFont: Image
+    private val imageFile = "fonts/${name}_atlas.png"
+    lateinit var imageFont: Texture
     lateinit var fontMetrics: FontMetrics
-
 
     init {
         generateBitmap()
@@ -38,76 +38,74 @@ class CFont(private val path: String, private val name: String, val size: Int) {
         val metrics = g2d.fontMetrics
         fontMetrics = metrics
 
-        val estimatedWidth = (sqrt(font.numGlyphs.toDouble()) * font.size.toDouble()).toInt() + 1
+        val estimatedWidth = (sqrt(font.numGlyphs.toDouble()) * font.size.toDouble() / 2.5).toInt() + 1
         width = 0
         height = metrics.height
         lineHeight = metrics.height
 
+        val allowedCharsRegex = "[]A-Za-z0-9!\"#$%&'()*+,-./:;<=>?@\\[\\\\^_`{|}~А-Яа-яЁё ]".toRegex()
+
         var x = 0
-        val mod = 1.4f
-        var y = (metrics.height * mod).toInt()
+        var y = metrics.ascent
 
-        for (i in 0 until font.numGlyphs) {
-            if (font.canDisplay(i)) {
+        loopWhile(0, font.numGlyphs) { i ->
+            if (font.canDisplay(i) && allowedCharsRegex.matches(Char(i).toString())) {
+                val ch = Character.toChars(i)[0]
+                val charWidth = metrics.charWidth(ch)
+                val charHeight = metrics.ascent + metrics.descent
 
-                val info = CharInfo(x, y, metrics.charWidth(i), metrics.height)
-
+                val info = CharInfo(x, y - metrics.ascent, charWidth, charHeight)
                 characterMap[i] = info
-                width = max(x + metrics.charWidth(i), width)
+                width = max(x + charWidth, width)
 
-                x += info.width + 10
+                x += charWidth + 10
 
                 if (x > estimatedWidth) {
                     x = 0
-                    y += (metrics.height * mod).toInt()
-                    height += (metrics.height * mod).toInt()
+                    y += metrics.height
+                    height += metrics.height
                 }
             }
         }
 
-        height += (metrics.height * mod).toInt()
 
+        height += metrics.height
+        buildCharInfoModels()
         g2d.dispose()
-
-        img = BufferedImage(width, height, TYPE_INT_ARGB)
-        g2d = img.createGraphics()
-        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
-        g2d.font = font
-        g2d.color = Color.WHITE
-
-        for (i in 0 until font.numGlyphs) {
-            if (font.canDisplay(i)) {
-                val info = characterMap[i] ?: continue
-                g2d.drawString("${Char(i)}", info.sourceX, info.sourceY)
-            }
-        }
 
         if (!File(imageFile).exists()) {
             kotlin.runCatching {
+                img = BufferedImage(width, height, TYPE_INT_ARGB)
+                g2d = img.createGraphics()
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
+                g2d.font = font
+                g2d.color = Color.WHITE
+
+                loopWhile(0, font.numGlyphs) { i ->
+                    if (font.canDisplay(i)) {
+                        val info = characterMap[i] ?: return@loopWhile
+                        g2d.drawString("${Char(i)}", info.sourceX, info.sourceY + metrics.ascent)
+                    }
+                }
+
                 val file = File(imageFile)
                 ImageIO.write(img, "png", file)
+                g2d.dispose()
             }.getOrElse {
                 it.printStackTrace()
             }
         }
 
-        g2d.dispose()
+        imageFont = Texture(imageFile)
+    }
 
-        imageFont = loadImage(imageFile)
-
-        for (i in 0 until font.numGlyphs) {
-            if (font.canDisplay(i)) {
-                val char = characterMap[i] ?: continue
-
-                char.textureId =
-                    imageFont.subTextImage(char.sourceX, char.sourceY + 12, char.width, char.height).textureId
-
-            }
+    private fun buildCharInfoModels() {
+        characterMap.values.forEach { info ->
+            info.buildModel(width, height)
         }
     }
 
     fun getCharacter(codepoint: Char): CharInfo {
-        return characterMap.getOrDefault(codepoint.code, CharInfo(0, 0, 0, 0))
+        return characterMap[codepoint.code] ?: characterMap['?'.code]!!
     }
-
 }

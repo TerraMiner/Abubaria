@@ -1,43 +1,49 @@
 package d2t.terra.abubaria.world
 
-import d2t.terra.abubaria.Client
 import d2t.terra.abubaria.GamePanel
 import d2t.terra.abubaria.GamePanel.tileSize
+import d2t.terra.abubaria.GamePanel.tileSizeF
 import d2t.terra.abubaria.entity.Entity
+import d2t.terra.abubaria.entity.item.EntityItem
 import d2t.terra.abubaria.entity.player.Camera
+import d2t.terra.abubaria.entity.player.ClientPlayer
 import d2t.terra.abubaria.hitbox.BlockHitBox
 import d2t.terra.abubaria.hitbox.HitBox
-import d2t.terra.abubaria.io.graphics.safetyDraw
+import d2t.terra.abubaria.io.graphics.Window
+import d2t.terra.abubaria.location.Direction
 import d2t.terra.abubaria.location.Location
+import d2t.terra.abubaria.util.loopIndicy
 import d2t.terra.abubaria.world.block.Block
 import d2t.terra.abubaria.world.block.BlockInChunkPosition
 import d2t.terra.abubaria.world.block.Position
 import d2t.terra.abubaria.world.material.Material
-import org.lwjgl.opengl.GL11.GL_LINE_LOOP
-import org.lwjgl.opengl.GL11.GL_QUADS
 import java.util.concurrent.ConcurrentLinkedQueue
-import kotlin.math.abs
 
 class World {
 
-    val worldSizeX = 16
-    val worldSizeY = 16
 
-    val worldWidth = tileSize * chunkSize * worldSizeX
-    val worldHeight = tileSize * chunkSize * worldSizeY
+    val worldChunkWidth = 16
+    val worldChunkHeight = 16
 
-    val worldBorder = HitBox(0, 0, worldWidth, worldHeight)
+    val width = tileSize * chunkSize * worldChunkWidth
+    val height = tileSize * chunkSize * worldChunkHeight
 
-    val chunkMap = Array(worldSizeX) { Array(worldSizeY) { Chunk() } }
+    val spawnLocation = Location(width / 2F, tileSize * 10F, Direction.LEFT)
+
+    val worldBorder = HitBox(0, 0, width, height)
+
+    val chunkMap = Array(worldChunkWidth) { Array(worldChunkHeight) { Chunk() } }//todo indexes file
 
     val entities = ConcurrentLinkedQueue<Entity>()
 
+    fun getChunk(x: Int, y: Int): Chunk? = chunkMap.getOrNull(x)?.getOrNull(y)
+
     fun getChunkAt(x: Int, y: Int): Chunk? {
-            return chunkMap.getOrNull(x shr chunkBitMask)
+        return chunkMap.getOrNull(x shr chunkBitMask)
             ?.getOrNull(y shr chunkBitMask)
     }
 
-    fun getBlockAt(pos: Position) = getBlockAt(pos.x,pos.y)
+    fun getBlockAt(pos: Position) = getBlockAt(pos.x, pos.y)
 
     fun getBlockAt(x: Int, y: Int): Block? {
         val chunk = getChunkAt(x, y) ?: return null
@@ -53,69 +59,67 @@ class World {
     }
 
     fun generateWorldLight() {
-        chunkMap.flatten().forEach { chunk ->
-            chunk.applyForBlocks { x, y ->
-                val block = GamePanel.world.getBlockAt(x, y) ?: return@applyForBlocks
-                block.initLightMap()
+        chunkMap.forEach { chunkCol ->
+            chunkCol.forEach { chunk ->
+                chunk.applyForBlocks { x, y ->
+                    val block = GamePanel.world.getBlockAt(x, y) ?: return@applyForBlocks
+                    block.initLightMap()
+                }
             }
         }
     }
 
-    fun draw(location: Location) {
-        val extraDrawDistX = abs(Camera.playerScreenPosX(location) - Camera.cameraX) + tileSize * chunkSize
-        val extraDrawDistY = abs(Camera.playerScreenPosY(location) - Camera.cameraY) + tileSize * chunkSize
+    fun draw() {
+        val minVisibleChunkX = (((-Camera.cameraX + tileSize * 2f) / tileSize) / chunkSize - 1).toInt()
+        val minVisibleChunkY = (((-Camera.cameraY + tileSize * 2f) / tileSize) / chunkSize - 1).toInt()
+        val maxVisibleChunkX = (((-Camera.cameraX + Window.width + tileSize * 2f) / tileSize) / chunkSize).toInt()
+        val maxVisibleChunkY = (((-Camera.cameraY + Window.height + tileSize * 2f) / tileSize) / chunkSize).toInt()
 
-        val leftVertex = Camera.leftCameraX(location) - extraDrawDistX
-        val rightVertex = Camera.rightCameraX(location) + extraDrawDistX
-        val bottomVertex = Camera.bottomCameraY(location) + extraDrawDistY
-        val topVertex = Camera.topCameraY(location) - extraDrawDistY
+        val posX = (-Camera.cameraX / tileSize / chunkSize).toInt()
+        val posY = (-Camera.cameraY / tileSize / chunkSize).toInt()
 
-        val leftCorner = (leftVertex / tileSize / chunkSize).toInt()
-            .coerceIn(0 until worldSizeX)
-        val rightCorner = (rightVertex / tileSize / chunkSize).toInt()
-            .coerceIn(0 until worldSizeX)
-        val bottomCorner = (bottomVertex / tileSize / chunkSize).toInt()
-            .coerceIn(0 until worldSizeY)
-        val topCorner = (topVertex / tileSize / chunkSize).toInt()
-            .coerceIn(0 until worldSizeY)
+        loopIndicy(minVisibleChunkX,maxVisibleChunkX) { chunkX ->
+            val worldChunkX = chunkX - posX
+            if (worldChunkX < 0 || worldChunkX > width) return@loopIndicy
 
-        for (chunkX in leftCorner..rightCorner) {
-            for (chunkY in topCorner..bottomCorner) {
-                val chunk = chunkMap[chunkX][chunkY]
-                chunk.drawTextures(location)
+            loopIndicy (minVisibleChunkY,maxVisibleChunkY) { chunkY->
+                val worldChunkY = chunkY - posY
+                if (worldChunkY < 0 || worldChunkY > height) return@loopIndicy
+                getChunk(chunkX, chunkY)?.drawTextures()
             }
         }
 
-        if (Client.lightMode) {
-            safetyDraw(GL_QUADS) {
-                for (chunkX in leftCorner..rightCorner) {
-                    for (chunkY in topCorner..bottomCorner) {
-                        val chunk = chunkMap[chunkX][chunkY]
-                        chunk.drawLights(location)
-                    }
-                }
-            }
-        }
 
-        drawEntities(location, leftVertex, rightVertex, topVertex, bottomVertex)
+//        if (Client.lightMode) {
+//            safetyDraw(GL_QUADS) {
+//                for (chunkX in leftCorner..rightCorner) {
+//                    for (chunkY in topCorner..bottomCorner) {
+//                        val chunk = chunkMap[chunkX][chunkY]
+//                        chunk.drawLights(location)
+//                    }
+//                }
+//            }
+//        }
+
+//        drawEntities(minVisibleChunkX, maxVisibleChunkX, minVisibleChunkY, maxVisibleChunkY)
     }
 
-    private fun drawEntities(location: Location, lVertex: Float, rVertex: Float, tVertex: Float, bVertex: Float) {
-        entities.filter {
-            it.location.run { x in lVertex..rVertex && y in tVertex..bVertex }
-        }.apply {
-            forEach {
-                it.draw(location)
-            }
-
-            if (Client.debugMode) {
-                safetyDraw(GL_LINE_LOOP) {
-                    forEach {
-                        it.hitBox.draw(location)
-                    }
-                }
-            }
+    private fun drawEntities(minVisibleChunkX: Int, maxVisibleChunkX: Int, minVisibleChunkY: Int, maxVisibleChunkY: Int) {
+        entities.forEach {
+            val chunkCoordX = (it.location.x / tileSizeF).toInt() shr chunkBitMask
+            val chunkCoordY = (it.location.y / tileSizeF).toInt() shr chunkBitMask
+            if (chunkCoordX < minVisibleChunkX || chunkCoordX > maxVisibleChunkX ||
+                chunkCoordY < minVisibleChunkY || chunkCoordY > maxVisibleChunkY) return@forEach
+            it.draw()
         }
+
+//            if (Client.debugMode) {
+//                safetyDraw(GL_LINE_LOOP) {
+//                    forEach {
+//                        it.hitBox.draw(location)
+//                    }
+//                }
+//            }
     }
 
 
@@ -137,9 +141,8 @@ class World {
     private fun updateEntities() {
         entities.forEach {
             it.update()
-            if (it.removed) {
-                entities.remove(it)
-            }
         }
+
+        entities.removeIf(Entity::removed)
     }
 }

@@ -2,22 +2,23 @@ package d2t.terra.abubaria.world
 
 import d2t.terra.abubaria.GamePanel.tileSize
 import d2t.terra.abubaria.SimplexNoise
+import d2t.terra.abubaria.util.loopIndicy
+import d2t.terra.abubaria.util.loopWhile
 import d2t.terra.abubaria.world.material.Material
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.random.Random
 import kotlin.random.nextInt
-import kotlin.random.nextLong
 
 class WorldGenerator(private val world: World) {
 
-    private val chunksX = world.worldSizeX
-    private val chunksY = world.worldSizeY
+    private val chunksX = world.worldChunkWidth
+    private val chunksY = world.worldChunkHeight
 
     private val startX = 0
     private val startY = 0
 
-    private val worldHeight = world.worldHeight / tileSize
+    private val worldHeight = world.height / tileSize
     private val groundLevel = worldHeight / 5
     private val groundHeight = 10
 
@@ -25,8 +26,8 @@ class WorldGenerator(private val world: World) {
 
     fun generateWorld() {
 
-        for (x in 0 until chunksX) {
-            for (y in 0 until chunksY) {
+        loopWhile(0, chunksX) { x ->
+            loopWhile(0, chunksY) { y ->
                 val chunk = Chunk(x, y).apply { initBlocks() }
                 world.chunkMap[x][y] = chunk
                 if (y == 0) {
@@ -39,8 +40,8 @@ class WorldGenerator(private val world: World) {
     }
 
     private fun fillChunkWithAir(chunk: Chunk) {
-        for (x in 0 until chunkSize) {
-            for (y in 0 until chunkSize) {
+        loopWhile(0, chunkSize) { x ->
+            loopWhile(0, chunkSize) { y ->
                 world.setBlock(Material.AIR, chunk.x * chunkSize + x, chunk.y * chunkSize + y)
             }
         }
@@ -71,7 +72,7 @@ class WorldGenerator(private val world: World) {
             val currentBlock = world.getBlockAt(x, y) ?: return@applyForBlocks
 
             if (y in stoneLevel - 4..stoneLevel + 4) {
-                for (dy in -4..4) {
+                loopIndicy(-4,4) { dy ->
                     if (dy >= 0) {
                         val chance = runCatching { Random.nextInt(0..stoneLevel - dy) }.getOrElse { 0 }
                         if (chance == 0 && currentBlock.type !== Material.STONE
@@ -103,7 +104,7 @@ class WorldGenerator(private val world: World) {
 //        }
     }
 
-    val seed = Random.nextLong(100000000000L..999999999999L)
+    val seed = 999999999999L//Random.nextLong(100000000000L..999999999999L)
     private fun getHeight(x: Int, y: Int): Int {
         val noise = (noiseValue((startX + x) / 40.0, (startY + y) / 40.0/*5.0*/) + 1) * 0.5
         return (groundLevel + noise * 10).toInt()
@@ -121,12 +122,12 @@ class WorldGenerator(private val world: World) {
         val scale = Random.nextDouble(0.01, 0.03)
         val noiseSampling = Random.nextDouble(0.05, 0.2)
 
-        for (t in 0..height) {
+        loopIndicy(0,height) {  t ->
             val theta = t.toDouble() * 4.0 * Math.PI / height
             val cosTheta = cos(theta)
             val sinTheta = sin(theta)
             val r = radius + scale * noiseValue(baseX.toDouble(), t.toDouble() * noiseSampling)
-            for (phi in 0..360) {
+            loopIndicy(0,360) { phi ->
                 val angle = phi.toDouble() * 2.0 * Math.PI / 360.0
                 val dx = (r * cosTheta * cos(angle)).toInt()
                 val dy = (r * sinTheta * cos(angle)).toInt()

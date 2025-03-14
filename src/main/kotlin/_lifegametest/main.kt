@@ -1,3 +1,5 @@
+import d2t.terra.abubaria.util.loopIndicy
+import d2t.terra.abubaria.util.loopWhile
 import org.lwjgl.glfw.Callbacks.glfwFreeCallbacks
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWErrorCallback
@@ -209,10 +211,10 @@ class PixelMapRenderer(val windowWidth: Int, val windowHeight: Int,val width: In
 
         glColor4f(0f, 0f, 0f, 1.0f)
 
-        for (x in leftCorner..rightCorner) {
+        loopIndicy(leftCorner,rightCorner) { x ->
             val ax = x * pixelSize
 
-            for (y in topCorner..bottomCorner) {
+            loopIndicy (topCorner,bottomCorner) { y ->
                 val ay = y * pixelSize
                 glBegin(GL_LINES)
                 glVertex2f(ax.toFloat(), ay.toFloat())
@@ -229,13 +231,13 @@ class PixelMapRenderer(val windowWidth: Int, val windowHeight: Int,val width: In
 
         glColor4f(1.0f, 1.0f, 1.0f, 1.0f)
 
-        for (x in leftCorner..rightCorner) {
+        loopIndicy(leftCorner,rightCorner) { x ->
             val ax = x * pixelSize
 
-            val cols = pixelMap[x] ?: continue
-            for (y in topCorner..bottomCorner) {
+            val cols = pixelMap[x] ?: return@loopIndicy
+            loopIndicy (topCorner,bottomCorner) { y ->
                 val ay = y * pixelSize
-                val value = cols[y] ?: false
+                val value = cols[y] == true
                 if (value) {
                     glBegin(GL_QUADS)
                     glVertex2f(ax.toFloat(), ay.toFloat())
@@ -306,9 +308,9 @@ class GameOfLife(val g: PixelMapRenderer) {
     val cols get() = g.height
 
     fun fillRandomly() {
-        for (x in 0..<grid.size) {
-            val subMap = grid[x] ?: continue
-            for (y in 0..<subMap.size) {
+        loopWhile(0,grid.size) { x ->
+            val subMap = grid[x] ?: return@loopWhile
+            loopWhile(0, subMap.size) { y ->
                 subMap[y] = Random.nextInt(0,4) == 0
             }
         }

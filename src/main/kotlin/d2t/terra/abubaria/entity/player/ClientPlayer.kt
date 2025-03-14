@@ -9,8 +9,9 @@ import d2t.terra.abubaria.GamePanel.world
 import d2t.terra.abubaria.entity.Entity
 import d2t.terra.abubaria.inventory.Inventory
 import d2t.terra.abubaria.io.devices.KeyHandler
+import d2t.terra.abubaria.io.devices.Keys
 import d2t.terra.abubaria.location.Direction
-import d2t.terra.abubaria.io.graphics.loadImage
+import d2t.terra.abubaria.io.graphics.Texture
 
 
 object ClientPlayer : Entity() {
@@ -31,33 +32,21 @@ object ClientPlayer : Entity() {
         hitBox.height = height * tileSizeF
         hitBox.width = width * tileSizeF
 
-        location.x = world.worldWidth / 2F
-        location.y = tileSize * 10F
-
-        location.direction = Direction.LEFT
+        location.setLocation(world.spawnLocation)
     }
 
     private fun getPlayerImage() {
         val path = "entity/player/"
 
-        leftIdle = loadImage("${path}leftIdle.png")
-        leftJump = loadImage("${path}leftJump.png")
-        rightIdle = loadImage("${path}rightIdle.png")
-        rightJump = loadImage("${path}rightJump.png")
+        leftIdle = Texture("${path}leftIdle.png")
+        leftJump = Texture("${path}leftJump.png")
+        rightIdle = Texture("${path}rightIdle.png")
+        rightJump = Texture("${path}rightJump.png")
     }
 
 
     override fun update() {
-
-        if (KeyHandler.leftPressed) {
-            location.direction = Direction.LEFT
-        }
-
-        if (KeyHandler.rightPressed) {
-            location.direction = Direction.RIGHT
-        }
-
-        autoClimb = !KeyHandler.downPressed
+        autoClimb = !KeyHandler.isKeyPressed(Keys.VK_DOWN)
 
         hitBox.keepInBounds(world.worldBorder)
 
@@ -68,8 +57,6 @@ object ClientPlayer : Entity() {
         checkIfOnGround()
 
         fall()
-
-        applyMovement()
 
         applyFriction()
 

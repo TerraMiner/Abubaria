@@ -9,7 +9,7 @@ class BlockHitBox(private val block: Block) :
         block.x * tileSizeF,
         block.y * tileSizeF + tileSizeF * block.type.state.offset,
         tileSizeF - 1F,
-        block.type.height - 1F
+        tileSizeF * block.type.scale - 1F
     ) {
     val clone get() = BlockHitBox(block)
 }

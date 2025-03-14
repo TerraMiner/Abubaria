@@ -1,5 +1,5 @@
 package d2t.terra.abubaria.world.material
 
-enum class MaterialSize(val size: Int) {
-    FULL(1), HALF(2)
+enum class MaterialSize(val size: Float) {
+    FULL(1F), HALF(.5f)
 }

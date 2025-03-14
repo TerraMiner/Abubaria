@@ -1,19 +1,19 @@
 package d2t.terra.abubaria
 
-import d2t.terra.abubaria.GamePanel.screenHeight
-import d2t.terra.abubaria.GamePanel.screenWidth
 import d2t.terra.abubaria.GamePanel.tileSize
+import d2t.terra.abubaria.GamePanel.tileSizeF
 import d2t.terra.abubaria.entity.player.Camera
 import d2t.terra.abubaria.entity.player.ClientPlayer
 import d2t.terra.abubaria.inventory.Item
 import d2t.terra.abubaria.io.devices.MouseHandler
-import d2t.terra.abubaria.io.graphics.drawString
-import d2t.terra.abubaria.io.graphics.drawTexture
-import d2t.terra.abubaria.io.graphics.loadImage
+import d2t.terra.abubaria.io.graphics.Color
+import d2t.terra.abubaria.io.graphics.Window
+import d2t.terra.abubaria.io.graphics.render.RendererManager
 import d2t.terra.abubaria.location.Location
 import d2t.terra.abubaria.world.block.Block
 import d2t.terra.abubaria.world.material.Material
-import java.awt.Color
+import d2t.terra.abubaria.io.graphics.Model
+import d2t.terra.abubaria.io.graphics.Texture
 import kotlin.math.floor
 
 class Cursor(private var x: Int, private var y: Int) {
@@ -33,7 +33,7 @@ class Cursor(private var x: Int, private var y: Int) {
 
     var currentBlock: Block? = null
 
-    private var image =/*: BufferedImage = scaleImage(readImage(*/loadImage("cursor/cursor.png")/*), 30, 30)*/
+    private var texture = Texture("cursor/cursor.png")
 
     val world = GamePanel.world
 
@@ -41,25 +41,24 @@ class Cursor(private var x: Int, private var y: Int) {
 
     private fun getGamePositionX(): Int {
         val tileSize = tileSize.toDouble()
-        var x =
-            (x.toDouble() / tileSize) - (Camera.centerX.toDouble() / tileSize) + (ClientPlayer.location.x / tileSize)
+        var x = (x.toDouble() / tileSize) - (Window.centerX / tileSize) + (ClientPlayer.location.x / tileSize)
 
-        if (Camera.centerX > ClientPlayer.location.x) x = this.x.toDouble() / tileSize
+        if (Window.centerX > ClientPlayer.location.x) x = this.x.toDouble() / tileSize
 
-        if (screenWidth - Camera.centerX > world.worldWidth - ClientPlayer.location.x) x =
-            world.worldWidth.toDouble() / tileSize - (screenWidth.toDouble() / tileSize - this.x.toDouble() / tileSize)
+        if (Window.width - Window.centerX > world.width - ClientPlayer.location.x) x =
+            world.width.toDouble() / tileSize - (Window.width.toDouble() / tileSize - this.x.toDouble() / tileSize)
 
         return floor(x).toInt()
     }
 
     private fun getGamePositionY(): Int {
         val tileSize = tileSize.toDouble()
-        var y = y.toDouble() / tileSize - Camera.centerY.toDouble() / tileSize + ClientPlayer.location.y / tileSize
+        var y = y.toDouble() / tileSize - Window.centerY.toDouble() / tileSize + ClientPlayer.location.y / tileSize
 
-        if (Camera.centerY > ClientPlayer.location.y) y = this.y.toDouble() / tileSize
+        if (Window.centerY > ClientPlayer.location.y) y = this.y.toDouble() / tileSize
 
-        if (screenHeight - Camera.centerY > world.worldHeight - ClientPlayer.location.y) y =
-            world.worldHeight.toDouble() / tileSize - (screenHeight.toDouble() / tileSize - this.y.toDouble() / tileSize)
+        if (Window.height - Window.centerY > world.height - ClientPlayer.location.y) y =
+            world.height.toDouble() / tileSize - (Window.height.toDouble() / tileSize - this.y.toDouble() / tileSize)
 
         return floor(y).toInt()
     }
@@ -80,15 +79,18 @@ class Cursor(private var x: Int, private var y: Int) {
                     val screenY = Camera.worldScreenPosY(y * tileSize, location)
                     val offset = (tileSize * type.state.offset).toInt()
 
-                    drawString("$x $y", screenX, screenY + offset, 4, Color.GREEN)
+                    RendererManager.UIRenderer.renderText("$x $y", screenX, screenY + offset, .3f, color = Color.GREEN)
 
                 }
             }
         }
 
-        drawTexture(image.textureId, x.toFloat(), y.toFloat(), 30F, 30F)
-        cursorItem.type.apply {
-            drawTexture(texture?.textureId, x + 5F, y + 15F, 15F, 15F / size.size)
+        RendererManager.UIRenderer.render(texture, Model.DEFAULT, x.toFloat(), y.toFloat(), 30f, 30f)
+//        drawTexture(image.textureId, x.toFloat(), y.toFloat(), 30F, 30F)
+        cursorItem.type.also {
+//            drawTexture(image?.textureId, x + 5F, y + 15F, 15F, 15F / size.size)
+            val itemTexture = it.texture ?: return@also
+            RendererManager.UIRenderer.render(itemTexture, Model.DEFAULT, x.toFloat() + 10F, y.toFloat() + 20F, tileSizeF, tileSizeF * it.state.scale)
         }
     }
 

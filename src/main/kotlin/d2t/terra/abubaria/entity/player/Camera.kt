@@ -1,33 +1,45 @@
 package d2t.terra.abubaria.entity.player
 
-import d2t.terra.abubaria.GamePanel
-import d2t.terra.abubaria.GamePanel.screenHeight
-import d2t.terra.abubaria.GamePanel.screenWidth
 import d2t.terra.abubaria.GamePanel.tileSize
+import d2t.terra.abubaria.GamePanel.tileSizeF
 import d2t.terra.abubaria.GamePanel.world
-import d2t.terra.abubaria.io.graphics.drawTexture
+import d2t.terra.abubaria.io.graphics.Window
+import d2t.terra.abubaria.io.graphics.render.RendererManager
 import d2t.terra.abubaria.location.Direction
 import d2t.terra.abubaria.location.Location
-import d2t.terra.abubaria.world.Chunk
+import d2t.terra.abubaria.world.chunkSize
+import d2t.terra.abubaria.io.graphics.Model
 
 object Camera {
     var cameraX = 0f
     var cameraY = 0f
 
-    var centerX = (screenWidth / 2.0 - (tileSize / 2)).toFloat()
-    var centerY = (screenHeight / 2.0 - (tileSize / 2)).toFloat()
+    fun interpolate(location: Location) {
+        val leftCorner = 0f
+        val rightCorner = -world.worldChunkWidth * chunkSize * tileSizeF + Window.width
+        cameraX = -location.x + Window.centerX.toFloat()
+        if (cameraX > leftCorner) cameraX = leftCorner
+        if (cameraX < rightCorner) cameraX = rightCorner
 
-    fun interpolate() {
-        cameraX = centerX
-        cameraY = centerY
+        val upCorner = 0f
+        val bottomCorner = -world.worldChunkHeight * chunkSize * tileSizeF + Window.height
+        cameraY = -location.y + Window.centerY.toFloat()
+        if (cameraY > upCorner) cameraY = upCorner
+        if (cameraY < bottomCorner) cameraY = bottomCorner
     }
 
+    fun playerScreenPosX(targetLocation: Location): Float {
+        var offX = if (cameraX == 0f) targetLocation.x
+        else if (cameraX == -world.worldChunkWidth * chunkSize * tileSizeF + Window.width) cameraX + targetLocation.x
+        else Window.centerX.toFloat()
+        return offX
+    }
 
-    fun initialize() {
-
-        centerX = (screenWidth / 2.0 - (tileSize / 2)).toFloat()
-        centerY = (screenHeight / 2.0 - (tileSize / 2)).toFloat()
-
+    fun playerScreenPosY(targetLocation: Location): Float {
+        var offX = if (cameraY == 0f) targetLocation.y
+        else if (cameraY == -world.worldChunkWidth * chunkSize * tileSizeF + Window.height) cameraY + targetLocation.y
+        else Window.centerY.toFloat()
+        return offX
     }
 
     fun rightCameraX(targetLocation: Location) = targetLocation.x + cameraX
@@ -40,12 +52,12 @@ object Camera {
 
     fun worldScreenPosX(defaultX: Int, targetLocation: Location): Float {
         var offX = defaultX - leftCameraX(targetLocation)
-        val world = GamePanel.world
+        val world = world
 
         if (cameraX > targetLocation.x)
             offX = defaultX.toFloat()
-        if (screenWidth - cameraX > world.worldWidth - targetLocation.x)
-            offX = (screenWidth - (world.worldWidth - defaultX)).toFloat()
+        if (Window.width - cameraX > world.width - targetLocation.x)
+            offX = (Window.width - (world.width - defaultX)).toFloat()
 
         return offX
     }
@@ -53,34 +65,12 @@ object Camera {
     fun worldScreenPosY(defaultY: Int, targetLocation: Location): Float {
 
         var offY = defaultY - topCameraY(targetLocation)
-        val world = GamePanel.world
+        val world = world
 
         if (cameraY > targetLocation.y)
             offY = defaultY.toFloat()
-        if (screenHeight - cameraY > world.worldHeight - targetLocation.y)
-            offY = (screenHeight - (world.worldHeight - defaultY)).toFloat()
-
-        return offY
-    }
-
-    fun playerScreenPosX(targetLocation: Location): Float {
-        var offX = cameraX
-
-        if (cameraX > targetLocation.x) offX = targetLocation.x
-
-        if (screenWidth - cameraX > world.worldWidth - targetLocation.x) offX =
-            (screenWidth - (world.worldWidth - targetLocation.x))
-
-        return offX
-    }
-
-    fun playerScreenPosY(targetLocation: Location): Float {
-        var offY = cameraY
-
-        if (cameraY > targetLocation.y) offY = targetLocation.y
-
-        if (screenHeight - cameraY > world.worldHeight - targetLocation.y) offY =
-            (screenHeight - (world.worldHeight - targetLocation.y))
+        if (Window.height - cameraY > world.height - targetLocation.y)
+            offY = (Window.height - (world.height - defaultY)).toFloat()
 
         return offY
     }
@@ -98,15 +88,14 @@ object Camera {
                     if (onGround || onWorldBorder) rightIdle
                     else rightJump
                 }
-            }
+            } ?: return
 
             val offX = playerScreenPosX(location)
             val offY = playerScreenPosY(location)
 
-            val width = (tileSize * width + 4)
-            val height = (tileSize * height + 1)
-
-            drawTexture(image?.textureId, offX - 1, offY, width, height)
+            val width = width * tileSizeF
+            val height = height * tileSizeF
+            RendererManager.UIRenderer.render(image, Model.DEFAULT, offX, offY, width, height)
 
 //            if (Client.debugMode) {
 //                safetyRects {

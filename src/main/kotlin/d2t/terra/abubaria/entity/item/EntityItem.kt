@@ -7,18 +7,19 @@ import d2t.terra.abubaria.entity.player.Camera
 import d2t.terra.abubaria.entity.player.ClientPlayer
 import d2t.terra.abubaria.hitbox.EntityHitBox
 import d2t.terra.abubaria.inventory.Item
-import d2t.terra.abubaria.io.graphics.drawRotatedTexture
+import d2t.terra.abubaria.io.graphics.render.RendererManager
+import d2t.terra.abubaria.io.graphics.render.WorldRenderer
 import d2t.terra.abubaria.location.Direction
 import d2t.terra.abubaria.location.Location
 import d2t.terra.abubaria.world.entityItemSize
-import d2t.terra.abubaria.world.material.MaterialSize
+import d2t.terra.abubaria.io.graphics.Model
 import kotlin.math.pow
 
-class EntityItem(private val item: Item, location: Location, pickupDelay: Int = 3000) : Entity() {
+class EntityItem(val item: Item, location: Location, pickupDelay: Int = 3000) : Entity() {
 
     private val deathTime = System.currentTimeMillis() + 30 * 60 * 1000
     private val canPickUpAfter = System.currentTimeMillis() + pickupDelay
-    private val texture = item.type.texture!!
+//    private val texture = item.type.image!!
     private val spawnLocation = location.clone
 
     fun spawn() {
@@ -30,35 +31,21 @@ class EntityItem(private val item: Item, location: Location, pickupDelay: Int = 
 
         location.setLocation(spawnLocation)
         width = entityItemSize.toFloat()
-        height = entityItemSize.toFloat() / item.type.size.size
+        height = entityItemSize.toFloat() * item.type.scale
         hitBox = EntityHitBox(this, width, height)
         GamePanel.world.entities.add(this)
     }
 
-    override fun draw(playerLoc: Location) {
+    override fun draw() {
         if (!GamePanel.world.entities.contains(this)) return
-
-        val screenX = Camera.worldScreenPosX((location.x).toInt(), playerLoc)
-        //val modY = if (item.type.size != MaterialSize.FULL) height else 0f
-        val screenY = Camera.worldScreenPosY((location.y).toInt(), playerLoc)// + modY)
-
-        val angle = (dy * 60.0).toFloat().coerceIn(-45f, 45f)
-
-        drawRotatedTexture(
-            texture.textureId,
-            screenX,
-            screenY,
-            width,
-            height,
-            angle,
-            location.direction
-        )
+        val angle = Math.toRadians((-dx * 60.0).coerceIn(-45.0, 45.0)).toFloat()
+        item.type.texture?.let { RendererManager.WorldRenderer.render(it, Model.DEFAULT, location.x, location.y, width, height, angle) }
     }
 
     private fun tryPickUp() {
         val dx =
-            (if (ClientPlayer.location.direction === Direction.LEFT) -ClientPlayer.dx else ClientPlayer.dx) + width / 2.0f
-        val target = ClientPlayer.location.transfer(dx, .0f)
+            (if (location.direction === Direction.LEFT) -dx else dx) + width / 2.0f
+        val target = location.transfer(dx, .0f)
 
         val distToPlayer = location.distance(target)
 
