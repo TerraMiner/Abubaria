@@ -1,27 +1,25 @@
 package d2t.terra.abubaria.world.material
 
-import d2t.terra.abubaria.GamePanel.tileSizeF
 import d2t.terra.abubaria.util.getCoords
 import d2t.terra.abubaria.world.material.MaterialState.*
-import d2t.terra.abubaria.world.particleSize
+import d2t.terra.abubaria.particleSize
 import d2t.terra.abubaria.io.graphics.Model
 import d2t.terra.abubaria.io.graphics.Texture
 
 enum class Material(
     path: String?,
     val display: String,
-    val maxStackSize: Int = 9999,
     val state: MaterialState = FULL,
-    val collideable: Boolean = true,
+    val isCollideable: Boolean = true,
     val scale: Float = 1f,
-    val friction: Float = .03f
+    val maxStackSize: Int = 9999
 ) {
-    AIR(null, "", 0, FULL, false, tileSizeF, .005f),
+    AIR(null, "", FULL, false, 0f, 0),
     STONE("stone", "Stone"),
     GRASS("grass", "Grass"),
     DIRT("dirt", "Dirt"),
-    STONE_HALF_DOWN("stone_half_down", "Stone Slab Bottom", 9999, BOTTOM, true, .5f),
-    STONE_HALF_UP("stone_half_up", "Stone Slab Upper", 9999, UPPER, true, .5f);
+    STONE_HALF_DOWN("stone_half_down", "Stone Slab Bottom", BOTTOM, true, .5f),
+    STONE_HALF_UP("stone_half_up", "Stone Slab Upper", UPPER, true, .5f);
 
 //    val image: Image? = if (path === null) null else loadImage("block/$path.png")
     val texture: Texture? = if (path === null) null else Texture("block/$path.png")

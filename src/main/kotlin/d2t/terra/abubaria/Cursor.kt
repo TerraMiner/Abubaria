@@ -1,223 +1,311 @@
 package d2t.terra.abubaria
 
-import d2t.terra.abubaria.GamePanel.tileSize
-import d2t.terra.abubaria.GamePanel.tileSizeF
-import d2t.terra.abubaria.entity.player.Camera
-import d2t.terra.abubaria.entity.player.ClientPlayer
+import d2t.terra.abubaria.entity.impl.ClientPlayer
+import d2t.terra.abubaria.geometry.box.BlockCollisionBox
 import d2t.terra.abubaria.inventory.Item
 import d2t.terra.abubaria.io.devices.MouseHandler
+import d2t.terra.abubaria.io.fonts.TextHorAligment
+import d2t.terra.abubaria.io.fonts.TextHorPosition
 import d2t.terra.abubaria.io.graphics.Color
 import d2t.terra.abubaria.io.graphics.Window
 import d2t.terra.abubaria.io.graphics.render.RendererManager
-import d2t.terra.abubaria.location.Location
 import d2t.terra.abubaria.world.block.Block
 import d2t.terra.abubaria.world.material.Material
 import d2t.terra.abubaria.io.graphics.Model
 import d2t.terra.abubaria.io.graphics.Texture
+import d2t.terra.abubaria.util.Cooldown
+import d2t.terra.abubaria.util.print
+import java.util.StringJoiner
 import kotlin.math.floor
 
-class Cursor(private var x: Int, private var y: Int) {
-
-    var leftPress = false
-    var rightPress = false
-    var midPress = false
-
-    var leftClick = false
-    var rightClick = false
-    var midClick = false
+object Cursor {
     var cursorText = ""
     var mouseOnHud = false
 
-    var cursorItem: Item = Item()
-    var cursorItemSlot = -1 to -1
-
     var currentBlock: Block? = null
 
-    private var texture = Texture("cursor/cursor.png")
+    private val texture by lazy { Texture("cursor/cursor.png") }
 
     val world = GamePanel.world
 
     val inventory get() = ClientPlayer.inventory
 
-    private fun getGamePositionX(): Int {
-        val tileSize = tileSize.toDouble()
-        var x = (x.toDouble() / tileSize) - (Window.centerX / tileSize) + (ClientPlayer.location.x / tileSize)
+    var lmbDrag = false
+    var rmbDrag = false
+    var mmbDrag = false
 
-        if (Window.centerX > ClientPlayer.location.x) x = this.x.toDouble() / tileSize
-
-        if (Window.width - Window.centerX > world.width - ClientPlayer.location.x) x =
-            world.width.toDouble() / tileSize - (Window.width.toDouble() / tileSize - this.x.toDouble() / tileSize)
-
-        return floor(x).toInt()
-    }
-
-    private fun getGamePositionY(): Int {
-        val tileSize = tileSize.toDouble()
-        var y = y.toDouble() / tileSize - Window.centerY.toDouble() / tileSize + ClientPlayer.location.y / tileSize
-
-        if (Window.centerY > ClientPlayer.location.y) y = this.y.toDouble() / tileSize
-
-        if (Window.height - Window.centerY > world.height - ClientPlayer.location.y) y =
-            world.height.toDouble() / tileSize - (Window.height.toDouble() / tileSize - this.y.toDouble() / tileSize)
-
-        return floor(y).toInt()
-    }
-
-    private fun getBlockPosition(): Block? {
-        return world.getBlockAt(getGamePositionX(), getGamePositionY())
-    }
-
-    fun draw(location: Location) {
-
-        getBlockPosition().also { block ->
-            currentBlock = block
-
-            if (Client.debugMode && !mouseOnHud) {
-
-                block?.apply {
-                    val screenX = Camera.worldScreenPosX(x * tileSize, location)
-                    val screenY = Camera.worldScreenPosY(y * tileSize, location)
-                    val offset = (tileSize * type.state.offset).toInt()
-
-                    RendererManager.UIRenderer.renderText("$x $y", screenX, screenY + offset, .3f, color = Color.GREEN)
-
+    init {
+        MouseHandler.onMouseClick(0) { _, _ ->
+            if (mouseOnHud) {
+                if (inventory.opened) {
+                    val hoveredItem = inventory.hoveredItem ?: return@onMouseClick
+                    if (inventory.cursorItem.type !== hoveredItem.type) {
+                        inventory.hoveredItem = inventory.cursorItem
+                        inventory.cursorItem = hoveredItem
+                        inventory.cursorItemSlot = inventory.hoveredSlot
+                    } else {
+                        hoveredItem.compareItem(inventory.cursorItem)
+                    }
+                } else {
+                    inventory.selectedHotBar = inventory.hoveredSlot
+                }
+            } else {
+                val currentBlock = currentBlock ?: return@onMouseClick
+                val item = inventory.cursorItem.takeIf { it.type !== Material.AIR }
+                    ?: inventory.hotBarItem?.takeIf { it.type !== Material.AIR }
+                if (item === null) {
+                    currentBlock.destroy()
+                } else if (currentBlock.type !== item.type && !BlockCollisionBox(
+                        currentBlock,
+                        item.type
+                    ).intersects(ClientPlayer.collisionBox)
+                ) {
+                    currentBlock.place(item.type)
+                    item.decrement()
                 }
             }
         }
 
-        RendererManager.UIRenderer.render(texture, Model.DEFAULT, x.toFloat(), y.toFloat(), 30f, 30f)
-//        drawTexture(image.textureId, x.toFloat(), y.toFloat(), 30F, 30F)
-        cursorItem.type.also {
-//            drawTexture(image?.textureId, x + 5F, y + 15F, 15F, 15F / size.size)
-            val itemTexture = it.texture ?: return@also
-            RendererManager.UIRenderer.render(itemTexture, Model.DEFAULT, x.toFloat() + 10F, y.toFloat() + 20F, tileSizeF, tileSizeF * it.state.scale)
+        MouseHandler.onMouseClick(1) { _, _ ->
+            if (mouseOnHud) {
+                if (inventory.opened) {
+                    val hoveredItem = inventory.hoveredItem ?: return@onMouseClick
+                    if (inventory.cursorItem.type === Material.AIR && hoveredItem.type === Material.AIR) return@onMouseClick
+                    if (inventory.cursorItem.type == Material.AIR) {
+                        inventory.cursorItem = hoveredItem.takePart()
+                        inventory.cursorItemSlot = inventory.hoveredSlot
+                    } else if (inventory.cursorItem.type == hoveredItem.type) {
+                        val leftOver = hoveredItem.compareItem(inventory.cursorItem.takeOne())
+                        inventory.cursorItem.amount += leftOver
+                    } else {
+                        inventory.hoveredItem = inventory.cursorItem.takeOne()
+                    }
+                }
+            } else {
+                if (inventory.cursorItem.type === Material.AIR) return@onMouseClick
+                inventory.cursorItem.drop(ClientPlayer.centerPos)
+            }
         }
+
+        MouseHandler.onMouseClick(2) { _, _ ->
+            if (mouseOnHud) {
+                if (inventory.opened) {
+                    val hoveredItem = inventory.hoveredItem ?: return@onMouseClick
+                    if (inventory.cursorItem.type === Material.AIR && hoveredItem.type === Material.AIR) return@onMouseClick
+                    if (inventory.cursorItem.type === Material.AIR) {
+                        inventory.cursorItem = hoveredItem.cloneMaxSized()
+                        inventory.cursorItemSlot = inventory.hoveredSlot
+                    } else if (inventory.cursorItem.type == hoveredItem.type) {
+                        hoveredItem.compareItem(inventory.cursorItem.cloneMaxSized())
+                    } else {
+                        inventory.hoveredItem = inventory.cursorItem.cloneMaxSized()
+                    }
+                }
+            } else {
+                val currentBlock = currentBlock ?: return@onMouseClick
+                val item = Item(currentBlock.type, currentBlock.type.maxStackSize)
+                if (item.type === Material.AIR) return@onMouseClick
+                if (inventory.opened) {
+                    inventory.cursorItem = item
+                    inventory.cursorItemSlot = inventory.firstIdentSlot(false, item.type, Material.AIR)
+                } else {
+                    val targetSlot = inventory.firstSameTypeSlot(true, item.type)
+                    if (targetSlot == -1) inventory.giveItem(item)
+                    else inventory.selectedHotBar = targetSlot
+                }
+            }
+        }
+
+        MouseHandler.onMouseDrag(0) { _, _ ->
+            lmbDrag = true
+        }
+
+        MouseHandler.onMouseDrag(1) { _, _ ->
+            rmbDrag = true
+        }
+
+        MouseHandler.onMouseDrag(2) { _, _ ->
+            mmbDrag = true
+        }
+    }
+
+    private fun getGamePositionX(x: Int): Int {
+        var worldX = (x.toFloat() / tileSizeF) - (Window.centerX / tileSizeF) + (ClientPlayer.location.x / tileSizeF)
+
+        if (Window.centerX > ClientPlayer.location.x) worldX = x.toFloat() / tileSizeF
+
+        if (Window.width - Window.centerX > world.width - ClientPlayer.location.x) worldX =
+            world.width.toFloat() / tileSizeF - (Window.width.toFloat() / tileSizeF - x.toFloat() / tileSizeF)
+
+        return floor(worldX).toInt()
+    }
+
+    private fun getGamePositionY(y: Int): Int {
+        var worldY =
+            y.toFloat() / tileSizeF - Window.centerY.toFloat() / tileSizeF + ClientPlayer.location.y / tileSizeF
+
+        if (Window.centerY > ClientPlayer.location.y) worldY = y.toFloat() / tileSizeF
+
+        if (Window.height - Window.centerY > world.height - ClientPlayer.location.y) worldY =
+            world.height.toFloat() / tileSizeF - (Window.height.toFloat() / tileSizeF - y.toFloat() / tileSizeF)
+
+        return floor(worldY).toInt()
+    }
+
+    private fun getBlockPosition(x: Int, y: Int): Block? {
+        return world.getBlockAt(getGamePositionX(x), getGamePositionY(y))
+    }
+
+    fun draw() {
+//        if (Client.debugMode && !mouseOnHud) {
+//            currentBlock?.apply {
+//                RendererManager.WorldRenderer.apply {
+//                    shader.performSnapshot(shader.colorPalette) {
+//                        renderText(
+//                            "$x $y",
+//                            x * tileSizeF,
+//                            y * tileSizeF,
+//                            .3f,
+//                            color = Color.GREEN,
+//                            textHorAligment = GamePanel.alignX,
+//                            textHorPosition = GamePanel.positionX,
+//                            textVerAlignment = GamePanel.alignY,
+//                            textVerPosition = GamePanel.positionY,
+//                        )
+//                    }
+//                }
+//            }
+//        }
+
+        val x = MouseHandler.x.toInt()
+        val y = MouseHandler.y.toInt()
+
+        RendererManager.UIRenderer.render(texture, Model.DEFAULT, x.toFloat(), y.toFloat(), 30f, 30f)
+//        val size = slotSize - inSlotPos * 2f
+//
+//        inventory.cursorItem.also {
+//            val itemTexture = it.type.texture ?: return@also
+//            RendererManager.UIRenderer.render(
+//                itemTexture,
+//                Model.DEFAULT,
+//                x + 10f,
+//                y + (size * it.type.state.offset) + 10f,
+//                size,
+//                size - (size * it.type.state.scale.toFloat())
+//            )
+//        }
+//
+//        RendererManager.UIRenderer.renderText(
+//            cursorText, x + size, y + size, .2f,
+//            textHorAligment = TextHorAligment.CENTER,
+//            textHorPosition = TextHorPosition.CENTER
+//        )
     }
 
     fun update() {
-        MouseHandler.update()
+        val x = MouseHandler.x.toInt()
+        val y = MouseHandler.y.toInt()
 
-        MouseHandler.apply {
-            this@Cursor.x = x.toInt()
-            this@Cursor.y = y.toInt()
-        }
-
-        val bound = inventory.inventoryBound
-        mouseOnHud = (x >= bound.x && y >= bound.y && x < bound.x + bound.width && y < bound.y + bound.height)
-
-        if (!inventory.opened
-            && cursorItem.type !== Material.AIR
-            && cursorItemSlot.first != -1 && cursorItemSlot.second != -1
-        ) {
-            if (inventory.items[cursorItemSlot.first][cursorItemSlot.second].type === Material.AIR) {
-                inventory.items[cursorItemSlot.first][cursorItemSlot.second] = cursorItem.clone
-            } else {
-                inventory.giveItem(cursorItem.clone)
-            }
-            cursorItem.remove()
-            cursorItemSlot = -1 to -1
-        }
+        lmbDrag()
+        rmbDrag()
+        mmbDrag()
 
         inventory.updateMouseSlot(x, y)
+        currentBlock = getBlockPosition(x, y)
 
-        if (mouseOnHud) handleMouseHud()
-        else handleMouseWorld()
-        endMouseHandle()
+        val bound = inventory.inventoryBound
+        mouseOnHud = (x >= bound.x && y >= bound.y && x < bound.x + bound.sizeX && y < bound.y + bound.sizeY)
+
+        cursorText =
+            inventory.cursorItem.takeIf { it.type !== Material.AIR }?.let {
+                val joiner = StringJoiner("\n")
+                joiner.add(it.display)
+                if (it.type.maxStackSize != 1 || it.amount != 1) joiner.add("(${it.amount})")
+                joiner.toString()
+            }
+                ?: inventory.hoveredItem?.takeIf { it.type !== Material.AIR }?.display
+                        ?: currentBlock?.takeIf { it.type !== Material.AIR }?.type?.display ?: ""
+
+        tryStoreCursorItemToInventory()
+    }
+
+    private fun lmbDrag() {
+        if (lmbDrag) {
+            if (mouseOnHud) {
+                if (!inventory.opened) {
+                    inventory.selectedHotBar = inventory.hoveredSlot
+                }
+            } else {
+                val currentBlock = currentBlock ?: return
+                val item = inventory.cursorItem.takeIf { it.type !== Material.AIR }
+                    ?: inventory.hotBarItem?.takeIf { it.type !== Material.AIR }
+                if (item === null) {
+                    currentBlock.destroy()
+                } else if (currentBlock.type !== item.type && !BlockCollisionBox(currentBlock, item.type).intersects(
+                        ClientPlayer.collisionBox
+                    )
+                ) {
+                    currentBlock.place(item.type)
+                    item.decrement()
+                    if (item.amount <= 0) MouseHandler.forceReleaseButton(0)
+                }
+            }
+            lmbDrag = false
+        }
 
     }
 
-    private fun endMouseHandle() {
-        leftClick = false
-        rightClick = false
-        midClick = false
-    }
-
-    private fun handleMouseHud() {
-
-        val hoveredItem = inventory.getItemOfMouse(x, y)!!
-
-        cursorText = if (hoveredItem.type !== Material.AIR)
-            (hoveredItem.run { "$display $amount" })
-        else ""
-
-        if (inventory.opened) {
-            when {
-                leftClick -> {
-                    if (cursorItem.type !== hoveredItem.type) {
-                        inventory.setItemFromMouse(x, y, cursorItem)
-                        cursorItem = hoveredItem
-                    } else {
-                        hoveredItem.compareItem(cursorItem)
-                    }
-                }
-
-                midClick -> {
-                    if (cursorItem.type === Material.AIR) {
-                        cursorItem = hoveredItem.takeHalf()
-                    } else if (cursorItem.type == hoveredItem.type) {
-                        cursorItem.compareItem(hoveredItem.takeHalf())
-                    }
-                }
-
-                rightClick -> {
-                    if (cursorItem.type == Material.AIR) {
-                        cursorItem = hoveredItem.takeOne()
-                    } else if (cursorItem.type == hoveredItem.type) {
-                        cursorItem.compareItem(hoveredItem.takeOne())
+    private fun rmbDrag() {
+        if (rmbDrag) {
+            if (mouseOnHud) {
+                if (inventory.opened) {
+                    val hoveredItem = inventory.hoveredItem ?: return
+                    if (inventory.cursorItem.type === Material.AIR && hoveredItem.type === Material.AIR) return
+                    if (inventory.cursorItem.type == hoveredItem.type) {
+                        val leftOver = hoveredItem.compareItem(inventory.cursorItem.takeOne())
+                        inventory.cursorItem.amount += leftOver
+                    } else if (hoveredItem.type === Material.AIR) {
+                        inventory.hoveredItem = inventory.cursorItem.takeOne()
                     }
                 }
             }
-        } else {
-            if (leftClick) inventory.selectedHotBar = inventory.hoveredSlot.first
+            rmbDrag = false
         }
     }
 
-    private fun handleMouseWorld() {
-
-        cursorText = if (currentBlock?.type !== Material.AIR)
-            currentBlock?.type?.display ?: ""
-        else ""
-
-
-        if (!leftPress && !rightPress && !midPress) return
-
-        currentBlock?.apply {
-
-            val hotBarItem = ClientPlayer.inventory.getItem(inventory.selectedHotBar, 0) ?: return
-
-            when {
-                leftPress -> {
-                    if (cursorItem.type === Material.AIR && hotBarItem.type === Material.AIR) {
-                        destroy()
-                    } else if (!this.hitBox.clone.transform(1F, 0F, -1F, 0F).intersects(ClientPlayer.hitBox))
-                        if (cursorItem.type !== Material.AIR) {
-                            if (type === cursorItem.type) return
-                            place(cursorItem.type)
-                            cursorItem.decrement()
-                        } else {
-                            if (type === hotBarItem.type) return
-                            place(hotBarItem.type)
-                            hotBarItem.decrement()
-                        }
-                }
-
-                rightPress -> {
-                    if (cursorItem.type === Material.AIR) return
-                    cursorItem.drop(ClientPlayer.centerPos)
-                }
-
-                midPress -> {
-                    val item = Item(type, type.maxStackSize)
-                    if (inventory.opened) {
-                        cursorItem = item
-                        cursorItemSlot = inventory.firstEmptySlot(!inventory.opened)
+    private fun mmbDrag() {
+        if (mmbDrag) {
+            if (mouseOnHud) {
+                if (inventory.opened) {
+                    val hoveredItem = inventory.hoveredItem ?: return
+                    if (inventory.cursorItem.type === Material.AIR && hoveredItem.type === Material.AIR) return
+                    if (inventory.cursorItem.type === Material.AIR) {
+                        inventory.cursorItem = hoveredItem.cloneMaxSized()
+                        inventory.cursorItemSlot = inventory.hoveredSlot
+                    } else if (inventory.cursorItem.type == hoveredItem.type) {
+                        hoveredItem.compareItem(inventory.cursorItem.cloneMaxSized())
                     } else {
-                        val targetSlot = inventory.findIdentify(item.type, !inventory.opened).first
-                        if (targetSlot == -1) inventory.setItem(inventory.firstEmptySlot(!inventory.opened), item)
-                        else inventory.selectedHotBar = targetSlot
+                        inventory.hoveredItem = inventory.cursorItem.cloneMaxSized()
                     }
                 }
             }
+            mmbDrag = false
         }
     }
+
+    private fun tryStoreCursorItemToInventory() {
+        if (!inventory.opened
+            && inventory.cursorItem.type !== Material.AIR
+            && inventory.cursorItemSlot != -1
+        ) {
+            if (inventory.items[inventory.cursorItemSlot].type === Material.AIR) {
+                inventory.items[inventory.cursorItemSlot] = inventory.cursorItem.clone
+            } else {
+                inventory.giveItem(inventory.cursorItem.clone)
+            }
+            inventory.cursorItem.remove()
+            inventory.cursorItemSlot = -1
+        }
+    }
+
 }

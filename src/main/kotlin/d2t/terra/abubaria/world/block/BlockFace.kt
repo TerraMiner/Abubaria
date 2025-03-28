@@ -1,5 +1,5 @@
 package d2t.terra.abubaria.world.block
 
 enum class BlockFace {
-    DOWN, UP, LEFT, RIGHT
+    BOTTOM, TOP, LEFT, RIGHT
 }

@@ -46,8 +46,8 @@ object Window {
     var windowId: Long = 0
     var width = 900
     var height = 600
-    var centerX = width / 2.0
-    var centerY = height / 2.0
+    var centerX = width / 2f
+    var centerY = height / 2f
 
     val bgColor = Color(150, 200, 250)
 
@@ -132,12 +132,6 @@ object Window {
         }
     }
 
-    fun whileWindowOpened(action: () -> Unit) {
-        while (!glfwWindowShouldClose(windowId)) {
-            action()
-        }
-    }
-
     fun close() {
         glfwFreeCallbacks(windowId)
         glfwSetErrorCallback(null)?.free()
@@ -160,8 +154,8 @@ object Window {
                 glfwSetWindowSize(windowId, correctedWidth, correctedHeight)
                 width = correctedWidth
                 height = correctedHeight
-                centerX = width / 2.0
-                centerY = height / 2.0
+                centerX = width / 2f
+                centerY = height / 2f
                 glViewport(0, 0, width, height)
                 RendererManager.updateProjections()
             }

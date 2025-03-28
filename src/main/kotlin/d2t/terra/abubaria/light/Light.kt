@@ -3,8 +3,8 @@ package d2t.terra.abubaria.light
 import d2t.terra.abubaria.GamePanel
 import d2t.terra.abubaria.util.loopIndicy
 import d2t.terra.abubaria.world.block.Position
-import d2t.terra.abubaria.world.lChunkBitMask
-import d2t.terra.abubaria.world.lightLevels
+import d2t.terra.abubaria.lChunkBitMask
+import d2t.terra.abubaria.lightLevels
 import d2t.terra.abubaria.world.material.Material
 
 class Light(

@@ -1,6 +1,6 @@
 package d2t.terra.abubaria.io.graphics.render
 
-import d2t.terra.abubaria.entity.player.Camera
+import d2t.terra.abubaria.world.Camera
 import d2t.terra.abubaria.io.graphics.shader.TextureShader
 import org.joml.Vector4f
 

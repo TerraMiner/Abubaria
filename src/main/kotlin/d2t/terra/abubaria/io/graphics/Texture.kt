@@ -1,54 +1,46 @@
 package d2t.terra.abubaria.io.graphics
 
 import org.lwjgl.BufferUtils
-import org.lwjgl.opengl.GL11
+import org.lwjgl.opengl.GL11.*
+import org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE
+import org.lwjgl.opengl.GL30.glGenerateMipmap
 import org.lwjgl.stb.STBImage
+import org.lwjgl.system.MemoryUtil
 import java.nio.ByteBuffer
 import java.nio.IntBuffer
 import java.nio.file.Paths
 import kotlin.io.path.exists
 
-class Texture(fileName: String) {
-
-    var id = 0
-    private val _width: IntBuffer = BufferUtils.createIntBuffer(1)
-    private val _height: IntBuffer = BufferUtils.createIntBuffer(1)
-
+class Texture {
+    var id: Int
     val width: Int
     val height: Int
+    val channels: Int
 
-    private val comp: IntBuffer = BufferUtils.createIntBuffer(1)
-    private val data: ByteBuffer = STBImage.stbi_load(fileName, _width, _height, comp, 4)!!
+    constructor(fileName: String) {
+        val widthBuffer = BufferUtils.createIntBuffer(1)
+        val heightBuffer = BufferUtils.createIntBuffer(1)
+        val channelsBuffer = BufferUtils.createIntBuffer(1)
+        val data = STBImage.stbi_load(fileName, widthBuffer, heightBuffer, channelsBuffer, 0)!!
 
-    init {
-        id = GL11.glGenTextures()
-        width = _width.get()
-        height = _height.get()
-        GL11.glBindTexture(GL11.GL_TEXTURE_2D, id)
-        GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST.toFloat())
-        GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST.toFloat())
-        GL11.glTexImage2D(
-            GL11.GL_TEXTURE_2D,
-            0,
-            GL11.GL_RGBA,
-            width,
-            height,
-            0,
-            GL11.GL_RGBA,
-            GL11.GL_UNSIGNED_BYTE,
-            data
-        )
-        GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0)
+        id = glGenTextures()
+        width = widthBuffer.get()
+        height = heightBuffer.get()
+        channels = channelsBuffer.get()
+
+        glBindTexture(GL_TEXTURE_2D, id)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
+        val format = if (channels == 4) GL_RGBA else GL_RGB
+        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data)
+        glBindTexture(GL_TEXTURE_2D, 0)
+
         STBImage.stbi_image_free(data)
-    }
-
-    fun unbind() {
-        GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0)
     }
 
     fun bind() {
         if (bindedTexture == id) return
-        GL11.glBindTexture(GL11.GL_TEXTURE_2D, id)
+        glBindTexture(GL_TEXTURE_2D, id)
         bindedTexture = id
     }
 

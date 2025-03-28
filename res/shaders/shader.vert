@@ -10,10 +10,10 @@ uniform float scaleY;
 uniform float angle;
 
 const vec2 vertexPositions[4] = vec2[](
-vec2(0.0, 1.0), // Верхний левый угол
-vec2(1.0, 1.0), // Верхний правый угол
-vec2(1.0, 0.0), // Нижний правый угол
-vec2(0.0, 0.0)  // Нижний левый угол
+vec2(0.0, 1.0),
+vec2(1.0, 1.0),
+vec2(1.0, 0.0),
+vec2(0.0, 0.0)
 );
 
 void main() {

@@ -1,114 +1,83 @@
 package d2t.terra.abubaria.io.devices
 
-import d2t.terra.abubaria.GamePanel
-import d2t.terra.abubaria.entity.player.ClientPlayer
 import org.lwjgl.glfw.GLFW.GLFW_PRESS
 import org.lwjgl.glfw.GLFW.GLFW_RELEASE
 
 object MouseHandler {
-    private var scrollX: Double = .0
-    private var scrollY: Double = .0
-    private var xPos: Double = .0
-    private var yPos: Double = .0
-    private var lastX: Double = .0
-    private var lastY: Double = .0
-    private val mouseButtonPressed = BooleanArray(3)
+    private val mouseButtonPressed = BooleanArray(10) // Достаточно для поддержки нескольких кнопок мыши
+    private val mouseButtonReleaseActions = mutableMapOf<Int, (Int, Int) -> Unit>()
+    private val mouseButtonClickActions = mutableMapOf<Int, (Int, Int) -> Unit>()
+    private val mouseScrollActions = mutableMapOf<String, (Double) -> Unit>()
+    private val mouseMoveActions = mutableListOf<(Int, Int) -> Unit>()
+    private val mouseButtonDragActions = mutableMapOf<Int, (Int, Int) -> Unit>()
 
-    var isDragging = false
-
-    val cursor = GamePanel.cursor
+    private var xPos: Int = 0
+    private var yPos: Int = 0
+    private var lastX: Int = 0
+    private var lastY: Int = 0
 
     fun mousePosCallback(window: Long, xps: Double, yps: Double) {
         lastX = xPos
         lastY = yPos
-        xPos = xps
-        yPos = yps
-        isDragging = mouseButtonPressed.any { it }
-    }
+        xPos = xps.toInt()
+        yPos = yps.toInt()
 
-    fun mouseButtonCallback(window: Long, button: Int, action: Int, mods: Int) {
-        if (button >= mouseButtonPressed.size) return
-        if (action == GLFW_PRESS) {
-            mouseButtonPressed[button] = true
-        } else if (action == GLFW_RELEASE) {
-            mouseButtonPressed[button] = false
-            isDragging = false
+        mouseMoveActions.forEach { it(xPos, yPos) }
+
+        mouseButtonPressed.forEachIndexed { index, bool ->
+            if (bool) mouseButtonDragActions[index]?.invoke(xPos, yPos)
         }
     }
 
+    fun mouseButtonCallback(window: Long, button: Int, action: Int, mods: Int) {
+        if (button !in mouseButtonPressed.indices) return
+
+        if (action == GLFW_PRESS) {
+            mouseButtonPressed[button] = true
+            mouseButtonClickActions[button]?.invoke(xPos, yPos)
+        } else if (action == GLFW_RELEASE) {
+            mouseButtonPressed[button] = false
+            mouseButtonReleaseActions[button]?.invoke(xPos, yPos)
+        }
+    }
+
+    fun forceReleaseButton(button: Int) {
+        mouseButtonPressed[button] = false
+    }
+
     fun mouseScrollCallback(window: Long, xOffset: Double, yOffset: Double) {
-        scrollX = xOffset
-        scrollY = yOffset
+        if (xOffset != 0.0) mouseScrollActions["X"]?.invoke(xOffset)
+        if (yOffset != 0.0) mouseScrollActions["Y"]?.invoke(yOffset)
     }
 
-    fun endFrame() {
-        scrollX = .0
-        scrollY = .0
-        lastX = xPos
-        lastY = yPos
+    fun onMouseClick(button: Int, action: (Int, Int) -> Unit) {
+        mouseButtonClickActions[button] = action
     }
 
+    fun onMouseRelease(button: Int, action: (Int, Int) -> Unit) {
+        mouseButtonReleaseActions[button] = action
+    }
+
+    fun onMouseScroll(direction: String, action: (Double) -> Unit) {
+        mouseScrollActions[direction] = action
+    }
+
+    fun onMouseDrag(button: Int, action: (Int, Int) -> Unit) {
+        mouseButtonDragActions[button] = action
+    }
+
+    fun onMouseMove(action: (Int, Int) -> Unit) {
+        mouseMoveActions.add(action)
+    }
+
+    fun isButtonPressed(button: Int): Boolean {
+        if (button !in mouseButtonPressed.indices) return false
+        return mouseButtonPressed[button]
+    }
+
+    // Геттеры для позиции мыши
     val x get() = xPos.toFloat()
     val y get() = yPos.toFloat()
     val dx get() = (lastX - xPos).toFloat()
     val dy get() = (lastY - yPos).toFloat()
-
-    fun buttonIsPressed(button: Int): Boolean {
-        if (button >= mouseButtonPressed.size) return false
-        return mouseButtonPressed[button]
-    }
-
-    fun update() {
-
-        if (scrollY != .0) {
-            ClientPlayer.inventory.scrollHotBar(-scrollY.toInt())
-            scrollY = .0
-        }
-
-        mouseButtonPressed.forEachIndexed { index, b ->
-
-            when (index) {
-                0 -> {
-                    if (b && !cursor.leftPress) cursor.leftClick = true
-                    cursor.leftPress = b
-                }
-
-                1 -> {
-                    if (b && !cursor.rightPress) cursor.rightClick = true
-                    cursor.rightPress = b
-                }
-
-                2 -> {
-                    if (b && !cursor.midPress) cursor.midClick = true
-                    cursor.midPress = b
-                }
-
-            }
-
-        }
-    }
-
-    fun checkMouseInBound() {
-
-    }
-
-//    override fun mouseEntered(e: MouseEvent?) {
-//
-//        if (e === null) return
-//
-//        cursor.mouseInWindow = true
-//    }
-//
-//    override fun mouseExited(e: MouseEvent?) {
-//
-//        if (e === null) return
-//
-//        cursor.mouseInWindow = false
-//
-//    }
-//
-//    override fun mouseWheelMoved(e: MouseWheelEvent?) {
-//        if (e === null) return
-//        ClientPlayer.scrollHotBar(e.wheelRotation)
-//    }
 }

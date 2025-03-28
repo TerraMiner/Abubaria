@@ -6,7 +6,7 @@ import org.lwjgl.opengl.GL15
 import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL30
 
-class Model(val texCoords: FloatArray) {
+class Model(texCoords: FloatArray) {
 
     private var texId = 0
     private var vaoId = 0
@@ -27,12 +27,12 @@ class Model(val texCoords: FloatArray) {
         GL30.glBindVertexArray(0)
     }
 
-    fun render() {
+    fun render(primitiveType: Int = GL11.GL_TRIANGLE_FAN, vertexCount: Int = 4) {
         if (cvaoId != vaoId) {
             GL30.glBindVertexArray(vaoId)
             cvaoId = vaoId
         }
-        GL11.glDrawArrays(GL11.GL_TRIANGLE_FAN, 0, 4)
+        GL11.glDrawArrays(primitiveType, 0, vertexCount)
     }
 
     companion object {

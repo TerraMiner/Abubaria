@@ -1,6 +1,7 @@
 package d2t.terra.abubaria
 
-import d2t.terra.abubaria.entity.player.ClientPlayer
+import d2t.terra.abubaria.entity.EntityService
+import d2t.terra.abubaria.entity.impl.ClientPlayer
 import d2t.terra.abubaria.io.graphics.render.RendererManager
 import java.util.*
 
@@ -13,12 +14,10 @@ class DebugDisplay {
         get() = StringJoiner("\n")
             .add("FPS: $fps").add("TPS: $tps").add("LPS: $lps")
             .add("Pos: ${ClientPlayer.location.x} ${ClientPlayer.location.y}")
-            .add("dX: ${ClientPlayer.dx}")
-            .add("dY: ${ClientPlayer.dy}")
-            .add("ground: ${ClientPlayer.ground}")
-            .add("onGround: ${ClientPlayer.onGround}")
+            .add("movement: ${String.format("%.2f", ClientPlayer.movement.x)}, ${String.format("%.2f", ClientPlayer.movement.y)}")
+            .add("onGround: ${ClientPlayer.isOnGround}")
             .add("onJump: ${ClientPlayer.onJump}")
-            .add("entities: ${GamePanel.world.entities.size}")
+            .add("entities: ${EntityService.Entities.size}")
             .add("videoLag: ${GamePanel.videoLag}")
             .toString()
 
@@ -28,6 +27,4 @@ class DebugDisplay {
             else RendererManager.UIRenderer.renderText(split("\n")[0],4f,4f,.4f)
         }
     }
-
-
 }

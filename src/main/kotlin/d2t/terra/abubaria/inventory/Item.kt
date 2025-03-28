@@ -1,6 +1,6 @@
 package d2t.terra.abubaria.inventory
 
-import d2t.terra.abubaria.entity.item.EntityItem
+import d2t.terra.abubaria.entity.impl.ItemEntity
 import d2t.terra.abubaria.io.graphics.render.RendererManager
 import d2t.terra.abubaria.io.graphics.render.TextureRenderer
 import d2t.terra.abubaria.location.Direction
@@ -10,89 +10,88 @@ import d2t.terra.abubaria.io.graphics.Model
 import kotlin.math.ceil
 import kotlin.math.floor
 
-data class Item(private var material: Material = Material.AIR, private var count: Int = 1) {
-    var lore = mutableListOf<String>()
-    var display = material.display
+class Item(type: Material = Material.AIR, amount: Int = 1) {
 
-    val type get() = material
-    val amount get() = count
+    var amount = amount
+        set(value) {
+            field = value
+            if (value <= 0 && type != Material.AIR) {
+                type = Material.AIR
+            } else if (value > type.maxStackSize) {
+                field = type.maxStackSize
+            }
+        }
+
+    var type = type
+        set(value) {
+            field = value
+            if (value === Material.AIR && amount != 0) {
+                amount = 0
+            }
+        }
+
+    var lore = mutableListOf<String>()
+    var display = type.display
 
     val clone
-        get() = Item(material, count).also {
+        get() = Item(type, amount).also {
             it.lore = lore
             it.display = display
         }
 
-
-    fun setType(type: Material) {
-        material = type
-        if (material === Material.AIR || count == 0) {
-            material = Material.AIR
-            count = 0
-        }
-    }
-
-    fun setAmount(amount: Int) {
-        this.count = amount
-        checkAmount()
-    }
-
-    private fun checkAmount() {
-        if (count <= 0) {
-            remove()
-        } else if (count > material.maxStackSize) {
-            count = material.maxStackSize
-        }
-    }
-
-    fun takeHalf(): Item {
+    fun takePart(part: Double = 2.0): Item {
         val count: Double
-        val material = material
+        val material = type
         if (amount > 1) {
-            count = amount / 2.0
-            setAmount(floor(count).toInt())
+            count = amount / part
+            amount = floor(count).toInt()
         } else {
             count = 1.0
-            setAmount(0)
+            amount = 0
         }
         return Item(material, ceil(count).toInt())
     }
 
     fun takeOne(): Item {
-        val material = material
-        setAmount(count - 1)
+        val material = type
+        amount--
         return Item(material, 1)
     }
 
-    fun compareItem(item: Item) {
-        val sumAmount = item.count + count
-        if (sumAmount > material.maxStackSize) {
-            setAmount(material.maxStackSize)
-            item.setAmount(sumAmount - material.maxStackSize)
+    fun cloneMaxSized() = clone.also { it.amount = it.type.maxStackSize }
+
+    fun compareItem(item: Item): Int {
+        val sumAmount = item.amount + amount
+        return if (sumAmount > type.maxStackSize) {
+            amount = type.maxStackSize
+            val leftOver = sumAmount - type.maxStackSize
+            item.amount = leftOver
+            leftOver
+        } else {
+            amount = sumAmount
+            item.amount = 0
+            0
         }
-        setAmount(sumAmount)
-        item.setAmount(0)
     }
 
     fun decrement() {
-        if (material == Material.AIR) return
-        setAmount(count - 1)
+        if (type == Material.AIR) return
+        amount--
     }
 
     fun increment() {
-        if (material == Material.AIR) return
-        setAmount(count + 1)
+        if (type == Material.AIR) return
+        amount++
     }
 
     fun remove() {
-        material = Material.AIR
-        count = 0
+        type = Material.AIR
+        amount = 0
     }
 
     fun drop(location: Location, pickupDelay: Int = 3000) {
-        EntityItem(clone, location, pickupDelay).apply {
-            dx = if (location.direction == Direction.RIGHT) .7F else -.7F
-            dy = -.4F
+        ItemEntity(clone, location, pickupDelay).apply {
+            movement.set(if (location.direction == Direction.RIGHT) .7 else -.7, -.4)
         }.spawn()
         remove()
     }

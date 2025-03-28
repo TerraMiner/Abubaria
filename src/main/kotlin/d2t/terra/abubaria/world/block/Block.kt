@@ -1,18 +1,16 @@
 package d2t.terra.abubaria.world.block
 
-import d2t.terra.abubaria.GamePanel.tileSizeF
+import d2t.terra.abubaria.tileSizeF
 import d2t.terra.abubaria.GamePanel.world
 import d2t.terra.abubaria.event.BlockDestroyEvent
 import d2t.terra.abubaria.event.BlockPlaceEvent
 import d2t.terra.abubaria.event.EventService
-import d2t.terra.abubaria.hitbox.BlockHitBox
+import d2t.terra.abubaria.geometry.box.BlockCollisionBox
 import d2t.terra.abubaria.io.graphics.render.RendererManager
 import d2t.terra.abubaria.light.Light
 import d2t.terra.abubaria.light.LightInBlockPosition
 import d2t.terra.abubaria.light.LightManager
-import d2t.terra.abubaria.world.lCount
-import d2t.terra.abubaria.world.lSize
-import d2t.terra.abubaria.world.lSizeF
+import d2t.terra.abubaria.lCount
 import d2t.terra.abubaria.world.material.Material
 import d2t.terra.abubaria.io.graphics.Model
 import d2t.terra.abubaria.util.loopIndicy
@@ -27,14 +25,14 @@ class Block(
     val chunkX get() = pos.chunkX
     val chunkY get() = pos.chunkY
 
-    var hitBox = BlockHitBox(this)
+    var collisionBox = BlockCollisionBox(this)
     var lightMap = Array(lCount * lCount) { Light(LightInBlockPosition(it.toByte()), pos) }
 
     var type
         get() = material
         set(value) {
             material = value
-            hitBox = BlockHitBox(this)
+            collisionBox = BlockCollisionBox(this)
         }
 
 //    val lighted get() = lightMap.flatten().any { l -> l.power != lightLevels }
@@ -52,23 +50,23 @@ class Block(
     }
 
 
-    fun relative(blockFace: BlockFace): Block? {
+    fun relative(blockFace: BlockFace, dist: Int): Block? {
 
         return when (blockFace) {
-            BlockFace.DOWN -> {
-                world.getBlockAt(x, y + 1)
+            BlockFace.BOTTOM -> {
+                world.getBlockAt(x, y + dist)
             }
 
-            BlockFace.UP -> {
-                world.getBlockAt(x, y - 1)
+            BlockFace.TOP -> {
+                world.getBlockAt(x, y - dist)
             }
 
             BlockFace.LEFT -> {
-                world.getBlockAt(x - 1, y)
+                world.getBlockAt(x - dist, y)
             }
 
             BlockFace.RIGHT -> {
-                world.getBlockAt(x + 1, y)
+                world.getBlockAt(x + dist, y)
             }
         }
     }
@@ -79,13 +77,13 @@ class Block(
             texture,
             Model.DEFAULT,
             x.toFloat() * tileSizeF,
-            y.toFloat() * tileSizeF + tileSizeF * type.state.offset,
+            y.toFloat() * tileSizeF + type.state.offset.toFloat() * tileSizeF,
             tileSizeF,
             tileSizeF * type.scale
         )
     }
 
-    fun drawLight(screenX: Float, screenY: Float) {
+//    fun drawLight(screenX: Float, screenY: Float) {
 //        if (type !== Material.AIR) {
 //            lightMap.forEach { light ->
 //                drawFillRect(
@@ -95,7 +93,7 @@ class Block(
 //                )
 //            }
 //        }
-    }
+//    }
 
     fun initLightMap() {
         lightMap.forEach(Light::initializePower)

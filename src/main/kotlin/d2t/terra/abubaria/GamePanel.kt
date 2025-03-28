@@ -1,7 +1,8 @@
 package d2t.terra.abubaria
 
-import d2t.terra.abubaria.entity.player.Camera
-import d2t.terra.abubaria.entity.player.ClientPlayer
+import d2t.terra.abubaria.entity.EntityService
+import d2t.terra.abubaria.world.Camera
+import d2t.terra.abubaria.entity.impl.ClientPlayer
 import d2t.terra.abubaria.event.EventHandler
 import d2t.terra.abubaria.hud.Hud
 import d2t.terra.abubaria.io.devices.KeyHandler
@@ -12,32 +13,28 @@ import d2t.terra.abubaria.io.fonts.TextVerAlignment
 import d2t.terra.abubaria.io.fonts.TextVerPosition
 import d2t.terra.abubaria.io.graphics.Color
 import d2t.terra.abubaria.io.graphics.Window
+import d2t.terra.abubaria.io.graphics.Window.windowId
 import d2t.terra.abubaria.io.graphics.render.RendererManager
+import d2t.terra.abubaria.util.TaskScheduler
 import d2t.terra.abubaria.world.World
-import d2t.terra.abubaria.world.WorldGenerator
-import java.util.concurrent.Executors
+import d2t.terra.abubaria.world.generator.WorldGenerator
+import org.lwjgl.glfw.GLFW.glfwWindowShouldClose
+import org.lwjgl.opengl.GL11.GL_BLEND
+import org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA
+import org.lwjgl.opengl.GL11.GL_SRC_ALPHA
+import org.lwjgl.opengl.GL11.glBlendFunc
+import org.lwjgl.opengl.GL11.glEnable
 import kotlin.concurrent.thread
-
 
 object GamePanel {
 
-    private const val originalTileSize = 8
-
-    private const val scale = 2
-
-    const val tileSize = originalTileSize * scale
-    const val tileSizeF = originalTileSize.toFloat() * scale.toFloat()
-
     var gameThread: Thread? = null
-    var lightThread: Thread? = null
-    private var chatThread: Thread? = null
-    val service = Executors.newFixedThreadPool(4)
 
     val world = World()
 
-    val cursor = Cursor(0, 0)
-
     var videoLag = .0
+
+    var partialTick: Float = 0f
 
     val display = DebugDisplay()
 
@@ -45,84 +42,88 @@ object GamePanel {
 
     var hasResized = false
 
-    val font = CFont("fonts/Comic Sans MS.ttf", "Comic Sans MS", 64)
+    val font = CFont("fonts/Comic Sans MS.ttf", 64)
+//    val font = CFont("fonts/PhantomMuff 1.5 Plus Regular.ttf", 64)
+//    val font = CFont("fonts/alagard-12px-unicode.ttf", 64)
+//    val font = CFont("fonts/Intro.otf", 64)
 
     private val bgColor = Color(150, 200, 250)
 
-    fun startGameThread() {
-        ClientPlayer.initialize()
-
+    fun startGame() {
+        ClientPlayer
 //        lightThread = thread(true, false, null, "lightThread") {
 //            LightManager.tick()
 //        }
-        service.submit {
+        TaskScheduler.afterAsync(0) {
             WorldGenerator(world).generateWorld()
 //            world.generateWorldLight()
         }
 
         EventHandler
 
-        gameThread = thread(true, false, null, "gameThread") {
-            tick()
-        }
+        registerGameThread()
+
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         Window.draw {
-            Camera.interpolate(ClientPlayer.location)
+            TaskScheduler.tick()
             drawScreen()
         }
     }
 
     var step = 0
-    val maxStep = 256 * 3
+    val maxStep = tickrate * 3
 
-    private fun tick() {
-        val tickInterval = 1e9 / 256.0
-        var deltaTicks = .0
-        var lastTime = System.nanoTime()
-        var currentTime: Long
-        var timer = 0L
-        var tickCount = 0
-        Window.whileWindowOpened {
-            currentTime = System.nanoTime()
-            deltaTicks += (currentTime - lastTime) / tickInterval
-            timer += (currentTime - lastTime)
-            lastTime = currentTime
-            while (deltaTicks >= 1.0) {
-                ClientPlayer.update()
-                KeyHandler.update()
-                cursor.update()
-                world.update()
+    private fun registerGameThread() {
+        gameThread = thread(true, false, null, "gameThread") {
+            val tickInterval = 1e9 / tickrate
+            var deltaTicks = .0
+            var lastTime = System.nanoTime()
+            var currentTime: Long
+            var timer = 0L
+            var tickCount = 0
+            while (!glfwWindowShouldClose(windowId)) {
+                currentTime = System.nanoTime()
+                deltaTicks += (currentTime - lastTime) / tickInterval
+                timer += (currentTime - lastTime)
+                lastTime = currentTime
+                while (deltaTicks >= 1.0) {
+                    KeyHandler.update()
+                    Cursor.update()
+                    EntityService.tick()
 
-                if (++step > maxStep) step = 0
+                    if (++step > maxStep) step = 0
 
-                deltaTicks = .0
-                tickCount++
-            }
+                    deltaTicks = .0
+                    tickCount++
+                }
 
-            if (timer >= 1e9) {
-                display.tps = tickCount
-                tickCount = 0
-                timer = 0
+                if (timer >= 1e9) {
+                    display.tps = tickCount
+                    tickCount = 0
+                    timer = 0
+                }
             }
         }
     }
+
 
     var debug = true
     var positionX = TextHorPosition.CENTER
     var alignX = TextHorAligment.CENTER
     var positionY = TextVerPosition.CENTER
-    var alignY = TextVerAlignment.CENTER
+    var alignY = TextVerAlignment.BOTTOM
 
     private fun drawScreen() {
         val start = System.currentTimeMillis()
-        val loc = ClientPlayer.location.clone
 
         val shader = RendererManager.WorldRenderer.shader
         shader.performSnapshot(shader.colorPalette) {
             RendererManager.WorldRenderer.renderText(
                 "Привет!\nAbubaria",
-                world.spawnLocation.x,
-                world.spawnLocation.y,
+                world.spawnLocation.x.toFloat(),
+                world.spawnLocation.y.toFloat(),
                 1f,
                 color = Color.gradientRainbow(step, maxStep),
                 textHorAligment = alignX,
@@ -132,11 +133,30 @@ object GamePanel {
             )
         }
 
+        Camera.coerceInWorld(ClientPlayer.location)
         world.draw()
-        Camera.draw(loc)
         Hud.draw()
-        cursor.draw(loc)
+        Cursor.draw()
         display.draw()
+//
+//        val text = font.characterMap.keys.map(::Char).chunked(font.atlasSquareSize).map { it.joinToString("  ") }
+//            .joinToString("\n\n")
+//        RendererManager.WorldRenderer.renderText(
+//            text,
+//            world.spawnLocation.x.toFloat(),
+//            world.spawnLocation.y.toFloat(),
+//            .5f,
+//            textHorPosition = TextHorPosition.CENTER
+//        )
+
+//        RendererManager.WorldRenderer.renderText(
+//            "Съешьте ещё этих мягких французских булок, да выпейте же чаю!  \n" +
+//                    "СЪЕШЬТЕ ЕЩЁ ЭТИХ МЯГКИХ ФРАНЦУЗСКИХ БУЛОК, ДА ВЫПЕЙТЕ ЖЕ ЧАЮ!  \n" +
+//                    "The quick brown fox jumps over the lazy dog.  \n" +
+//                    "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG.  \n" +
+//                    "#@\$%^&*()_+-=[]{};:'\",.<>/?",
+//            20f, 80f, .5f
+//        )
 
         val end = System.currentTimeMillis()
         videoLag = (end - start) / 1000.0

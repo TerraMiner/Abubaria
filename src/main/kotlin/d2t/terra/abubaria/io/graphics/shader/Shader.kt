@@ -1,39 +1,83 @@
 package d2t.terra.abubaria.io.graphics.shader
 
+import d2t.terra.abubaria.io.graphics.shader.environment.ShaderEnvironment
+import d2t.terra.abubaria.io.graphics.shader.module.ShaderModule
 import d2t.terra.abubaria.io.graphics.shader.module.ShaderTransformModule
 import d2t.terra.abubaria.util.loopWhile
 import org.joml.Matrix4f
-import org.lwjgl.opengl.GL20.glUniformMatrix4fv
-import org.lwjgl.opengl.GL20.glUseProgram
-import java.io.BufferedReader
-import java.io.File
-import java.io.FileReader
+import org.lwjgl.BufferUtils
+import org.lwjgl.opengl.GL20.*
+import org.lwjgl.opengl.GL32.GL_GEOMETRY_SHADER
 import java.nio.FloatBuffer
+import kotlin.system.exitProcess
 
-abstract class Shader {
+abstract class Shader(val fileName: String) {
     protected var program: Int = 0
-    protected var vs: Int = 0
-    protected var fs: Int = 0
+
+    protected val vertexShader = ShaderEnvironment(GL_VERTEX_SHADER, "$fileName.vert")
+    protected val fragmentShader = ShaderEnvironment(GL_FRAGMENT_SHADER, "$fileName.frag")
+    protected val geometryShader = ShaderEnvironment(GL_GEOMETRY_SHADER, "$fileName.geom")
 
     var transform = ShaderTransformModule()
 
     protected var projectionLoc: Int = 0
-    protected var isRegistered = false
-    protected lateinit var buffer: FloatBuffer
+    private var isRegistered = false
+    protected lateinit var projectionBuffer: FloatBuffer
 
-    abstract fun register()
+    protected abstract fun build()
+
+    fun register() {
+        if (isRegistered) {
+            println("Shader $fileName already registered!")
+            return
+        }
+        program = glCreateProgram()
+        projectionBuffer = BufferUtils.createFloatBuffer(16)
+        build()
+        isRegistered = true
+    }
+
+    fun loadVertexShader() {
+        vertexShader.loadAndAttach(program)
+    }
+
+    fun loadFragmentShader() {
+        fragmentShader.loadAndAttach(program)
+    }
+
+    fun loadGeometryShader() {
+        geometryShader.loadAndAttach(program)
+    }
+
+    fun linkAndValidateProgram() {
+        glLinkProgram(program)
+        if (glGetProgrami(program, GL_LINK_STATUS) != 1) {
+            System.err.println(glGetProgramInfoLog(program))
+            exitProcess(1)
+        }
+        glValidateProgram(program)
+        if (glGetProgrami(program, GL_VALIDATE_STATUS) != 1) {
+            System.err.println(glGetProgramInfoLog(program))
+            exitProcess(1)
+        }
+    }
 
     fun setProjection(value: Matrix4f) {
-        buffer.clear()
+        projectionBuffer.clear()
 
         loopWhile(0, 4) { col ->
             loopWhile(0, 4) { row ->
-                buffer.put(value.get(col, row))
+                projectionBuffer.put(value.get(col, row))
             }
         }
 
-        buffer.flip()
-        glUniformMatrix4fv(projectionLoc, false, buffer)
+        projectionBuffer.flip()
+        glUniformMatrix4fv(projectionLoc, false, projectionBuffer)
+    }
+
+    open fun performSnapshot(module: ShaderModule<*,*>, action: () -> Unit) {
+        bind()
+        module.performSnapshot(action)
     }
 
     fun bind() {
@@ -44,19 +88,5 @@ abstract class Shader {
 
     companion object {
         var activeShaderProgram: Int = -1
-
-        @JvmStatic
-        protected fun loadShader(path: String): String {
-            val resource = javaClass.getClassLoader().getResource(path.replace("res/", ""))!!
-            val string = StringBuilder()
-            val br = BufferedReader(FileReader(File(resource.toURI())))
-            var line: String?
-            while (br.readLine().also { line = it } != null) {
-                string.append(line)
-                string.append("\n")
-            }
-            br.close()
-            return string.toString()
-        }
     }
 }
