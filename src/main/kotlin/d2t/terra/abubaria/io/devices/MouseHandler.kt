@@ -4,7 +4,7 @@ import org.lwjgl.glfw.GLFW.GLFW_PRESS
 import org.lwjgl.glfw.GLFW.GLFW_RELEASE
 
 object MouseHandler {
-    private val mouseButtonPressed = BooleanArray(10) // Достаточно для поддержки нескольких кнопок мыши
+    private val mouseButtonPressed = BooleanArray(10)
     private val mouseButtonReleaseActions = mutableMapOf<Int, (Int, Int) -> Unit>()
     private val mouseButtonClickActions = mutableMapOf<Int, (Int, Int) -> Unit>()
     private val mouseScrollActions = mutableMapOf<String, (Double) -> Unit>()
@@ -75,7 +75,6 @@ object MouseHandler {
         return mouseButtonPressed[button]
     }
 
-    // Геттеры для позиции мыши
     val x get() = xPos.toFloat()
     val y get() = yPos.toFloat()
     val dx get() = (lastX - xPos).toFloat()

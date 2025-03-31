@@ -62,7 +62,6 @@ object GamePanel {
         EventHandler
 
         registerGameThread()
-
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -118,9 +117,12 @@ object GamePanel {
     private fun drawScreen() {
         val start = System.currentTimeMillis()
 
-        val shader = RendererManager.WorldRenderer.shader
-        shader.performSnapshot(shader.colorPalette) {
-            RendererManager.WorldRenderer.renderText(
+        RendererManager.WorldRenderer.begin()
+        RendererManager.UIRenderer.begin()
+
+
+        RendererManager.WorldRenderer.session {
+            renderText(
                 "Привет!\nAbubaria",
                 world.spawnLocation.x.toFloat(),
                 world.spawnLocation.y.toFloat(),
@@ -134,10 +136,12 @@ object GamePanel {
         }
 
         Camera.coerceInWorld(ClientPlayer.location)
-        world.draw()
-        Hud.draw()
-        Cursor.draw()
-        display.draw()
+        RendererManager.WorldRenderer.session(world::draw)
+        RendererManager.UIRenderer.session(Hud::draw)
+        RendererManager.UIRenderer.session(Cursor::draw)
+        RendererManager.UIRenderer.session(display::draw)
+        RendererManager.WorldRenderer.end()
+        RendererManager.UIRenderer.end()
 //
 //        val text = font.characterMap.keys.map(::Char).chunked(font.atlasSquareSize).map { it.joinToString("  ") }
 //            .joinToString("\n\n")

@@ -9,6 +9,8 @@ import d2t.terra.abubaria.io.graphics.Model
 import d2t.terra.abubaria.io.graphics.render.RendererManager
 import d2t.terra.abubaria.location.Location
 import d2t.terra.abubaria.entityItemSize
+import d2t.terra.abubaria.io.graphics.render.BatchSession
+import d2t.terra.abubaria.tileSizeF
 import d2t.terra.abubaria.util.print
 //import d2t.terra.abubaria.io.graphics.render.batch.BatchRenderer
 import kotlin.math.pow
@@ -24,16 +26,15 @@ class ItemEntity(val item: Item, location: Location, pickupDelay: Int = 3000) : 
         collisionBox.sizeY = entityItemSize.toFloat() * item.type.scale
     }
 
-    override fun draw() {
+    override fun draw(session: BatchSession) {
         val angle = Math.toRadians((-movement.x * 60.0).coerceIn(-45.0, 45.0)).toFloat()
-        item.type.texture?.let {
-            RendererManager.WorldRenderer.render(
-                it, Model.Companion.DEFAULT,
-                location.x.toFloat(), location.y.toFloat(),
-                collisionBox.sizeX.toFloat(), collisionBox.sizeY.toFloat(),
-                angle
-            )
-        }
+        val texture = item.type.texture ?: return
+        session.render(
+            texture, Model.Companion.DEFAULT,
+            location.x.toFloat(), location.y.toFloat(),
+            collisionBox.sizeX.toFloat(), collisionBox.sizeY.toFloat(),
+            angle
+        )
     }
 
 //    override fun addToBatch(batchRenderer: BatchRenderer) {
@@ -58,7 +59,6 @@ class ItemEntity(val item: Item, location: Location, pickupDelay: Int = 3000) : 
         if (distToPlayer < 60 && canPickUpAfter < System.currentTimeMillis()) {
 
             val speed = (60 - distToPlayer).pow(-0.01f)
-//            println(distToPlayer)
 
             val direction = location.toVector2f().subtract(targetLoc).normalize().mul(-speed)
 

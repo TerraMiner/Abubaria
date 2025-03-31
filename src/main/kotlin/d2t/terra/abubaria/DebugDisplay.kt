@@ -2,6 +2,7 @@ package d2t.terra.abubaria
 
 import d2t.terra.abubaria.entity.EntityService
 import d2t.terra.abubaria.entity.impl.ClientPlayer
+import d2t.terra.abubaria.io.graphics.render.BatchSession
 import d2t.terra.abubaria.io.graphics.render.RendererManager
 import java.util.*
 
@@ -21,10 +22,10 @@ class DebugDisplay {
             .add("videoLag: ${GamePanel.videoLag}")
             .toString()
 
-    fun draw() {
+    fun draw(session: BatchSession) {
         text.apply {
-            if (Client.debugMode) RendererManager.UIRenderer.renderText(text, 4f, 4f, .4f)
-            else RendererManager.UIRenderer.renderText(split("\n")[0],4f,4f,.4f)
+            if (Client.debugMode) session.renderText(text, 4f, 4f, .4f)
+            else session.renderText(split("\n")[0],4f,4f,.4f)
         }
     }
 }

@@ -25,7 +25,7 @@ object TaskScheduler {
     fun initialize() {
         if (initialized.compareAndSet(false, true)) {
             mainThreadId = Thread.currentThread().id
-            println("TaskScheduler инициализирован в потоке ${Thread.currentThread().name} (ID: $mainThreadId)")
+            println("TaskScheduler инициализирован в потоке ${Thread.currentThread().name}")
         } else {
             println("TaskScheduler уже инициализирован")
         }
@@ -33,11 +33,11 @@ object TaskScheduler {
 
     fun tick() {
         if (!initialized.get()) {
-            throw IllegalStateException("TaskScheduler не инициализирован. Вызовите initialize() из главного потока LWJGL.")
+            throw IllegalStateException("TaskScheduler не инициализирован")
         }
 
         if (Thread.currentThread().id != mainThreadId) {
-            throw IllegalStateException("update() должен вызываться только из главного потока LWJGL")
+            throw IllegalStateException("update должен вызываться только из главного потока")
         }
 
         var task = mainThreadTasks.poll()
@@ -53,7 +53,7 @@ object TaskScheduler {
 
     fun every(delay: Long, period: Long, timeUnit: TimeUnit = TimeUnit.MILLISECONDS, action: () -> Unit): ScheduledFuture<*> {
         if (!initialized.get()) {
-            throw IllegalStateException("TaskScheduler не инициализирован. Вызовите initialize() из главного потока LWJGL.")
+            throw IllegalStateException("TaskScheduler не инициализирован")
         }
 
         return asyncExecutor.scheduleAtFixedRate({
@@ -79,7 +79,7 @@ object TaskScheduler {
 
     fun after(delay: Long = 0, timeUnit: TimeUnit = TimeUnit.MILLISECONDS, action: () -> Unit): ScheduledFuture<*> {
         if (!initialized.get()) {
-            throw IllegalStateException("TaskScheduler не инициализирован. Вызовите initialize() из главного потока LWJGL.")
+            throw IllegalStateException("TaskScheduler не инициализирован")
         }
 
         return asyncExecutor.schedule({

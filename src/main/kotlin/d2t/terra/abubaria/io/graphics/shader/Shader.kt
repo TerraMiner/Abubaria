@@ -18,8 +18,6 @@ abstract class Shader(val fileName: String) {
     protected val fragmentShader = ShaderEnvironment(GL_FRAGMENT_SHADER, "$fileName.frag")
     protected val geometryShader = ShaderEnvironment(GL_GEOMETRY_SHADER, "$fileName.geom")
 
-    var transform = ShaderTransformModule()
-
     protected var projectionLoc: Int = 0
     private var isRegistered = false
     protected lateinit var projectionBuffer: FloatBuffer

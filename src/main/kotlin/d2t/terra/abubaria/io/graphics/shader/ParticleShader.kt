@@ -1,9 +1,11 @@
 package d2t.terra.abubaria.io.graphics.shader
 
+import d2t.terra.abubaria.io.graphics.shader.module.ShaderTransformModule
 import org.lwjgl.opengl.GL20.*
 import kotlin.properties.Delegates
 
 class ParticleShader(fileName: String) : Shader(fileName) {
+    var transform = ShaderTransformModule()
     private var samplerLoc by Delegates.notNull<Int>()
     private var timeLoc by Delegates.notNull<Int>()
     private var gridSizeLoc by Delegates.notNull<Int>()

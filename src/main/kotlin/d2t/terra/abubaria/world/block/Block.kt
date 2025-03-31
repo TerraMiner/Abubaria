@@ -13,6 +13,7 @@ import d2t.terra.abubaria.light.LightManager
 import d2t.terra.abubaria.lCount
 import d2t.terra.abubaria.world.material.Material
 import d2t.terra.abubaria.io.graphics.Model
+import d2t.terra.abubaria.io.graphics.render.BatchSession
 import d2t.terra.abubaria.util.loopIndicy
 
 class Block(
@@ -71,9 +72,9 @@ class Block(
         }
     }
 
-    fun drawTexture() {
+    fun drawTexture(session: BatchSession) {
         val texture = type.texture ?: return
-        RendererManager.WorldRenderer.render(
+        session.render(
             texture,
             Model.DEFAULT,
             x.toFloat() * tileSizeF,

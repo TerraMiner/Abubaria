@@ -12,13 +12,15 @@ import d2t.terra.abubaria.geometry.box.CollisionBox
 import d2t.terra.abubaria.io.graphics.Window
 import d2t.terra.abubaria.location.Direction
 import d2t.terra.abubaria.location.Location
-import d2t.terra.abubaria.tileSizeF
 import d2t.terra.abubaria.util.getIndex
 import d2t.terra.abubaria.util.loopIndicy
 import d2t.terra.abubaria.world.block.Block
 import d2t.terra.abubaria.world.block.BlockInChunkPosition
 import d2t.terra.abubaria.world.block.Position
 import d2t.terra.abubaria.world.material.Material
+import d2t.terra.abubaria.io.graphics.render.BatchRenderer
+import d2t.terra.abubaria.io.graphics.render.BatchSession
+import d2t.terra.abubaria.io.graphics.render.RendererManager
 
 class World {
     val worldChunkWidth = 16
@@ -64,7 +66,7 @@ class World {
         }
     }
 
-    fun draw() {
+    fun draw(session: BatchSession) {
         val minVisibleChunkX = (((-Camera.cameraX + tileSize * 2) / tileSize) / chunkSize - 1).toInt()
         val minVisibleChunkY = (((-Camera.cameraY + tileSize * 2) / tileSize) / chunkSize - 1).toInt()
         val maxVisibleChunkX = (((-Camera.cameraX + Window.width + tileSize * 2) / tileSize) / chunkSize).toInt()
@@ -82,24 +84,10 @@ class World {
             loopIndicy(minVisibleChunkY, maxVisibleChunkY) { chunkY ->
                 val worldChunkY = chunkY - posY
                 if (worldChunkY < 0 || worldChunkY > worldChunkHeight) return@loopIndicy
-                getChunk(chunkX, chunkY)?.drawTextures()
-                entityLevel?.getSection(Position(chunkX, chunkY))?.drawEntities()
+                getChunk(chunkX, chunkY)?.drawTextures(session)
+                entityLevel?.getSection(Position(chunkX, chunkY))?.drawEntities(session)
             }
         }
-
-
-//        if (Client.lightMode) {
-//            safetyDraw(GL_QUADS) {
-//                for (chunkX in leftCorner..rightCorner) {
-//                    for (chunkY in topCorner..bottomCorner) {
-//                        val chunk = chunkMap[chunkX][chunkY]
-//                        chunk.drawLights(location)
-//                    }
-//                }
-//            }
-//        }
-
-//        drawEntities(minVisibleChunkX, maxVisibleChunkX, minVisibleChunkY, maxVisibleChunkY)
     }
 
 

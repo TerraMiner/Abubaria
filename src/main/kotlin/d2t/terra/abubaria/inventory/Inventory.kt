@@ -13,6 +13,7 @@ import d2t.terra.abubaria.io.fonts.TextHorPosition
 import d2t.terra.abubaria.world.material.Material
 import d2t.terra.abubaria.slotSize
 import d2t.terra.abubaria.io.graphics.Model
+import d2t.terra.abubaria.io.graphics.render.BatchSession
 import d2t.terra.abubaria.util.getCoords
 import d2t.terra.abubaria.util.getIndex
 
@@ -118,7 +119,7 @@ data class Inventory(val xSize: Int, val ySize: Int) {
         return -1
     }
 
-    fun draw() {
+    fun draw(session: BatchSession) {
         val inventory = Hud.inventory
         items.forEachIndexed { index, item ->
             val pos = getCoords(index)
@@ -128,7 +129,7 @@ data class Inventory(val xSize: Int, val ySize: Int) {
 
             val texture = if (selectedHotBar == pos.x && pos.y == 0) Hud.selectedSlot else Hud.slot
 
-            RendererManager.UIRenderer.render(texture, Model.DEFAULT, screenX, screenY, slotSize, slotSize)
+            session.render(texture, Model.DEFAULT, screenX, screenY, slotSize, slotSize)
 
             if (item.type !== Material.AIR) {
                 val size = slotSize - inSlotPos * 2f
@@ -136,9 +137,10 @@ data class Inventory(val xSize: Int, val ySize: Int) {
                     screenX + inSlotPos,
                     screenY + inSlotPos + (size * item.type.state.offset).toInt(),
                     size,
-                    size - (size * item.type.state.scale.toFloat())
+                    size - (size * item.type.state.scale.toFloat()),
+                    session
                 )
-                RendererManager.UIRenderer.renderText(
+                session.renderText(
                     "${item.amount}", screenX + inSlotPos + size + inSlotPos / 2, screenY + size, .2f,
                     textHorAligment = TextHorAligment.RIGHT,
                     textHorPosition = TextHorPosition.RIGHT
@@ -146,7 +148,7 @@ data class Inventory(val xSize: Int, val ySize: Int) {
             }
 
             if (pos.y == 0) {
-                RendererManager.UIRenderer.renderText(
+                session.renderText(
                     inventory.getItem(selectedHotBar, 0)?.display ?: "",
                     24F,
                     -3f,

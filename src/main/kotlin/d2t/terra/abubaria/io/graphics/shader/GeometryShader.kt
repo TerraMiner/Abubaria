@@ -1,10 +1,12 @@
 package d2t.terra.abubaria.io.graphics.shader
 
 import d2t.terra.abubaria.io.graphics.shader.module.ShaderColorModule
+import d2t.terra.abubaria.io.graphics.shader.module.ShaderTransformModule
 import d2t.terra.abubaria.io.graphics.shader.module.geometry.ShaderShapeModule
 import org.lwjgl.opengl.GL20.glGetUniformLocation
 
 class GeometryShader(fileName: String) : Shader(fileName) {
+    var transform = ShaderTransformModule()
     val shape: ShaderShapeModule = ShaderShapeModule()
     val colorPalette: ShaderColorModule = ShaderColorModule()
 

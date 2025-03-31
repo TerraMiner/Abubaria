@@ -12,6 +12,7 @@ import d2t.terra.abubaria.io.devices.KeyHandler.isKeyPressed
 import d2t.terra.abubaria.io.devices.Keys
 import d2t.terra.abubaria.io.graphics.Model
 import d2t.terra.abubaria.io.graphics.Texture
+import d2t.terra.abubaria.io.graphics.render.BatchSession
 import d2t.terra.abubaria.io.graphics.render.Renderer
 import d2t.terra.abubaria.io.graphics.render.RendererManager
 //import d2t.terra.abubaria.io.graphics.render.batch.BatchRenderer
@@ -88,7 +89,7 @@ object ClientPlayer : LivingEntity(EntityType.PLAYER, GamePanel.world.spawnLocat
         }
     }
 
-    override fun draw() {
+    override fun draw(session: BatchSession) {
         val image = when (location.direction) {
             Direction.LEFT -> {
                 if (isOnGround) leftIdle
@@ -105,11 +106,10 @@ object ClientPlayer : LivingEntity(EntityType.PLAYER, GamePanel.world.spawnLocat
         val offX = Camera.playerScreenPosX(location)
         val offY = Camera.playerScreenPosY(location)
 
-        RendererManager.UIRenderer.render(
+        session.render(
             image,
             Model.Companion.DEFAULT,
-            offX,
-            offY,
+            location.x.toFloat(), location.y.toFloat(),
             type.width,
             type.height
         )

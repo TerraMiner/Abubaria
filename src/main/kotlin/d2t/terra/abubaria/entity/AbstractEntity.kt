@@ -5,6 +5,8 @@ import d2t.terra.abubaria.entity.type.EntityType
 import d2t.terra.abubaria.geometry.position
 import d2t.terra.abubaria.location.Location
 import d2t.terra.abubaria.entity.registry.EntityLevel
+import d2t.terra.abubaria.io.graphics.render.BatchSession
+
 //import d2t.terra.abubaria.io.graphics.render.batch.BatchRenderer
 
 abstract class AbstractEntity(val type: EntityType, val location: Location) {
@@ -30,7 +32,7 @@ abstract class AbstractEntity(val type: EntityType, val location: Location) {
     abstract fun spawn()
     abstract fun remove()
     abstract fun tick()
-    abstract fun draw()
+    abstract fun draw(session: BatchSession)
 //    abstract fun addToBatch(batchRenderer: BatchRenderer)
 
     open fun teleport(

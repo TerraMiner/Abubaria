@@ -18,8 +18,6 @@ object EventHandler {
             val x = block.x * tileSizeF + (tileSizeF - entityItemSize) / 2
             val y = block.y * tileSizeF + (tileSizeF * block.type.scale - entityItemSize) / 2f
             Item(block.type, 1).drop(Location(x, y, Direction.entries.random(), GamePanel.world), 500)
-
-//            println(Thread.currentThread().name)
 //            block.updateLightAround()
         }
 

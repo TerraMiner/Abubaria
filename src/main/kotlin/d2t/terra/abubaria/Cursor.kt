@@ -13,6 +13,7 @@ import d2t.terra.abubaria.world.block.Block
 import d2t.terra.abubaria.world.material.Material
 import d2t.terra.abubaria.io.graphics.Model
 import d2t.terra.abubaria.io.graphics.Texture
+import d2t.terra.abubaria.io.graphics.render.BatchSession
 import d2t.terra.abubaria.util.Cooldown
 import d2t.terra.abubaria.util.print
 import java.util.StringJoiner
@@ -156,7 +157,7 @@ object Cursor {
         return world.getBlockAt(getGamePositionX(x), getGamePositionY(y))
     }
 
-    fun draw() {
+    fun draw(session: BatchSession) {
 //        if (Client.debugMode && !mouseOnHud) {
 //            currentBlock?.apply {
 //                RendererManager.WorldRenderer.apply {
@@ -176,25 +177,24 @@ object Cursor {
 //                }
 //            }
 //        }
+            val x = MouseHandler.x.toInt()
+            val y = MouseHandler.y.toInt()
 
-        val x = MouseHandler.x.toInt()
-        val y = MouseHandler.y.toInt()
+        session.render(texture, Model.DEFAULT, x.toFloat(), y.toFloat(), 30f, 30f)
+            val size = slotSize - inSlotPos * 2f
 
-        RendererManager.UIRenderer.render(texture, Model.DEFAULT, x.toFloat(), y.toFloat(), 30f, 30f)
-//        val size = slotSize - inSlotPos * 2f
-//
-//        inventory.cursorItem.also {
-//            val itemTexture = it.type.texture ?: return@also
-//            RendererManager.UIRenderer.render(
-//                itemTexture,
-//                Model.DEFAULT,
-//                x + 10f,
-//                y + (size * it.type.state.offset) + 10f,
-//                size,
-//                size - (size * it.type.state.scale.toFloat())
-//            )
-//        }
-//
+            inventory.cursorItem.also {
+                val itemTexture = it.type.texture ?: return@also
+                session.render(
+                    itemTexture,
+                    Model.DEFAULT,
+                    x + 10f,
+                    y + (size * it.type.state.offset) + 10f,
+                    size,
+                    size - (size * it.type.state.scale.toFloat())
+                )
+            }
+
 //        RendererManager.UIRenderer.renderText(
 //            cursorText, x + size, y + size, .2f,
 //            textHorAligment = TextHorAligment.CENTER,

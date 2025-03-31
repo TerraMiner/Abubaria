@@ -44,6 +44,11 @@ class Texture {
         bindedTexture = id
     }
 
+    fun unbind() {
+        glBindTexture(GL_TEXTURE_2D, 0)
+        bindedTexture = 0
+    }
+
     companion object {
         var bindedTexture: Int = -1
         val imageTextures = HashMap<String, Texture?>()

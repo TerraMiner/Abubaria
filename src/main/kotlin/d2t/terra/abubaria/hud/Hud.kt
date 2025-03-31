@@ -5,6 +5,7 @@ import d2t.terra.abubaria.io.fonts.TextHorAligment
 import d2t.terra.abubaria.io.fonts.TextHorPosition
 import d2t.terra.abubaria.io.graphics.Window
 import d2t.terra.abubaria.io.graphics.Texture
+import d2t.terra.abubaria.io.graphics.render.BatchSession
 import d2t.terra.abubaria.io.graphics.render.RendererManager
 
 object Hud {
@@ -15,10 +16,10 @@ object Hud {
     val selectedSlot = Texture("${path}selectedSlot.png")
     val slot = Texture("${path}slot.png")
 
-    fun draw() {
+    fun draw(session: BatchSession) {
         healthBar = ClientPlayer.run { "HP $health / $maxHealth" }
 
-        RendererManager.UIRenderer.renderText(
+        session.renderText(
             healthBar,
             Window.width.toFloat() - 4f,
             4f,
@@ -27,6 +28,6 @@ object Hud {
             textHorPosition = TextHorPosition.RIGHT
         )
 
-        inventory.draw()
+        inventory.draw(session)
     }
 }

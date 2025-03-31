@@ -37,7 +37,7 @@ class CFont(path: String, val size: Int, val fontType: Int = Font.BOLD) {
         val availableChars = (32..2000).filter(font::canDisplay)
 
         val frc = g2d.fontRenderContext
-        var maxCharSize = ceil(fontMetrics.height * 1.2).toInt() // Базовый размер с запасом
+        var maxCharSize = ceil(fontMetrics.height * 1.2).toInt()
 
         for (codepoint in availableChars) {
             val str = String(Character.toChars(codepoint))
@@ -87,7 +87,7 @@ class CFont(path: String, val size: Int, val fontType: Int = Font.BOLD) {
         buildCharInfoModels()
         g2d.dispose()
 
-//        if (!File(imageFile).exists()) {
+        if (!File(imageFile).exists()) {
 
         img = BufferedImage(atlasSize, atlasSize, TYPE_INT_ARGB)
         g2d = img.createGraphics()
@@ -110,7 +110,7 @@ class CFont(path: String, val size: Int, val fontType: Int = Font.BOLD) {
         ImageIO.write(img, "png", file)
         g2d.dispose()
 
-//        }
+        }
 
         imageFont = Texture(imageFile)
     }

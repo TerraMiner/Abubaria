@@ -2,13 +2,15 @@ package d2t.terra.abubaria.io.graphics.shader
 
 import d2t.terra.abubaria.io.graphics.shader.module.ShaderColorModule
 import d2t.terra.abubaria.io.graphics.shader.module.ShaderAnglerModule
+import d2t.terra.abubaria.io.graphics.shader.module.ShaderTransformModule
 import org.lwjgl.opengl.GL20.*
 import kotlin.properties.Delegates
 
-class TextureShader(fileName: String) : Shader(fileName) {
+open class TextureShader(path: String) : Shader(path) {
+    val transform = ShaderTransformModule()
     val angler: ShaderAnglerModule = ShaderAnglerModule()
     val colorPalette: ShaderColorModule = ShaderColorModule()
-    private var samplerLoc by Delegates.notNull<Int>()
+    var samplerLoc by Delegates.notNull<Int>()
 
     override fun build() {
         loadVertexShader()

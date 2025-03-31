@@ -5,6 +5,7 @@ import d2t.terra.abubaria.chunkBitMask
 import d2t.terra.abubaria.chunkSize
 import d2t.terra.abubaria.geometry.box.BlockCollisionBox
 import d2t.terra.abubaria.geometry.box.CollisionBox
+import d2t.terra.abubaria.io.graphics.render.BatchSession
 import d2t.terra.abubaria.tileSizeF
 import d2t.terra.abubaria.util.loopWhile
 import d2t.terra.abubaria.world.block.Block
@@ -30,9 +31,9 @@ class Chunk(
         }
     }
 
-    fun drawTextures() {
+    fun drawTextures(session: BatchSession) {
         blockMap.forEachIndexed { index, block ->
-            block.drawTexture()
+            block.drawTexture(session)
         }
 
 //        if (Client.debugMode) {
