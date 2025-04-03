@@ -6,14 +6,15 @@ import d2t.terra.abubaria.event.BlockDestroyEvent
 import d2t.terra.abubaria.event.BlockPlaceEvent
 import d2t.terra.abubaria.event.EventService
 import d2t.terra.abubaria.geometry.box.BlockCollisionBox
-import d2t.terra.abubaria.io.graphics.render.RendererManager
 import d2t.terra.abubaria.light.Light
 import d2t.terra.abubaria.light.LightInBlockPosition
 import d2t.terra.abubaria.light.LightManager
 import d2t.terra.abubaria.lCount
 import d2t.terra.abubaria.world.material.Material
 import d2t.terra.abubaria.io.graphics.Model
-import d2t.terra.abubaria.io.graphics.render.BatchSession
+import d2t.terra.abubaria.io.graphics.render.RenderDimension
+import d2t.terra.abubaria.io.graphics.render.Renderer
+import d2t.terra.abubaria.io.graphics.render.WORLD_BLOCKS_LAYER
 import d2t.terra.abubaria.util.loopIndicy
 
 class Block(
@@ -72,15 +73,18 @@ class Block(
         }
     }
 
-    fun drawTexture(session: BatchSession) {
+    fun drawTexture() {
         val texture = type.texture ?: return
-        session.render(
+        Renderer.render(
             texture,
             Model.DEFAULT,
-            x.toFloat() * tileSizeF,
-            y.toFloat() * tileSizeF + type.state.offset.toFloat() * tileSizeF,
+            x * tileSizeF,
+            y * tileSizeF + type.state.offset * tileSizeF,
             tileSizeF,
-            tileSizeF * type.scale
+            tileSizeF * type.scale,
+            zIndex = WORLD_BLOCKS_LAYER,
+            dim = RenderDimension.WORLD,
+            ignoreCamera = false
         )
     }
 

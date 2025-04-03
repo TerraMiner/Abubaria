@@ -1,12 +1,12 @@
 package d2t.terra.abubaria.world.block
 
-import d2t.terra.abubaria.chunkBitMask
+import d2t.terra.abubaria.chunkShiftBits
 
 class Position(var x: Int, var y: Int) {
     val inChunkPosition get() = BlockInChunkPosition.decode(x,y)
     val chunkPosition get() = Position(chunkX,chunkY)
-    val chunkX get() = x shr chunkBitMask
-    val chunkY get() = y shr chunkBitMask
+    val chunkX get() = x shr chunkShiftBits
+    val chunkY get() = y shr chunkShiftBits
 
 
 

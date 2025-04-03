@@ -1,5 +1,7 @@
 package d2t.terra.abubaria.io.graphics
 
+import kotlin.math.abs
+
 class Color(val rgba: Int) {
 
     constructor(r: Int, g: Int, b: Int) : this(r, g, b, 255)
@@ -26,64 +28,36 @@ class Color(val rgba: Int) {
     fun toInt(): Int = rgba
 
     companion object {
-        val WHITE = Color(0xFFFFFFFF.toInt())
-        val BLACK = Color(0x000000FF.toInt())
-        val RED = Color(0xFF0000FF.toInt())
-        val GREEN = Color(0x00FF00FF.toInt())
-        val BLUE = Color(0x0000FFFF.toInt())
-        val YELLOW = Color(0xFFFF00FF.toInt())
-        val CYAN = Color(0x00FFFFFF.toInt())
-        val MAGENTA = Color(0xFF00FFFF.toInt())
+         val BLACK = Color(0x000000FF.toInt())            //&0
+         val DARK_BLUE = Color(0x0000AAFF.toInt())        //&1
+         val DARK_GREEN = Color(0x00AA00FF.toInt())       //&2
+         val DARK_AQUA = Color(0x00AAAAFF.toInt())        //&3
+         val DARK_RED = Color(0xAA0000FF.toInt())         //&4
+         val DARK_PURPLE = Color(0xAA00AAFF.toInt())      //&5
+         val GOLD = Color(0xFFAA00FF.toInt())             //&6
+         val GRAY = Color(0xAAAAAAFF.toInt())             //&7
+         val DARK_GRAY = Color(0x555555FF.toInt())        //&8
+         val BLUE = Color(0x5555FFFF.toInt())             //&9
+         val GREEN = Color(0x55FF55FF.toInt())            //&a
+         val AQUA = Color(0x55FFFFFF.toInt())             //&b
+         val RED = Color(0xFF5555FF.toInt())              //&c
+         val LIGHT_PURPLE = Color(0xFF55FFFF.toInt())     //&d
+         val YELLOW = Color(0xFFFF55FF.toInt())           //&e
+         val WHITE = Color(0xFFFFFFFF.toInt())            //&f
 
         const val MAX_GRADIENT_STEPS = 360
 
         fun gradientRainbow(step: Int, maxStep: Int = MAX_GRADIENT_STEPS): Color {
             val hue = (step.toFloat() / maxStep) * 360.0f
-            val rgb = hsvToRgb(hue, 1.0f, 1.0f)
-            return Color(rgb[0], rgb[1], rgb[2])
-        }
 
-        private fun hsvToRgb(h: Float, s: Float, v: Float): FloatArray {
-            val c = v * s
-            val x = c * (1 - Math.abs((h / 60) % 2 - 1))
-            val m = v - c
-            var r = 0.0f
-            var g = 0.0f
-            var b = 0.0f
+            val x = 1.0f * (1 - abs((hue / 60) % 2 - 1))
 
-            when {
-                h < 60 -> {
-                    r = c
-                    g = x
-                    b = 0.0f
-                }
-                h < 120 -> {
-                    r = x
-                    g = c
-                    b = 0.0f
-                }
-                h < 180 -> {
-                    r = 0.0f
-                    g = c
-                    b = x
-                }
-                h < 240 -> {
-                    r = 0.0f
-                    g = x
-                    b = c
-                }
-                h < 300 -> {
-                    r = x
-                    g = 0.0f
-                    b = c
-                }
-                else -> {
-                    r = c
-                    g = 0.0f
-                    b = x
-                }
-            }
-            return floatArrayOf(r + m, g + m, b + m)
+            return if (hue < 60) Color(1f, x, 0F)
+            else if (hue < 120) Color(x, 1f, 0f)
+            else if (hue < 180) Color(0f, 1f, x)
+            else if (hue < 240) Color(0f, x, 1f)
+            else if (hue < 300) Color(x, 0f, 1f)
+            else Color(1f, 0f, x)
         }
     }
 }

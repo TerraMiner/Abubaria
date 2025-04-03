@@ -3,7 +3,8 @@ package d2t.terra.abubaria.io.graphics
 import d2t.terra.abubaria.GamePanel
 import d2t.terra.abubaria.io.devices.KeyHandler
 import d2t.terra.abubaria.io.devices.MouseHandler
-import d2t.terra.abubaria.io.graphics.render.RendererManager
+import d2t.terra.abubaria.io.graphics.render.Renderer
+import d2t.terra.abubaria.io.graphics.window.FpsLimit
 import org.lwjgl.glfw.Callbacks.glfwFreeCallbacks
 import org.lwjgl.glfw.GLFW.GLFW_CURSOR
 import org.lwjgl.glfw.GLFW.GLFW_CURSOR_HIDDEN
@@ -41,6 +42,14 @@ import org.lwjgl.opengl.GL11.glClearColor
 import org.lwjgl.opengl.GL11.glEnable
 import org.lwjgl.opengl.GL11.glViewport
 import org.lwjgl.system.MemoryUtil.NULL
+import org.lwjgl.glfw.GLFW.glfwSetWindowIcon
+import org.lwjgl.glfw.GLFW.glfwSwapInterval
+import org.lwjgl.glfw.GLFWImage
+import org.lwjgl.glfw.GLFWVidMode
+import org.lwjgl.stb.STBImage.stbi_load
+import org.lwjgl.system.MemoryStack
+import java.io.File
+import java.io.FileOutputStream
 
 object Window {
     var windowId: Long = 0
@@ -55,8 +64,21 @@ object Window {
     private val monitor = glfwGetPrimaryMonitor()
     val isFullScreenMonitor get() = if (fullScreen) glfwGetPrimaryMonitor() else 0
 
-    var fpsLimit = 99999
-    private val frameCap = 1.0 / fpsLimit
+    lateinit var videoMode: GLFWVidMode
+
+    var vsync: Boolean = false
+        set(value) {
+            field = value
+            glfwSwapInterval(if (value) 1 else 0)
+        }
+
+    var fpsLimit = 360
+        get() = if (vsync) videoMode.refreshRate() else field
+        set(value) {
+            field = value.coerceIn(5,360)
+        }
+
+    private val frameCap get() = 1.0 / fpsLimit
 
     private var frameTime = .0
     private var frames = 0
@@ -79,10 +101,9 @@ object Window {
         }
 
         glfwSetInputMode(windowId, GLFW_CURSOR, GLFW_CURSOR_HIDDEN)
-
+        videoMode = glfwGetVideoMode(monitor)!!
         if (!fullScreen) {
-            val vid = glfwGetVideoMode(monitor)!!
-            glfwSetWindowPos(windowId, (vid.width() - width) / 2, (vid.height() - height) / 2)
+            glfwSetWindowPos(windowId, (videoMode.width() - width) / 2, (videoMode.height() - height) / 2)
         }
         glfwShowWindow(windowId)
 
@@ -90,19 +111,20 @@ object Window {
 
         createCapabilities()
 
-        glEnable(GL_BLEND)
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-
         setCallbacks()
 
         glClearColor(bgColor.r, bgColor.g, bgColor.b, bgColor.a)
 
         glEnable(GL_TEXTURE_2D)
 
-        RendererManager.setup()
+        Renderer.register()
+
+        vsync = false
+
+        setWindowIcon()
     }
 
-    fun draw(action: () -> Unit) {
+    fun startDrawLoop(frameAction: () -> Unit) {
         while (!glfwWindowShouldClose(windowId)) {
 
             var canRender = false
@@ -125,7 +147,7 @@ object Window {
 
             if (canRender) {
                 glClear(GL_COLOR_BUFFER_BIT)
-                action()
+                frameAction()
                 glfwSwapBuffers(windowId)
                 frames++
             }
@@ -157,9 +179,47 @@ object Window {
                 centerX = width / 2f
                 centerY = height / 2f
                 glViewport(0, 0, width, height)
-                RendererManager.updateProjections()
+                Renderer.updateProjection()
             }
         })
+    }
+
+    private fun setWindowIcon() {
+        MemoryStack.stackPush().use { stack ->
+            val w = stack.mallocInt(1)
+            val h = stack.mallocInt(1)
+            val channels = stack.mallocInt(1)
+
+            val iconSizes = intArrayOf(16, 32, 48, 64)
+            val icons = GLFWImage.malloc(iconSizes.size)
+
+            var validIcons = 0
+            iconSizes.forEachIndexed { index, size ->
+                val iconStream = Window::class.java.getResourceAsStream("/icons/icon_${size}x${size}.png")
+                if (iconStream != null) {
+                    val tempFile = File.createTempFile("icon_${size}", ".png")
+                    tempFile.deleteOnExit()
+                    iconStream.use { input ->
+                        FileOutputStream(tempFile).use { output ->
+                            input.copyTo(output)
+                        }
+                    }
+                    val iconBuffer = stbi_load(tempFile.absolutePath, w, h, channels, 4)
+                    if (iconBuffer != null) {
+                        icons[index].width(w.get(0))
+                        icons[index].height(h.get(0))
+                        icons[index].pixels(iconBuffer)
+                        validIcons++
+                    }
+                }
+            }
+
+            if (validIcons > 0) {
+                glfwSetWindowIcon(windowId, icons)
+            }
+
+            icons.free()
+        }
     }
 
 }

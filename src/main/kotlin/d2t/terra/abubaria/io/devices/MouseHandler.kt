@@ -7,9 +7,8 @@ object MouseHandler {
     private val mouseButtonPressed = BooleanArray(10)
     private val mouseButtonReleaseActions = mutableMapOf<Int, (Int, Int) -> Unit>()
     private val mouseButtonClickActions = mutableMapOf<Int, (Int, Int) -> Unit>()
-    private val mouseScrollActions = mutableMapOf<String, (Double) -> Unit>()
-    private val mouseMoveActions = mutableListOf<(Int, Int) -> Unit>()
-    private val mouseButtonDragActions = mutableMapOf<Int, (Int, Int) -> Unit>()
+    private val mouseButtonPressedActions = mutableMapOf<Int, (Int, Int) -> Unit>()
+    private val mouseScrollActions = mutableListOf<(Double) -> Unit>()
 
     private var xPos: Int = 0
     private var yPos: Int = 0
@@ -21,11 +20,11 @@ object MouseHandler {
         lastY = yPos
         xPos = xps.toInt()
         yPos = yps.toInt()
+    }
 
-        mouseMoveActions.forEach { it(xPos, yPos) }
-
+    fun update() {
         mouseButtonPressed.forEachIndexed { index, bool ->
-            if (bool) mouseButtonDragActions[index]?.invoke(xPos, yPos)
+            if (bool) mouseButtonPressedActions[index]?.invoke(xPos, yPos)
         }
     }
 
@@ -46,8 +45,9 @@ object MouseHandler {
     }
 
     fun mouseScrollCallback(window: Long, xOffset: Double, yOffset: Double) {
-        if (xOffset != 0.0) mouseScrollActions["X"]?.invoke(xOffset)
-        if (yOffset != 0.0) mouseScrollActions["Y"]?.invoke(yOffset)
+        if (yOffset != 0.0) mouseScrollActions.forEach {
+            it.invoke(yOffset)
+        }
     }
 
     fun onMouseClick(button: Int, action: (Int, Int) -> Unit) {
@@ -58,16 +58,12 @@ object MouseHandler {
         mouseButtonReleaseActions[button] = action
     }
 
-    fun onMouseScroll(direction: String, action: (Double) -> Unit) {
-        mouseScrollActions[direction] = action
+    fun onMouseScroll(action: (Double) -> Unit) {
+        mouseScrollActions.add(action)
     }
 
-    fun onMouseDrag(button: Int, action: (Int, Int) -> Unit) {
-        mouseButtonDragActions[button] = action
-    }
-
-    fun onMouseMove(action: (Int, Int) -> Unit) {
-        mouseMoveActions.add(action)
+    fun onMousePress(button: Int, action: (Int, Int) -> Unit) {
+        mouseButtonPressedActions[button] = action
     }
 
     fun isButtonPressed(button: Int): Boolean {

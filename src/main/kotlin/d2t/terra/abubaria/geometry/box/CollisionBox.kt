@@ -4,7 +4,6 @@ import d2t.terra.abubaria.tileSizeF
 import org.joml.Vector2f
 import d2t.terra.abubaria.location.Location
 import d2t.terra.abubaria.util.for2d
-import d2t.terra.abubaria.util.print
 import d2t.terra.abubaria.util.square
 import d2t.terra.abubaria.world.World
 import d2t.terra.abubaria.world.block.Position
@@ -77,8 +76,8 @@ open class CollisionBox(
     fun isType(type: CollisionBoxType) = boxType === type
 
     fun move(x: Float = 0F, y: Float = 0F): CollisionBox {
-        this.x += x.toFloat()
-        this.y += y.toFloat()
+        this.x += x
+        this.y += y
         return this
     }
 
@@ -87,14 +86,14 @@ open class CollisionBox(
     }
 
     fun expandX(delta: Float): CollisionBox {
-        val value = delta.toFloat()
+        val value = delta
         if (value < 0) x += value
         sizeX += abs(value)
         return this
     }
 
     fun expandY(delta: Float): CollisionBox {
-        val value = delta.toFloat()
+        val value = delta
         if (value < 0) y += value
         sizeY += abs(value)
         return this
@@ -125,8 +124,8 @@ open class CollisionBox(
     }
 
     fun teleport(x: Float = this.x, y: Float = this.y): CollisionBox {
-        this.x = x.toFloat()
-        this.y = y.toFloat()
+        this.x = x
+        this.y = y
         return this
     }
 
@@ -136,7 +135,7 @@ open class CollisionBox(
 
     fun outtersectsX(other: CollisionBox) = x <= other.x || maxX >= other.maxX
 
-    fun outtersectsY(other: CollisionBox) = y >= other.maxY || maxY >= other.y
+    fun outtersectsY(other: CollisionBox) = y <= other.y || maxY >= other.maxY
 
     fun intersects(other: CollisionBox) = intersectsX(other) && intersectsY(other)
 
@@ -157,28 +156,22 @@ open class CollisionBox(
 
         val tMin = maxOf(maxOf(minOf(tMinX, tMaxX), minOf(tMinY, tMaxY)))
         val tMax = minOf(minOf(maxOf(tMinX, tMaxX), maxOf(tMinY, tMaxY)))
-        val distance = rayDistance.toFloat()
+        val distance = rayDistance
         return Intersection(vecFrom, vecDir, distance, tMin, tMax, this)
     }
 
     fun collideX(other: CollisionBox, offset: Float): Float {
-        if (colliderType === ColliderType.OUTSIDE) {
-            if (!other.intersectsY(this)) return offset
-            return collideAxis(offset, x, maxX, other.x, other.maxX)
-        } else {
-            if (!other.outtersectsX(this)) return offset
-            return recollideAxis(offset, x, maxX, other.x, other.maxX)
-        }
+        if (!other.intersectsY(this)) return offset
+        return if (colliderType === ColliderType.OUTSIDE)
+            collideAxis(offset, x, maxX, other.x, other.maxX)
+        else recollideAxis(offset, x, maxX, other.x, other.maxX)
     }
 
     fun collideY(other: CollisionBox, offset: Float): Float {
-        if (colliderType === ColliderType.OUTSIDE) {
-            if (!other.intersectsX(this)) return offset
-            return collideAxis(offset, y, maxY, other.y, other.maxY)
-        } else {
-            if (!other.outtersectsY(this)) return offset
-            return recollideAxisY(offset, y, maxY, other.y, other.maxY)
-        }
+        if (!other.intersectsX(this)) return offset
+        return if (colliderType === ColliderType.OUTSIDE)
+            collideAxis(offset, y, maxY, other.y, other.maxY)
+        else recollideAxis(offset, y, maxY, other.y, other.maxY)
     }
 
     private fun collideAxis(offset: Float, axis: Float, axisMax: Float, oAxis: Float, oAxisMax: Float): Float {
@@ -192,21 +185,11 @@ open class CollisionBox(
     }
 
     private fun recollideAxis(offset: Float, axis: Float, axisMax: Float, oAxis: Float, oAxisMax: Float): Float {
-        return if (offset > 0f && oAxis <= axisMax) {
+        return if (offset > 0F && oAxisMax <= axisMax) {
             val dz = axisMax - oAxisMax
             if (dz < offset) dz else offset
-        } else if (offset < 0f && oAxisMax >= axis) {
+        } else if (offset < 0f && oAxis >= axis) {
             val dz = axis - oAxis
-            if (dz > offset) dz else offset
-        } else offset
-    }
-
-    private fun recollideAxisY(offset: Float, blockTop: Float, blockBottom: Float, playerTop: Float, playerBottom: Float): Float {
-        return if (offset > 0F && playerBottom <= blockBottom) {
-            val dz = blockBottom - playerBottom
-            if (dz < offset) dz else offset
-        } else if (offset < 0f && playerTop >= blockTop) {
-            val dz = blockTop - playerTop
             if (dz > offset) dz else offset
         } else offset
     }

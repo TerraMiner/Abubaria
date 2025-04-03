@@ -1,33 +1,32 @@
 package d2t.terra.abubaria.entity.impl
 
+import d2t.terra.abubaria.Client
 import d2t.terra.abubaria.GamePanel
-import d2t.terra.abubaria.entity.EntityService
 import d2t.terra.abubaria.entity.LivingEntity
+import d2t.terra.abubaria.entity.MovingObject
 import d2t.terra.abubaria.entity.type.EntityType
-import d2t.terra.abubaria.geometry.box.ColliderType
-import d2t.terra.abubaria.geometry.box.CollisionBox
-import d2t.terra.abubaria.world.Camera
+import d2t.terra.abubaria.interpBound
 import d2t.terra.abubaria.inventory.Inventory
 import d2t.terra.abubaria.io.devices.KeyHandler.isKeyPressed
 import d2t.terra.abubaria.io.devices.Keys
 import d2t.terra.abubaria.io.graphics.Model
 import d2t.terra.abubaria.io.graphics.Texture
-import d2t.terra.abubaria.io.graphics.render.BatchSession
+import d2t.terra.abubaria.io.graphics.render.RenderDimension
 import d2t.terra.abubaria.io.graphics.render.Renderer
-import d2t.terra.abubaria.io.graphics.render.RendererManager
-//import d2t.terra.abubaria.io.graphics.render.batch.BatchRenderer
-import d2t.terra.abubaria.io.graphics.shader.module.geometry.ShaderShapeModule
+import d2t.terra.abubaria.io.graphics.render.WORLD_DEBUG_LAYER
+import d2t.terra.abubaria.io.graphics.render.WORLD_PLAYER_LAYER
 import d2t.terra.abubaria.location.Direction
 import d2t.terra.abubaria.location.Location
-import d2t.terra.abubaria.tileSizeF
 
-object ClientPlayer : LivingEntity(EntityType.PLAYER, GamePanel.world.spawnLocation.clone) {
+object ClientPlayer : LivingEntity(EntityType.PLAYER, GamePanel.world.spawnLocation.clone), MovingObject {
+
+    override val renderLocation: Location = location.clone
 
     //todo переписать на спрайт со сменой модельных координат
-    val leftIdle = Texture("entity/player/leftIdle.png")
-    val leftJump = Texture("entity/player/leftJump.png")
-    val rightIdle = Texture("entity/player/rightIdle.png")
-    val rightJump = Texture("entity/player/rightJump.png")
+    val leftIdle = Texture.get("entity/player/leftIdle.png")
+    val leftJump = Texture.get("entity/player/leftJump.png")
+    val rightIdle = Texture.get("entity/player/rightIdle.png")
+    val rightJump = Texture.get("entity/player/rightJump.png")
 
     var onJump: Boolean = false
     private var jumpStart: Long = 0L
@@ -37,8 +36,11 @@ object ClientPlayer : LivingEntity(EntityType.PLAYER, GamePanel.world.spawnLocat
 
     val centerPos get() = location.clone.set(collisionBox.centerX, collisionBox.centerY)
 
+    override val baseInterpSpeed: Float = .2f
+
     init {
-        EntityService.register(this)
+        airFriction = 0.85f
+        groundFriction = 0.85f
     }
 
     override fun calculatePhysics() {
@@ -48,6 +50,8 @@ object ClientPlayer : LivingEntity(EntityType.PLAYER, GamePanel.world.spawnLocat
         applyFriction()
         checkCollision()
         applyMovement()
+
+        updateRenderLocation(location)
     }
 
     override fun checkCollision() {
@@ -64,8 +68,9 @@ object ClientPlayer : LivingEntity(EntityType.PLAYER, GamePanel.world.spawnLocat
     override fun collideXY() {
         val expandedBox = collisionBox.clone().expand(movement)
         val hitBoxes = expandedBox.getCollidingBlocks(location.world)
-        collideY(hitBoxes)
-        collideX(hitBoxes)
+        val collider = collisionBox.clone()
+        collideY(collider, hitBoxes)
+        collideX(collider, hitBoxes)
     }
 
 
@@ -89,7 +94,7 @@ object ClientPlayer : LivingEntity(EntityType.PLAYER, GamePanel.world.spawnLocat
         }
     }
 
-    override fun draw(session: BatchSession) {
+    override fun draw() {
         val image = when (location.direction) {
             Direction.LEFT -> {
                 if (isOnGround) leftIdle
@@ -101,45 +106,25 @@ object ClientPlayer : LivingEntity(EntityType.PLAYER, GamePanel.world.spawnLocat
                 else rightJump
             }
         }
-
-
-        val offX = Camera.playerScreenPosX(location)
-        val offY = Camera.playerScreenPosY(location)
-
-        session.render(
+        Renderer.render(
             image,
             Model.Companion.DEFAULT,
-            location.x.toFloat(), location.y.toFloat(),
+            renderLocation.x, renderLocation.y,
             type.width,
-            type.height
+            type.height,
+            zIndex = WORLD_PLAYER_LAYER,
+            dim = RenderDimension.WORLD,
+            ignoreCamera = false
         )
+
+        if (Client.debugMode) {
+            Renderer.renderRectangle(
+                renderLocation.x, renderLocation.y,
+                type.width, type.height,
+                zIndex = WORLD_DEBUG_LAYER,
+                dim = RenderDimension.WORLD,
+                ignoreCamera = false
+            )
+        }
     }
-
-//    override fun addToBatch(batchRenderer: BatchRenderer) {
-//        val image = when (location.direction) {
-//            Direction.LEFT -> {
-//                if (isOnGround) leftIdle
-//                else leftJump
-//            }
-//
-//            Direction.RIGHT -> {
-//                if (isOnGround) rightIdle
-//                else rightJump
-//            }
-//        }
-//
-//
-//        val offX = Camera.playerScreenPosX(location)
-//        val offY = Camera.playerScreenPosY(location)
-//
-//        batchRenderer.addToBatch(
-//            image,
-//            offX,
-//            offY,
-//            type.width,
-//            type.height
-//        )
-//    }
-
-    override fun spawn() {}
 }

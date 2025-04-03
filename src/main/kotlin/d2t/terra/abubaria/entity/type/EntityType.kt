@@ -1,14 +1,14 @@
 package d2t.terra.abubaria.entity.type
 
-import d2t.terra.abubaria.entity.AbstractEntity
-import d2t.terra.abubaria.entity.impl.ItemEntity
+import d2t.terra.abubaria.entity.Entity
+import d2t.terra.abubaria.entity.impl.item.ItemEntity
 import d2t.terra.abubaria.entity.impl.ClientPlayer
 
 enum class EntityType(
     val width: Float,
     val height: Float,
-    val clazz: Class<out AbstractEntity>
+    val clazz: Class<out Entity>
 ) {
     PLAYER(22.4f, 46.4f, ClientPlayer::class.java),
-    ITEM(24.0f, 24.0f, ItemEntity::class.java)
+    ITEM(12.0f, 12.0f, ItemEntity::class.java)
 }

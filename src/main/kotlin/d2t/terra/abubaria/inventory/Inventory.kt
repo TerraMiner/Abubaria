@@ -1,10 +1,8 @@
 package d2t.terra.abubaria.inventory
 
-import d2t.terra.abubaria.Cursor.inventory
 import d2t.terra.abubaria.entity.impl.ClientPlayer
 import d2t.terra.abubaria.geometry.box.CollisionBox
 import d2t.terra.abubaria.hud.Hud
-import d2t.terra.abubaria.io.graphics.render.RendererManager
 import d2t.terra.abubaria.diff
 import d2t.terra.abubaria.inSlotPos
 import d2t.terra.abubaria.io.devices.MouseHandler
@@ -13,7 +11,10 @@ import d2t.terra.abubaria.io.fonts.TextHorPosition
 import d2t.terra.abubaria.world.material.Material
 import d2t.terra.abubaria.slotSize
 import d2t.terra.abubaria.io.graphics.Model
-import d2t.terra.abubaria.io.graphics.render.BatchSession
+import d2t.terra.abubaria.io.graphics.render.RenderDimension
+import d2t.terra.abubaria.io.graphics.render.Renderer
+import d2t.terra.abubaria.io.graphics.render.UI_HUD_ELEMENTS_LAYER
+import d2t.terra.abubaria.io.graphics.render.UI_HUD_TEXT_LAYER
 import d2t.terra.abubaria.util.getCoords
 import d2t.terra.abubaria.util.getIndex
 
@@ -28,7 +29,7 @@ data class Inventory(val xSize: Int, val ySize: Int) {
         items[getIndex(5, 0, xSize, ySize)] = Item(Material.STONE_HALF_DOWN, Material.STONE_HALF_DOWN.maxStackSize)
         items[getIndex(6, 0, xSize, ySize)] = Item(Material.STONE_HALF_UP, Material.STONE_HALF_UP.maxStackSize)
 
-        MouseHandler.onMouseScroll("Y") { offset ->
+        MouseHandler.onMouseScroll { offset ->
             ClientPlayer.inventory.scrollHotBar(-offset.toInt())
         }
     }
@@ -47,8 +48,8 @@ data class Inventory(val xSize: Int, val ySize: Int) {
             }
         }
 
-    private val openBound = CollisionBox(0f + diff, 0f + diff, xSize * slotSize.toFloat(), ySize * slotSize.toFloat())
-    private val closeBound = CollisionBox(0f + diff, 0f + diff, xSize * slotSize.toFloat(), slotSize.toFloat())
+    private val openBound = CollisionBox(0f + diff, 0f + diff, xSize * slotSize, ySize * slotSize)
+    private val closeBound = CollisionBox(0f + diff, 0f + diff, xSize * slotSize, slotSize)
 
     val inventoryBound get() = if (opened) openBound else closeBound
 
@@ -119,7 +120,7 @@ data class Inventory(val xSize: Int, val ySize: Int) {
         return -1
     }
 
-    fun draw(session: BatchSession) {
+    fun draw() {
         val inventory = Hud.inventory
         items.forEachIndexed { index, item ->
             val pos = getCoords(index)
@@ -129,30 +130,42 @@ data class Inventory(val xSize: Int, val ySize: Int) {
 
             val texture = if (selectedHotBar == pos.x && pos.y == 0) Hud.selectedSlot else Hud.slot
 
-            session.render(texture, Model.DEFAULT, screenX, screenY, slotSize, slotSize)
+            Renderer.render(
+                texture,
+                Model.DEFAULT,
+                screenX,
+                screenY,
+                slotSize,
+                slotSize,
+                zIndex = UI_HUD_ELEMENTS_LAYER,
+                dim = RenderDimension.SCREEN
+            )
 
             if (item.type !== Material.AIR) {
                 val size = slotSize - inSlotPos * 2f
                 item.draw(
                     screenX + inSlotPos,
-                    screenY + inSlotPos + (size * item.type.state.offset).toInt(),
+                    screenY + inSlotPos + size * item.type.state.offset,
                     size,
-                    size - (size * item.type.state.scale.toFloat()),
-                    session
+                    size - size * item.type.state.scale,
                 )
-                session.renderText(
-                    "${item.amount}", screenX + inSlotPos + size + inSlotPos / 2, screenY + size, .2f,
+                Renderer.renderText(
+                    "${item.amount}", screenX + inSlotPos + size + inSlotPos / 2, screenY + size, 12,
                     textHorAligment = TextHorAligment.RIGHT,
-                    textHorPosition = TextHorPosition.RIGHT
+                    textHorPosition = TextHorPosition.RIGHT,
+                    zIndex = UI_HUD_TEXT_LAYER,
+                    dim = RenderDimension.SCREEN
                 )
             }
 
             if (pos.y == 0) {
-                session.renderText(
+                Renderer.renderText(
                     inventory.getItem(selectedHotBar, 0)?.display ?: "",
                     24F,
                     -3f,
-                    .3f
+                    19,
+                    zIndex = UI_HUD_TEXT_LAYER,
+                    dim = RenderDimension.SCREEN
                 )
             }
         }

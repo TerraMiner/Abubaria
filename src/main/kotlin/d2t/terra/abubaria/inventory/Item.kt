@@ -1,13 +1,13 @@
 package d2t.terra.abubaria.inventory
 
-import d2t.terra.abubaria.io.graphics.render.TextureBatchRenderer
-import d2t.terra.abubaria.entity.impl.ItemEntity
-import d2t.terra.abubaria.io.graphics.render.RendererManager
+import d2t.terra.abubaria.entity.impl.item.ItemEntity
 import d2t.terra.abubaria.location.Direction
 import d2t.terra.abubaria.location.Location
 import d2t.terra.abubaria.world.material.Material
 import d2t.terra.abubaria.io.graphics.Model
-import d2t.terra.abubaria.io.graphics.render.BatchSession
+import d2t.terra.abubaria.io.graphics.render.RenderDimension
+import d2t.terra.abubaria.io.graphics.render.Renderer
+import d2t.terra.abubaria.io.graphics.render.UI_HUD_CONTENTS_LAYER
 import kotlin.math.ceil
 import kotlin.math.floor
 
@@ -90,22 +90,23 @@ class Item(type: Material = Material.AIR, amount: Int = 1) {
         amount = 0
     }
 
-    fun drop(location: Location, pickupDelay: Int = 3000) {
-        ItemEntity(clone, location, pickupDelay).apply {
-            movement.set(if (location.direction == Direction.RIGHT) .7 else -.7, -.4)
-        }.spawn()
-        remove()
+    fun drop(location: Location, pickupDelay: Int = 2500, dx: Float = .7f, dy: Float = -.5f): ItemEntity {
+        return ItemEntity(clone, location, pickupDelay).apply {
+            movement(dx * location.direction.offset, dy)
+        }.also {
+            it.spawn()
+            remove()
+        }
     }
 
     fun draw(
         x: Float,
         y: Float,
         width: Float,
-        height: Float,
-        session: BatchSession
+        height: Float
     ) {
         val texture = type.texture ?: return
-        session.render(texture, Model.DEFAULT, x, y, width, height)
+        Renderer.render(texture, Model.DEFAULT, x, y, width, height, zIndex = UI_HUD_CONTENTS_LAYER, dim = RenderDimension.SCREEN)
     }
 
 }

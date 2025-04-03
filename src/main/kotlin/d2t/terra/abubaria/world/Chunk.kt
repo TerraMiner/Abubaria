@@ -1,12 +1,12 @@
 package d2t.terra.abubaria.world
 
-import d2t.terra.abubaria.Client
-import d2t.terra.abubaria.chunkBitMask
+import d2t.terra.abubaria.chunkShiftBits
 import d2t.terra.abubaria.chunkSize
+import d2t.terra.abubaria.entity.Entity
 import d2t.terra.abubaria.geometry.box.BlockCollisionBox
 import d2t.terra.abubaria.geometry.box.CollisionBox
-import d2t.terra.abubaria.io.graphics.render.BatchSession
 import d2t.terra.abubaria.tileSizeF
+import d2t.terra.abubaria.util.concurrentSetOf
 import d2t.terra.abubaria.util.loopWhile
 import d2t.terra.abubaria.world.block.Block
 import d2t.terra.abubaria.world.block.BlockInChunkPosition
@@ -20,21 +20,33 @@ class Chunk(
     val worldSizeX = x * chunkSize
     val worldSizeY = y * chunkSize
 
+    val entities = concurrentSetOf<Entity>()
+
+    fun addEntity(entity: Entity) {
+        entities.add(entity)
+    }
+
+    fun removeEntity(entity: Entity) {
+        entities.remove(entity)
+    }
+
+    fun drawEntities() {
+        entities.forEach(Entity::draw)
+    }
+
 //    val lighed get() = blockMap.flatten().any { it.lighted }
 
     fun initBlocks() {
         blockMap.forEachIndexed { index, block ->
             val position = BlockInChunkPosition(index.toByte())
-            block.x = (x shl chunkBitMask) + position.x
-            block.y = (y shl chunkBitMask) + position.y
+            block.x = (x shl chunkShiftBits) + position.x
+            block.y = (y shl chunkShiftBits) + position.y
             block.collisionBox = BlockCollisionBox(block)
         }
     }
 
-    fun drawTextures(session: BatchSession) {
-        blockMap.forEachIndexed { index, block ->
-            block.drawTexture(session)
-        }
+    fun drawBlocks() {
+        blockMap.forEach(Block::drawTexture)
 
 //        if (Client.debugMode) {
 //            val screenX = Camera.worldScreenPosX(worldSizeX * tileSize, location)

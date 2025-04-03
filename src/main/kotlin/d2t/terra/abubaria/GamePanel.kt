@@ -1,11 +1,11 @@
 package d2t.terra.abubaria
 
-import d2t.terra.abubaria.entity.EntityService
 import d2t.terra.abubaria.world.Camera
 import d2t.terra.abubaria.entity.impl.ClientPlayer
 import d2t.terra.abubaria.event.EventHandler
 import d2t.terra.abubaria.hud.Hud
 import d2t.terra.abubaria.io.devices.KeyHandler
+import d2t.terra.abubaria.io.devices.MouseHandler
 import d2t.terra.abubaria.io.fonts.CFont
 import d2t.terra.abubaria.io.fonts.TextHorAligment
 import d2t.terra.abubaria.io.fonts.TextHorPosition
@@ -14,8 +14,12 @@ import d2t.terra.abubaria.io.fonts.TextVerPosition
 import d2t.terra.abubaria.io.graphics.Color
 import d2t.terra.abubaria.io.graphics.Window
 import d2t.terra.abubaria.io.graphics.Window.windowId
-import d2t.terra.abubaria.io.graphics.render.RendererManager
+import d2t.terra.abubaria.io.graphics.render.RenderDimension
+import d2t.terra.abubaria.io.graphics.render.Renderer
+import d2t.terra.abubaria.io.graphics.render.UI_DEBUG_LAYER
+import d2t.terra.abubaria.io.graphics.render.WORLD_ENTITY_LAYER
 import d2t.terra.abubaria.util.TaskScheduler
+import d2t.terra.abubaria.util.print
 import d2t.terra.abubaria.world.World
 import d2t.terra.abubaria.world.generator.WorldGenerator
 import org.lwjgl.glfw.GLFW.glfwWindowShouldClose
@@ -50,7 +54,6 @@ object GamePanel {
     private val bgColor = Color(150, 200, 250)
 
     fun startGame() {
-        ClientPlayer
 //        lightThread = thread(true, false, null, "lightThread") {
 //            LightManager.tick()
 //        }
@@ -59,13 +62,13 @@ object GamePanel {
 //            world.generateWorldLight()
         }
 
+        ClientPlayer.spawn()
+        Camera.initialize()
+
         EventHandler
-
         registerGameThread()
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        Window.draw {
+        Window.startDrawLoop {
             TaskScheduler.tick()
             drawScreen()
         }
@@ -89,8 +92,10 @@ object GamePanel {
                 lastTime = currentTime
                 while (deltaTicks >= 1.0) {
                     KeyHandler.update()
+                    MouseHandler.update()
                     Cursor.update()
-                    EntityService.tick()
+                    Camera.coerceInWorld()
+                    world.tick()
 
                     if (++step > maxStep) step = 0
 
@@ -117,31 +122,37 @@ object GamePanel {
     private fun drawScreen() {
         val start = System.currentTimeMillis()
 
-        RendererManager.WorldRenderer.begin()
-        RendererManager.UIRenderer.begin()
+        Camera.interpolate()
+        Camera.applyZoom()
 
+        Renderer.renderText(
+            "Привет!\nAbubaria",
+            world.spawnLocation.x.toFloat(),
+            world.spawnLocation.y.toFloat(),
+            64,
+            color = Color.gradientRainbow(step, maxStep),
+            textHorAligment = alignX,
+            textHorPosition = positionX,
+            textVerAlignment = alignY,
+            textVerPosition = positionY,
+            zIndex = WORLD_ENTITY_LAYER,
+            dim = RenderDimension.WORLD,
+            ignoreCamera = false
+        )
 
-        RendererManager.WorldRenderer.session {
-            renderText(
-                "Привет!\nAbubaria",
-                world.spawnLocation.x.toFloat(),
-                world.spawnLocation.y.toFloat(),
-                1f,
-                color = Color.gradientRainbow(step, maxStep),
-                textHorAligment = alignX,
-                textHorPosition = positionX,
-                textVerAlignment = alignY,
-                textVerPosition = positionY,
-            )
+        if (Client.debugMode) {
+            Renderer.renderLine(0f, Window.centerY, Window.width.toFloat(), Window.centerY, color = Color.RED, zIndex = UI_DEBUG_LAYER, dim = RenderDimension.SCREEN)
+            Renderer.renderLine(Window.centerX, 0f, Window.centerX, Window.height.toFloat(), color = Color.GREEN, zIndex = UI_DEBUG_LAYER, dim = RenderDimension.SCREEN)
         }
 
-        Camera.coerceInWorld(ClientPlayer.location)
-        RendererManager.WorldRenderer.session(world::draw)
-        RendererManager.UIRenderer.session(Hud::draw)
-        RendererManager.UIRenderer.session(Cursor::draw)
-        RendererManager.UIRenderer.session(display::draw)
-        RendererManager.WorldRenderer.end()
-        RendererManager.UIRenderer.end()
+
+        world.draw()
+
+        Hud.draw()
+        display.draw()
+        Cursor.draw()
+
+        Renderer.render()
 //
 //        val text = font.characterMap.keys.map(::Char).chunked(font.atlasSquareSize).map { it.joinToString("  ") }
 //            .joinToString("\n\n")

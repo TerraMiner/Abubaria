@@ -3,14 +3,20 @@ package d2t.terra.abubaria.location
 import d2t.terra.abubaria.GamePanel
 import d2t.terra.abubaria.geometry.box.CollisionBox
 import d2t.terra.abubaria.world.World
+import org.joml.Vector2f
 import kotlin.math.pow
 import kotlin.math.sqrt
 
-open class Location(var x: Float = 0f, var y: Float = 0f, var direction: Direction = Direction.LEFT,val world: World = GamePanel.world) {
-    constructor(x: Int, y: Int) : this(x.toFloat(),y.toFloat(),Direction.LEFT)
-    constructor(x: Int, y: Int, direction: Direction) : this(x.toFloat(),y.toFloat(),direction)
+open class Location(
+    var x: Float = 0f,
+    var y: Float = 0f,
+    var direction: Direction = Direction.LEFT,
+    val world: World = GamePanel.world
+) {
+    constructor(x: Int, y: Int) : this(x.toFloat(), y.toFloat(), Direction.LEFT)
+    constructor(x: Int, y: Int, direction: Direction) : this(x.toFloat(), y.toFloat(), direction)
 
-    val clone: Location get() = Location(x,y,direction)
+    val clone: Location get() = Location(x, y, direction, world)
 
     fun set(location: Location): Location {
         x = location.x
@@ -36,10 +42,10 @@ open class Location(var x: Float = 0f, var y: Float = 0f, var direction: Directi
         return this
     }
 
+    fun move(vec: Vector2f): Location = move(vec.x, vec.y)
+
     fun transfer(dx: Float, dy: Float): Location {
-        return clone.also {
-            it.x += dx; it.y += dy
-        }
+        return clone.move(dx, dy)
     }
 
     fun distance(other: Location): Float {

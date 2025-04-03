@@ -7,8 +7,11 @@ import d2t.terra.abubaria.io.fonts.TextHorAligment
 import d2t.terra.abubaria.io.fonts.TextHorPosition
 import d2t.terra.abubaria.io.fonts.TextVerAlignment
 import d2t.terra.abubaria.io.fonts.TextVerPosition
+import d2t.terra.abubaria.io.graphics.Window
+import d2t.terra.abubaria.world.Camera
 import org.lwjgl.glfw.GLFW.GLFW_PRESS
 import org.lwjgl.glfw.GLFW.GLFW_RELEASE
+import java.util.concurrent.ConcurrentHashMap
 
 object KeyHandler {
     private val keyPressed = BooleanArray(350)
@@ -42,34 +45,20 @@ object KeyHandler {
     }
 
     fun update() {
-        keyPressedActions.forEach { if (isKeyPressed(it.key)) it.value.invoke() }
-
+        keyPressedActions.forEach {
+            if (isKeyPressed(it.key)) it.value.invoke()
+        }
     }
 
     init {
         onKeyPress(Keys.VK_RIGHT) {
-            GamePanel.positionX = TextHorPosition.entries.getOrNull(GamePanel.positionX.ordinal - 1) ?: TextHorPosition.RIGHT
+            Window.fpsLimit += 10
         }
         onKeyPress(Keys.VK_LEFT) {
-            GamePanel.positionX = TextHorPosition.entries.getOrNull(GamePanel.positionX.ordinal + 1) ?: TextHorPosition.LEFT
-        }
-        onKeyPress(Keys.VK_UP) {
-            GamePanel.positionY = TextVerPosition.entries.getOrNull(GamePanel.positionY.ordinal - 1) ?: TextVerPosition.BOTTOM
+            Window.fpsLimit -= 10
         }
         onKeyPress(Keys.VK_DOWN) {
-            GamePanel.positionY = TextVerPosition.entries.getOrNull(GamePanel.positionY.ordinal + 1) ?: TextVerPosition.UP
-        }
-        onKeyPress(Keys.VK_DEL) {
-            GamePanel.alignX = TextHorAligment.entries.getOrNull(GamePanel.alignX.ordinal - 1) ?: TextHorAligment.RIGHT
-        }
-        onKeyPress(Keys.VK_PGDN) {
-            GamePanel.alignX = TextHorAligment.entries.getOrNull(GamePanel.alignX.ordinal + 1) ?: TextHorAligment.LEFT
-        }
-        onKeyPress(Keys.VK_HOME) {
-            GamePanel.alignY = TextVerAlignment.entries.getOrNull(GamePanel.alignY.ordinal - 1) ?: TextVerAlignment.BOTTOM
-        }
-        onKeyPress(Keys.VK_END) {
-            GamePanel.alignY = TextVerAlignment.entries.getOrNull(GamePanel.alignY.ordinal + 1) ?: TextVerAlignment.UP
+            Window.vsync = !Window.vsync
         }
         onKeyPress(Keys.VK_F3) { Client.debugMode = !Client.debugMode }
         onKeyPress(Keys.VK_F9) { GamePanel.debug = true }
@@ -89,5 +78,7 @@ object KeyHandler {
         onKeyPressed(Keys.VK_8) { ClientPlayer.inventory.selectedHotBar = 7 }
         onKeyPressed(Keys.VK_9) { ClientPlayer.inventory.selectedHotBar = 8 }
         onKeyPressed(Keys.VK_0) { ClientPlayer.inventory.selectedHotBar = 9 }
+        onKeyPressed(Keys.VK_EQUALS, Camera::zoomIn)
+        onKeyPressed(Keys.VK_MINUS, Camera::zoomOut)
     }
 }

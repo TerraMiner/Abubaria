@@ -4,7 +4,7 @@ import d2t.terra.abubaria.entity.type.EntityType
 import d2t.terra.abubaria.location.Direction
 import d2t.terra.abubaria.location.Location
 
-abstract class LivingEntity(type: EntityType, location: Location) : Entity(type,location) {
+abstract class LivingEntity(type: EntityType, location: Location) : PhysicalEntity(type,location) {
     var health: Float = 0f
     var maxHealth: Float = 0f
 

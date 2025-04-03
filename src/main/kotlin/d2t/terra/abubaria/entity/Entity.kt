@@ -1,273 +1,81 @@
 package d2t.terra.abubaria.entity
 
-import d2t.terra.abubaria.entity.impl.ClientPlayer
-import d2t.terra.abubaria.tileSize
-import d2t.terra.abubaria.tileSizeF
+import d2t.terra.abubaria.GamePanel
 import d2t.terra.abubaria.entity.type.EntityType
-import d2t.terra.abubaria.geometry.box.BlockCollisionBox
-import d2t.terra.abubaria.geometry.box.ColliderType
-import d2t.terra.abubaria.geometry.box.CollisionBox
-import d2t.terra.abubaria.geometry.box.EntityCollisionBox
-import d2t.terra.abubaria.geometry.isNan
-import d2t.terra.abubaria.geometry.subtract
-import d2t.terra.abubaria.geometry.toVector2f
-import d2t.terra.abubaria.location.Direction
+import d2t.terra.abubaria.geometry.position
 import d2t.terra.abubaria.location.Location
-import d2t.terra.abubaria.tickrate
-import d2t.terra.abubaria.util.none
-import d2t.terra.abubaria.world.block.BlockFace
-import org.joml.Vector2f
-import kotlin.math.ceil
 
-abstract class Entity(type: EntityType, location: Location) : AbstractEntity(type, location) {
+abstract class Entity(val type: EntityType, val location: Location) {
 
-    var collisionBox = EntityCollisionBox(this)
+    val id = nextEntityId
 
-    var climbHeight = tileSizeF
-    var jumpHeight = .155f
-    var speed = 0.15f
-    var gravity = 0.03f * 256.0f / tickrate
-    var maxHorSpeed = 0.8f
-    var maxVerSpeed = 2.2f * 256.0f / tickrate
+    var isRemoved = false
+        private set
+    var isChunkDirty = false
+        private set
 
-    var groundFriction = 0.85f
-    var airFriction = 0.85f
-    var hasAI = true
-    var canCollideWithBlocks = true
+    var isOnGround = false
 
-    var tryJump = false
+    var hasCollision = true
 
-    var movement = Vector2f()
+    var latestChunkSnapshot = location.position.chunkPosition
+        private set
 
-    init {
-        hasCollision = false
-    }
+    var hasGravity = true
 
-    override fun teleport(
-        x: Float,
-        y: Float,
+    val oldLocation = Location(0, 0)
+    val centerLocation get() = location.transfer(type.width / 2, type.height / 2)
+
+    abstract fun spawn()
+    abstract fun remove()
+    abstract fun tick()
+    abstract fun draw()
+
+    open fun teleport(
+        x: Float = location.x,
+        y: Float = location.y,
     ) {
-        super.teleport(x, y)
-        bindHitBox()
+        updatePosition(x,y)
     }
 
-    /**
-     * Задаёт вектор ускорения сущности
-     */
-    open fun movement(x: Float = movement.x, y: Float = movement.y) {
-        movement.x = x.toFloat()
-        movement.y = y.toFloat()
+    fun teleport(target: Location) {
+        teleport(target.x, target.y)
     }
 
-    open fun movement(vec: Vector2f) {
-        movement(vec.x, vec.y)
+    open fun updatePosition(x: Float, y: Float) {
+        oldLocation.set(location)
+
+        location.set(x, y)
+
+        val oldChunk = latestChunkSnapshot
+        val newChunk = location.position.chunkPosition
+
+        isChunkDirty = oldChunk != newChunk
+
+        if (!isChunkDirty) return
+
+        GamePanel.world.getChunk(oldChunk)?.removeEntity(this)
+        GamePanel.world.getChunk(newChunk)?.addEntity(this)
+
+        isChunkDirty = false
+        latestChunkSnapshot = newChunk
     }
 
-    override fun tick() {
-        if (!hasAI) return
-        calculatePhysics()
+    override fun hashCode(): Int {
+        return id.hashCode()
     }
 
-    /**
-     * Считает физику всего энтити.
-     * Тут важно соблюдать порядок выполнения действий.
-     */
-    open fun calculatePhysics() {
-        limitSpeed()
-        tickJump()
-        tickFall()
-        applyFriction()
-        checkCollision()
-        applyMovement()
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is Entity) return false
+
+        if (id != other.id) return false
+
+        return true
     }
 
-    /**
-     *Просчитывает следующую позицию куда будет двигаться энтити
-     * @return Достигнута ли цель.
-     */
-    open fun walkTo(target: Location, whenStop: Float): Boolean {
-        val stopped = location.distance(target).let { (it <= whenStop) }
-        if (stopped) return true
-
-        val nextStep = location.toVector2f().subtract(target.toVector2f()).normalize().mul(-speed).run {
-            if (isNan) Vector2f() else this
-        }
-
-        val y = movement.y
-
-        oldLocation.direction = if (nextStep.x > 0) Direction.RIGHT
-        else if (nextStep.x < 0) Direction.LEFT
-        else oldLocation.direction
-
-        nextStep.apply { movement(x, y) }
-
-        return false
-    }
-
-    /**
-     * Применяет трение.
-     * Не учитывает модификаторы трения у отдельных типов блоков.
-     */
-    open fun applyFriction() {
-        val mod = if (isOnGround) groundFriction else airFriction
-        val movementBound = 0.0001f
-        movement.x *= if (movement.x !in -movementBound..movementBound) mod else .0f
-//        if (fallModifier != .0f) {
-//            movement.y *= if (movement.y !in -movementBound..movementBound) mod else .0f
-//        }
-    }
-
-    /**
-     * Устанавливает локацию в позицию колизион-бокса
-     */
-    open fun applyMovement() {
-        location.direction = oldLocation.direction
-        teleport(collisionBox.x, collisionBox.y)
-    }
-
-    open fun tickFall() {
-        val mod = if (hasGravity) gravity else .0f
-        movement.y += mod
-    }
-
-    open fun tickJump() {
-        if (isOnGround && tryJump) {
-            movement.y -= jumpHeight
-        }
-        tryJump = false
-    }
-
-    /**
-     * Ограничение скорости вектора в допустимые рамки.
-     */
-    open fun limitSpeed() {
-        if (movement.x > maxHorSpeed) movement.x = maxHorSpeed
-        if (movement.x < -maxHorSpeed) movement.x = -maxHorSpeed
-        if (movement.y > maxVerSpeed) movement.y = maxVerSpeed
-        if (movement.y < -maxVerSpeed) movement.y = -maxVerSpeed
-    }
-
-    /**
-     * Обработка взбирания и коллизий.
-     */
-    open fun checkCollision() {
-        if (canCollideWithBlocks) {
-            val futureBox = collisionBox.clone().expandX(movement.x)
-
-            val forClimb = futureBox.getCollidingBlocks(location.world)
-            tryClimb(futureBox, forClimb)
-            collideXY()
-        }
-    }
-
-    /**
-     * Обработка прыжка и всевозможных коллизий.
-     */
-    open fun collideXY() {
-        val expandedBox = collisionBox.clone().expand(movement)
-        val hitBoxes = expandedBox.getCollidingBlocks(location.world)
-        tryJump(expandedBox, hitBoxes)
-        collideY(hitBoxes)
-        collideX(hitBoxes)
-    }
-
-    /**
-     * Обработка прыжка и всевозможных столкновений.
-     * @return список сторон блоков с которыми произошла коллизия
-     */
-    open fun collidersXY(): List<BlockFace> {
-        val expandedBox = collisionBox.clone().expand(movement)
-        val hitBoxes = expandedBox.getCollidingBlocks(location.world)
-        tryJump(expandedBox, hitBoxes)
-        return listOfNotNull(
-            collideY(hitBoxes),
-            collideX(hitBoxes)
-        )
-    }
-
-    /**
-     * Обработка коллизии по оси X.
-     */
-    open fun collideX(colliders: List<CollisionBox>): BlockFace? {
-        if (movement.x == .0f) return null
-        val deltaBefore = movement.x
-        movement.x = location.world.worldBorder.collideX(collisionBox, movement.x)
-        colliders.forEach { movement.x = it.collideX(collisionBox, movement.x) }
-        collisionBox.move(movement.x, .0f)
-        return if (deltaBefore != movement.x) {
-            if (deltaBefore < 0) BlockFace.RIGHT else BlockFace.LEFT
-        } else null
-    }
-
-    /**
-     * Обработка коллизии по оси Y.
-     */
-    open fun collideY(colliders: List<CollisionBox>): BlockFace? {
-        val deltaBefore = movement.y
-        movement.y = location.world.worldBorder.collideY(collisionBox, movement.y)
-        colliders.forEach { movement.y = it.collideY(collisionBox, movement.y) }
-        collisionBox.move(.0f, movement.y)
-        isOnGround = deltaBefore > 0 && movement.y == .0f
-        return if (deltaBefore != movement.y) {
-            if (deltaBefore < 0) BlockFace.BOTTOM else BlockFace.TOP
-        } else null
-    }
-
-    /**
-     * Просчитывает когда сущность должна прыгнуть.
-     */
-    open fun tryJump(futureBox: CollisionBox, intersectsHitBoxes: List<CollisionBox>) {
-        if (!isOnGround) return
-
-        if (intersectsHitBoxes.filterIsInstance<BlockCollisionBox>().any { box ->
-                futureBox.intersects(box) && (box.y - collisionBox.maxY).run { this > tileSize && this <= tileSize * 6 }
-                        && none(ceil(futureBox.sizeY).toInt() / tileSize) {
-                    box.relativeBox(BlockFace.TOP, it)?.let { futureBox.move(y = 1.0f).intersects(it) } == true
-                }
-            }) {
-            tryJump = true
-        }
-    }
-
-    /**
-     * Обработка взбирания на блоки.
-     */
-    open fun tryClimb(box: CollisionBox, intersectsHitBoxes: List<CollisionBox>) {
-        if (!isOnGround) return
-
-        val boxes = intersectsHitBoxes.filter { box.intersects(it) }
-
-        if (boxes.isEmpty()) return
-
-        val other = boxes.minBy { (it.y - box.maxY) } as? BlockCollisionBox ?: return
-        val dist = other.y - box.maxY
-
-        if (dist.let { it > 0 || it < -climbHeight }) return
-
-        val futureBox = box.clone().diff(y = dist)
-
-        val afterClimbBoxes = futureBox.getCollidingBlocks(location.world)
-
-        if (afterClimbBoxes.any { it.intersects(futureBox) }) return
-
-        collisionBox.teleport(futureBox)
-        movement.y = .0f
-    }
-
-    /**
-     * Привязать хитбокс к сущности.
-     */
-    open fun bindHitBox() {
-        collisionBox.teleport(location)
-    }
-
-    override fun spawn() {
-        if (isRemoved) return
-        EntityService.register(this)
-    }
-
-    override fun remove() {
-        if (isRemoved) return
-        EntityService.unregister(this)
+    companion object {
+        var entityIdCounter = 0
+        val nextEntityId get() = entityIdCounter++
     }
 }

@@ -1,7 +1,5 @@
 package d2t.terra.abubaria.light
 
-import d2t.terra.abubaria.GamePanel
-import d2t.terra.abubaria.io.graphics.Window
 import d2t.terra.abubaria.world.block.Block
 import java.util.concurrent.ConcurrentLinkedQueue
 

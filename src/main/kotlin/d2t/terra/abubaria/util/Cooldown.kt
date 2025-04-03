@@ -7,11 +7,11 @@ import java.util.TimeZone
 import kotlin.time.Duration.Companion.milliseconds
 
 class Cooldown(
-    var start: Long,
     private var delay: Long
 ) : Cloneable {
 
-    constructor() : this(0L, 0L)
+    var start: Long = 0L
+    constructor() : this(0L)
 
     fun isEnded() = if (isPaused()) false else start + delay < System.currentTimeMillis()
 
@@ -53,7 +53,7 @@ class Cooldown(
 
     fun formatEndTime(): String = formatDate(endTime(), "dd.MM.yyyy HH:mm")
 
-    public override fun clone() = Cooldown(start, delay)
+    public override fun clone() = Cooldown(delay).also { it.start = start }
 
     companion object {
         fun format(time: Long, trim: Boolean = true) = StringJoiner(":").apply {

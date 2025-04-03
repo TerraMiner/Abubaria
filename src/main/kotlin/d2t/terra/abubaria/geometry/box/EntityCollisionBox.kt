@@ -1,10 +1,9 @@
 package d2t.terra.abubaria.geometry.box
 
-import d2t.terra.abubaria.entity.Entity
-import org.joml.Vector2d
+import d2t.terra.abubaria.entity.PhysicalEntity
 
 class EntityCollisionBox(
-    val entity: Entity,
+    val entity: PhysicalEntity,
 ) : CollisionBox(entity.location.x, entity.location.y, entity.type.width, entity.type.height) {
 
     override val boxType = CollisionBoxType.ENTITY

@@ -21,15 +21,15 @@ val Vector2f.isZero get() = x == 0f && y == 0f
 val Vector2f.isNan get() = x.isNaN() || y.isNaN()
 
 fun Vector2f.lessThan(value: Float) =
-    abs(x) < value.toFloat() && abs(y) < value.toFloat()
+    abs(x) < value && abs(y) < value
 
-fun Vector2f.setX(x: Float) = apply { this.x = x.toFloat() }
+fun Vector2f.setX(x: Float) = apply { this.x = x }
 
-fun Vector2f.setY(y: Float) = apply { this.y = y.toFloat() }
+fun Vector2f.setY(y: Float) = apply { this.y = y }
 
 val Vector2f.clone get() = Vector2f(x, y)
 
-operator fun Vector2f.times(value: Float): Vector2f = mul(value.toFloat())
+operator fun Vector2f.times(value: Float): Vector2f = mul(value)
 
 operator fun Vector2f.plus(v2: Vector2f): Vector2f = add(v2)
 
