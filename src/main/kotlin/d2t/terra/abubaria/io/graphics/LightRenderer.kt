@@ -190,6 +190,12 @@ object LightRenderer {
     }
 
     private fun createQuad() {
+        val array = arrayOf(
+            0f,0f, 0f,0f,
+            0f,0f, 0f,0f,
+            0f,0f, 0f,0f,
+            0f,0f, 0f,0f
+        ).toFloatArray()
 
         quadVAO = glGenVertexArrays()
         quadVBO = glGenBuffers()
@@ -197,7 +203,7 @@ object LightRenderer {
         glBindVertexArray(quadVAO)
 
         glBindBuffer(GL_ARRAY_BUFFER, quadVBO)
-        glBufferData(GL_ARRAY_BUFFER, Model.DEFAULT.uvX, GL_STATIC_DRAW)
+        glBufferData(GL_ARRAY_BUFFER, array, GL_STATIC_DRAW)
 
         glVertexAttribPointer(0, 2, GL_FLOAT, false, 4 * 4, 0)
         glEnableVertexAttribArray(0)
