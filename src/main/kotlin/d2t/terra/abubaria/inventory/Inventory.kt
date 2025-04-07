@@ -10,11 +10,10 @@ import d2t.terra.abubaria.io.fonts.TextHorAligment
 import d2t.terra.abubaria.io.fonts.TextHorPosition
 import d2t.terra.abubaria.world.material.Material
 import d2t.terra.abubaria.slotSize
-import d2t.terra.abubaria.io.graphics.Model
+import d2t.terra.abubaria.io.graphics.texture.Model
+import d2t.terra.abubaria.io.graphics.render.Layer
 import d2t.terra.abubaria.io.graphics.render.RenderDimension
 import d2t.terra.abubaria.io.graphics.render.Renderer
-import d2t.terra.abubaria.io.graphics.render.UI_HUD_ELEMENTS_LAYER
-import d2t.terra.abubaria.io.graphics.render.UI_HUD_TEXT_LAYER
 import d2t.terra.abubaria.util.getCoords
 import d2t.terra.abubaria.util.getIndex
 
@@ -137,7 +136,7 @@ data class Inventory(val xSize: Int, val ySize: Int) {
                 screenY,
                 slotSize,
                 slotSize,
-                zIndex = UI_HUD_ELEMENTS_LAYER,
+                layer = Layer.UI_HUD_ELEMENTS_LAYER,
                 dim = RenderDimension.SCREEN
             )
 
@@ -151,9 +150,9 @@ data class Inventory(val xSize: Int, val ySize: Int) {
                 )
                 Renderer.renderText(
                     "${item.amount}", screenX + inSlotPos + size + inSlotPos / 2, screenY + size, 12,
-                    textHorAligment = TextHorAligment.RIGHT,
-                    textHorPosition = TextHorPosition.RIGHT,
-                    zIndex = UI_HUD_TEXT_LAYER,
+                    horAlign = TextHorAligment.RIGHT,
+                    horPos = TextHorPosition.RIGHT,
+                    layer = Layer.UI_HUD_TEXT_LAYER,
                     dim = RenderDimension.SCREEN
                 )
             }
@@ -164,7 +163,7 @@ data class Inventory(val xSize: Int, val ySize: Int) {
                     24F,
                     -3f,
                     19,
-                    zIndex = UI_HUD_TEXT_LAYER,
+                    layer = Layer.UI_HUD_TEXT_LAYER,
                     dim = RenderDimension.SCREEN
                 )
             }

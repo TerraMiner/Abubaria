@@ -18,10 +18,7 @@ object EventHandler {
 
             val x = block.collisionBox.x
             val y = block.collisionBox.y
-            Item(block.type, 1).drop(Location(x, y, Direction.entries.random(), GamePanel.world), 500, 0f, 0f).apply {
-                renderSizeX = block.collisionBox.sizeX
-                renderSizeY = block.collisionBox.sizeY
-            }
+            Item(block.type, 1).drop(Location(x, y, Direction.entries.random(), GamePanel.world), 500, 0f, 0f)
 //            block.updateLightAround()
         }
 

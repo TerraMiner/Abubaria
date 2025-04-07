@@ -9,16 +9,12 @@ import d2t.terra.abubaria.io.fonts.TextHorPosition
 import d2t.terra.abubaria.io.graphics.Color
 import d2t.terra.abubaria.world.block.Block
 import d2t.terra.abubaria.world.material.Material
-import d2t.terra.abubaria.io.graphics.Model
-import d2t.terra.abubaria.io.graphics.Texture
+import d2t.terra.abubaria.io.graphics.texture.Model
+import d2t.terra.abubaria.io.graphics.texture.Texture
+import d2t.terra.abubaria.io.graphics.render.Layer
 import d2t.terra.abubaria.io.graphics.render.RenderDimension
 import d2t.terra.abubaria.io.graphics.render.Renderer
-import d2t.terra.abubaria.io.graphics.render.UI_CURSOR_LAYER
-import d2t.terra.abubaria.io.graphics.render.UI_CURSOR_TEXT_LAYER
-import d2t.terra.abubaria.io.graphics.render.WORLD_DEBUG_LAYER
-import d2t.terra.abubaria.util.print
 import d2t.terra.abubaria.world.Camera
-import d2t.terra.abubaria.world.material.MaterialState
 import java.util.StringJoiner
 
 object Cursor {
@@ -124,8 +120,8 @@ object Cursor {
         return world.getBlockAt(Camera.getWorldBlockX(x), Camera.getWorldBlockY(y))
     }
 
-    fun draw() {
-        if (Client.debugMode && !mouseOnHud) {
+    fun render() {
+        if (Client.showWorldGrid && !mouseOnHud) {
             val type = currentBlock?.type ?: Material.STONE
             val blockX = Camera.getWorldBlockX(MouseHandler.x)
             val blockY = Camera.getWorldBlockY(MouseHandler.y)
@@ -135,26 +131,21 @@ object Cursor {
             val soy = y + offset * tileSizeF
             val w = tileSizeF
             val h = tileSizeF * type.scale
+            val layer = Layer.WORLD_DEBUG_LAYER
+            val dim = RenderDimension.WORLD
             Renderer.renderText(
                 "$blockX $blockY",
                 x.toFloat(),
                 y.toFloat(),
                 18,
+                layer,
+                dim,
                 color = Color.GREEN,
-                textHorAligment = GamePanel.alignX,
-                textHorPosition = GamePanel.positionX,
-                textVerAlignment = GamePanel.alignY,
-                textVerPosition = GamePanel.positionY,
-                dim = RenderDimension.WORLD,
-                zIndex = WORLD_DEBUG_LAYER + .01f,
-                ignoreCamera = false
+                ignoreZoom = false
             )
             Renderer.renderFilledRectangle(
-                x.toFloat(), soy, w, h,
-                color = Color(0x55FF557F.toInt()),
-                dim = RenderDimension.WORLD,
-                zIndex = WORLD_DEBUG_LAYER + -.001f,
-                ignoreCamera = false
+                x.toFloat(), soy, w, h, layer, dim,
+                color = Color(0x55FF557F.toInt()), ignoreZoom = false
             )
         }
         val x = MouseHandler.x.toInt()
@@ -167,7 +158,7 @@ object Cursor {
             y.toFloat(),
             30f,
             30f,
-            zIndex = UI_CURSOR_LAYER,
+            layer = Layer.UI_CURSOR_LAYER,
             dim = RenderDimension.SCREEN
         )
         val size = slotSize - inSlotPos * 2f
@@ -181,16 +172,17 @@ object Cursor {
                 y + (size * it.type.state.offset) + 10f,
                 size,
                 size - (size * it.type.state.scale.toFloat()),
-                zIndex = UI_CURSOR_LAYER,
+                layer = Layer.UI_CURSOR_LAYER,
                 dim = RenderDimension.SCREEN
             )
         }
 
         Renderer.renderText(
-            cursorText, x + size, y + size, 14, zIndex = UI_CURSOR_TEXT_LAYER,
-            textHorAligment = TextHorAligment.CENTER,
-            textHorPosition = TextHorPosition.CENTER,
-            dim = RenderDimension.SCREEN
+            cursorText, x + size, y + size, 14, layer = Layer.UI_CURSOR_LAYER,
+            horAlign = TextHorAligment.CENTER,
+            horPos = TextHorPosition.CENTER,
+            dim = RenderDimension.SCREEN,
+            color = Color.BLACK
         )
 
     }

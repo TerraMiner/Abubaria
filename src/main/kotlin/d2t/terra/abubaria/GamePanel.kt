@@ -7,75 +7,84 @@ import d2t.terra.abubaria.hud.Hud
 import d2t.terra.abubaria.io.devices.KeyHandler
 import d2t.terra.abubaria.io.devices.MouseHandler
 import d2t.terra.abubaria.io.fonts.CFont
-import d2t.terra.abubaria.io.fonts.TextHorAligment
-import d2t.terra.abubaria.io.fonts.TextHorPosition
-import d2t.terra.abubaria.io.fonts.TextVerAlignment
-import d2t.terra.abubaria.io.fonts.TextVerPosition
 import d2t.terra.abubaria.io.graphics.Color
+import d2t.terra.abubaria.io.graphics.Light
+import d2t.terra.abubaria.io.graphics.LightRenderer
 import d2t.terra.abubaria.io.graphics.Window
 import d2t.terra.abubaria.io.graphics.Window.windowId
+import d2t.terra.abubaria.io.graphics.render.Layer
 import d2t.terra.abubaria.io.graphics.render.RenderDimension
 import d2t.terra.abubaria.io.graphics.render.Renderer
-import d2t.terra.abubaria.io.graphics.render.UI_DEBUG_LAYER
-import d2t.terra.abubaria.io.graphics.render.WORLD_ENTITY_LAYER
 import d2t.terra.abubaria.util.TaskScheduler
-import d2t.terra.abubaria.util.print
 import d2t.terra.abubaria.world.World
 import d2t.terra.abubaria.world.generator.WorldGenerator
 import org.lwjgl.glfw.GLFW.glfwWindowShouldClose
-import org.lwjgl.opengl.GL11.GL_BLEND
-import org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA
-import org.lwjgl.opengl.GL11.GL_SRC_ALPHA
-import org.lwjgl.opengl.GL11.glBlendFunc
-import org.lwjgl.opengl.GL11.glEnable
 import kotlin.concurrent.thread
 
 object GamePanel {
 
     var gameThread: Thread? = null
 
-    val world = World()
+    val world = World(32, 32)
 
     var videoLag = .0
-
-    var partialTick: Float = 0f
-
-    val display = DebugDisplay()
 
     var inFullScreen = false
 
     var hasResized = false
 
     val font = CFont("fonts/Comic Sans MS.ttf", 64)
-//    val font = CFont("fonts/PhantomMuff 1.5 Plus Regular.ttf", 64)
-//    val font = CFont("fonts/alagard-12px-unicode.ttf", 64)
-//    val font = CFont("fonts/Intro.otf", 64)
 
     private val bgColor = Color(150, 200, 250)
 
+    private val lights = mutableListOf<Light>()
+
     fun startGame() {
-//        lightThread = thread(true, false, null, "lightThread") {
-//            LightManager.tick()
-//        }
         TaskScheduler.afterAsync(0) {
             WorldGenerator(world).generateWorld()
-//            world.generateWorldLight()
         }
 
         ClientPlayer.spawn()
         Camera.initialize()
+        LightRenderer.init()
 
         EventHandler
         registerGameThread()
 
+        // Добавляем несколько источников света с разными цветами
+        lights.add(
+            Light(
+                x = 200f,
+                y = 200f,
+                radius = 2000f,
+                falloff = 1f,
+                color = Color.WHITE,
+                intensity = 1f,
+                flickerAmount = 0.0f,
+                colorShift = .0f,
+                penetrationMultiplier = 1f
+            )
+        )
+        lights.add(
+            Light(
+                x = 200f,
+                y = 500f,
+                radius = 100f,
+                falloff = 1.0f,
+                color = Color.RED,
+                intensity = 1f,
+                flickerAmount = 0.0f,
+                colorShift = .0f,
+                penetrationMultiplier = 1f
+            )
+        )
+
         Window.startDrawLoop {
             TaskScheduler.tick()
-            drawScreen()
+            renderScreen()
         }
     }
 
-    var step = 0
-    val maxStep = tickrate * 3
 
     private fun registerGameThread() {
         gameThread = thread(true, false, null, "gameThread") {
@@ -85,26 +94,26 @@ object GamePanel {
             var currentTime: Long
             var timer = 0L
             var tickCount = 0
+
             while (!glfwWindowShouldClose(windowId)) {
                 currentTime = System.nanoTime()
                 deltaTicks += (currentTime - lastTime) / tickInterval
                 timer += (currentTime - lastTime)
                 lastTime = currentTime
+
                 while (deltaTicks >= 1.0) {
                     KeyHandler.update()
                     MouseHandler.update()
                     Cursor.update()
-                    Camera.coerceInWorld()
                     world.tick()
-
-                    if (++step > maxStep) step = 0
-
+                    Camera.tick()
+                    update()
                     deltaTicks = .0
                     tickCount++
                 }
 
                 if (timer >= 1e9) {
-                    display.tps = tickCount
+                    DebugDisplay.tps = tickCount
                     tickCount = 0
                     timer = 0
                 }
@@ -112,66 +121,60 @@ object GamePanel {
         }
     }
 
+    fun update() {
+        // Обновляем позиции источников света (например, делаем их движущимися)
+        val time = System.currentTimeMillis() / 1000.0
+        lights[0].x = MouseHandler.x;//Window.centerX + (Math.sin(time) * 100).toFloat()
+        lights[0].y = Window.height + -MouseHandler.y;//Window.centerY + (Math.cos(time) * 100).toFloat()
+    }
 
-    var debug = true
-    var positionX = TextHorPosition.CENTER
-    var alignX = TextHorAligment.CENTER
-    var positionY = TextVerPosition.CENTER
-    var alignY = TextVerAlignment.BOTTOM
-
-    private fun drawScreen() {
+    private fun renderScreen() {
         val start = System.currentTimeMillis()
 
-        Camera.interpolate()
         Camera.applyZoom()
+        world.renderBlocks()
 
-        Renderer.renderText(
-            "Привет!\nAbubaria",
-            world.spawnLocation.x.toFloat(),
-            world.spawnLocation.y.toFloat(),
-            64,
-            color = Color.gradientRainbow(step, maxStep),
-            textHorAligment = alignX,
-            textHorPosition = positionX,
-            textVerAlignment = alignY,
-            textVerPosition = positionY,
-            zIndex = WORLD_ENTITY_LAYER,
-            dim = RenderDimension.WORLD,
-            ignoreCamera = false
-        )
-
-        if (Client.debugMode) {
-            Renderer.renderLine(0f, Window.centerY, Window.width.toFloat(), Window.centerY, color = Color.RED, zIndex = UI_DEBUG_LAYER, dim = RenderDimension.SCREEN)
-            Renderer.renderLine(Window.centerX, 0f, Window.centerX, Window.height.toFloat(), color = Color.GREEN, zIndex = UI_DEBUG_LAYER, dim = RenderDimension.SCREEN)
+        if (Client.showWorldGrid) {
+            Renderer.renderLine(
+                0f,
+                Window.centerY,
+                Window.width.toFloat(),
+                Window.centerY,
+                color = Color.RED,
+                layer = Layer.UI_DEBUG_LAYER,
+                dim = RenderDimension.SCREEN
+            )
+            Renderer.renderLine(
+                Window.centerX,
+                0f,
+                Window.centerX,
+                Window.height.toFloat(),
+                color = Color.GREEN,
+                layer = Layer.UI_DEBUG_LAYER,
+                dim = RenderDimension.SCREEN
+            )
         }
 
-
-        world.draw()
-
-        Hud.draw()
-        display.draw()
-        Cursor.draw()
-
+        // Рендерим все батчи мира и сущностей
+        LightRenderer.beginObstacleCapture()
         Renderer.render()
-//
-//        val text = font.characterMap.keys.map(::Char).chunked(font.atlasSquareSize).map { it.joinToString("  ") }
-//            .joinToString("\n\n")
-//        RendererManager.WorldRenderer.renderText(
-//            text,
-//            world.spawnLocation.x.toFloat(),
-//            world.spawnLocation.y.toFloat(),
-//            .5f,
-//            textHorPosition = TextHorPosition.CENTER
-//        )
+        LightRenderer.endObstacleCapture()
 
-//        RendererManager.WorldRenderer.renderText(
-//            "Съешьте ещё этих мягких французских булок, да выпейте же чаю!  \n" +
-//                    "СЪЕШЬТЕ ЕЩЁ ЭТИХ МЯГКИХ ФРАНЦУЗСКИХ БУЛОК, ДА ВЫПЕЙТЕ ЖЕ ЧАЮ!  \n" +
-//                    "The quick brown fox jumps over the lazy dog.  \n" +
-//                    "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG.  \n" +
-//                    "#@\$%^&*()_+-=[]{};:'\",.<>/?",
-//            20f, 80f, .5f
-//        )
+        world.renderBlocks()
+        world.renderEntities()
+        world.renderGrid()
+        Renderer.render()
+
+        // Рендерим освещение которое будет накладываться на мир
+        LightRenderer.render(lights)
+
+        // Рендерим UI выше чем свет чтобы он не применялся к UI
+        Hud.render()
+        DebugDisplay.render()
+        Cursor.render()
+
+        // Рендерим все батчи UI
+        Renderer.render()
 
         val end = System.currentTimeMillis()
         videoLag = (end - start) / 1000.0

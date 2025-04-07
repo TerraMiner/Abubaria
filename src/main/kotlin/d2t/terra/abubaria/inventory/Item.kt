@@ -1,13 +1,12 @@
 package d2t.terra.abubaria.inventory
 
 import d2t.terra.abubaria.entity.impl.item.ItemEntity
-import d2t.terra.abubaria.location.Direction
 import d2t.terra.abubaria.location.Location
 import d2t.terra.abubaria.world.material.Material
-import d2t.terra.abubaria.io.graphics.Model
+import d2t.terra.abubaria.io.graphics.texture.Model
+import d2t.terra.abubaria.io.graphics.render.Layer
 import d2t.terra.abubaria.io.graphics.render.RenderDimension
 import d2t.terra.abubaria.io.graphics.render.Renderer
-import d2t.terra.abubaria.io.graphics.render.UI_HUD_CONTENTS_LAYER
 import kotlin.math.ceil
 import kotlin.math.floor
 
@@ -106,7 +105,7 @@ class Item(type: Material = Material.AIR, amount: Int = 1) {
         height: Float
     ) {
         val texture = type.texture ?: return
-        Renderer.render(texture, Model.DEFAULT, x, y, width, height, zIndex = UI_HUD_CONTENTS_LAYER, dim = RenderDimension.SCREEN)
+        Renderer.render(texture, Model.DEFAULT, x, y, width, height, layer = Layer.UI_HUD_CONTENTS_LAYER, dim = RenderDimension.SCREEN)
     }
 
 }

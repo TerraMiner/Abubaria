@@ -1,4 +1,4 @@
-package d2t.terra.abubaria.io.graphics
+package d2t.terra.abubaria.io.graphics.texture
 
 class Model(val uvX: Float, val uvY: Float, val uvMX: Float, val uvMY: Float) {
     companion object {

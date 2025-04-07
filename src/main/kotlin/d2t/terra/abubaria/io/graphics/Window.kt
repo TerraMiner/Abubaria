@@ -1,13 +1,13 @@
 package d2t.terra.abubaria.io.graphics
 
-import d2t.terra.abubaria.GamePanel
+import d2t.terra.abubaria.DebugDisplay
 import d2t.terra.abubaria.io.devices.KeyHandler
 import d2t.terra.abubaria.io.devices.MouseHandler
 import d2t.terra.abubaria.io.graphics.render.Renderer
-import d2t.terra.abubaria.io.graphics.window.FpsLimit
 import org.lwjgl.glfw.Callbacks.glfwFreeCallbacks
 import org.lwjgl.glfw.GLFW.GLFW_CURSOR
 import org.lwjgl.glfw.GLFW.GLFW_CURSOR_HIDDEN
+import org.lwjgl.glfw.GLFW.GLFW_STENCIL_BITS
 import org.lwjgl.glfw.GLFW.glfwCreateWindow
 import org.lwjgl.glfw.GLFW.glfwDestroyWindow
 import org.lwjgl.glfw.GLFW.glfwGetPrimaryMonitor
@@ -31,12 +31,8 @@ import org.lwjgl.glfw.GLFW.glfwWindowShouldClose
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.glfw.GLFWWindowSizeCallback
 import org.lwjgl.opengl.GL.createCapabilities
-import org.lwjgl.opengl.GL11.GL_BLEND
 import org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT
-import org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA
-import org.lwjgl.opengl.GL11.GL_SRC_ALPHA
 import org.lwjgl.opengl.GL11.GL_TEXTURE_2D
-import org.lwjgl.opengl.GL11.glBlendFunc
 import org.lwjgl.opengl.GL11.glClear
 import org.lwjgl.opengl.GL11.glClearColor
 import org.lwjgl.opengl.GL11.glEnable
@@ -44,8 +40,11 @@ import org.lwjgl.opengl.GL11.glViewport
 import org.lwjgl.system.MemoryUtil.NULL
 import org.lwjgl.glfw.GLFW.glfwSetWindowIcon
 import org.lwjgl.glfw.GLFW.glfwSwapInterval
+import org.lwjgl.glfw.GLFW.glfwWindowHint
 import org.lwjgl.glfw.GLFWImage
 import org.lwjgl.glfw.GLFWVidMode
+import org.lwjgl.opengl.GL11.GL_STENCIL_BUFFER_BIT
+import org.lwjgl.opengl.GL11.GL_STENCIL_TEST
 import org.lwjgl.stb.STBImage.stbi_load
 import org.lwjgl.system.MemoryStack
 import java.io.File
@@ -72,10 +71,11 @@ object Window {
             glfwSwapInterval(if (value) 1 else 0)
         }
 
-    var fpsLimit = 360
+    const val MAX_FPS_LIMIT = 99999
+    var fpsLimit = MAX_FPS_LIMIT
         get() = if (vsync) videoMode.refreshRate() else field
         set(value) {
-            field = value.coerceIn(5,360)
+            field = value.coerceIn(5,MAX_FPS_LIMIT)
         }
 
     private val frameCap get() = 1.0 / fpsLimit
@@ -94,6 +94,8 @@ object Window {
         })
 
         GLFWErrorCallback.createPrint(System.err).set()
+
+        glfwWindowHint(GLFW_STENCIL_BITS, 8)
 
         windowId = glfwCreateWindow(width, height, "Abubaria", isFullScreenMonitor, 0)
         if (windowId == NULL) {
@@ -122,6 +124,8 @@ object Window {
         vsync = false
 
         setWindowIcon()
+
+        glEnable(GL_STENCIL_TEST)
     }
 
     fun startDrawLoop(frameAction: () -> Unit) {
@@ -140,13 +144,13 @@ object Window {
                 glfwPollEvents()
                 if (frameTime >= 1.0) {
                     frameTime = .0
-                    GamePanel.display.fps = frames
+                    DebugDisplay.fps = frames
                     frames = 0
                 }
             }
 
             if (canRender) {
-                glClear(GL_COLOR_BUFFER_BIT)
+                glClear(GL_COLOR_BUFFER_BIT or GL_STENCIL_BUFFER_BIT)
                 frameAction()
                 glfwSwapBuffers(windowId)
                 frames++
@@ -155,6 +159,7 @@ object Window {
     }
 
     fun close() {
+        LightRenderer.cleanup()
         glfwFreeCallbacks(windowId)
         glfwSetErrorCallback(null)?.free()
         glfwSetWindowShouldClose(windowId, true)
@@ -180,6 +185,7 @@ object Window {
                 centerY = height / 2f
                 glViewport(0, 0, width, height)
                 Renderer.updateProjection()
+                LightRenderer.updateProjection()
             }
         })
     }

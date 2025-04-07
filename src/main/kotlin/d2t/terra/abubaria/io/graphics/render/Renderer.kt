@@ -1,61 +1,44 @@
 package d2t.terra.abubaria.io.graphics.render
 
+import d2t.terra.abubaria.DebugDisplay
 import d2t.terra.abubaria.GamePanel
-import d2t.terra.abubaria.io.fonts.CFont
-import d2t.terra.abubaria.io.fonts.TextHorAligment
-import d2t.terra.abubaria.io.fonts.TextHorPosition
-import d2t.terra.abubaria.io.fonts.TextVerAlignment
-import d2t.terra.abubaria.io.fonts.TextVerPosition
+import d2t.terra.abubaria.io.fonts.*
 import d2t.terra.abubaria.io.graphics.Color
-import d2t.terra.abubaria.io.graphics.Model
-import d2t.terra.abubaria.io.graphics.shader.BatchShader
-import d2t.terra.abubaria.io.graphics.Texture
+import d2t.terra.abubaria.io.graphics.texture.Model
+import d2t.terra.abubaria.io.graphics.texture.Texture
 import d2t.terra.abubaria.io.graphics.Window
+import d2t.terra.abubaria.io.graphics.shader.BatchShader
+import d2t.terra.abubaria.io.graphics.texture.TextureCache
 import org.joml.Matrix4f
-import org.lwjgl.opengl.GL11.GL_ALWAYS
-import org.lwjgl.opengl.GL11.GL_BLEND
-import org.lwjgl.opengl.GL11.GL_DEPTH_TEST
-import org.lwjgl.opengl.GL11.GL_FLOAT
-import org.lwjgl.opengl.GL11.GL_LEQUAL
-import org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA
-import org.lwjgl.opengl.GL11.GL_SRC_ALPHA
-import org.lwjgl.opengl.GL11.GL_TRIANGLES
-import org.lwjgl.opengl.GL11.GL_TRUE
-import org.lwjgl.opengl.GL11.glBlendFunc
-import org.lwjgl.opengl.GL11.glDepthMask
-import org.lwjgl.opengl.GL14.GL_FUNC_ADD
-import org.lwjgl.opengl.GL14.glBlendEquation
-import org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER
-import org.lwjgl.opengl.GL15.GL_STREAM_DRAW
-import org.lwjgl.opengl.GL15.glBindBuffer
-import org.lwjgl.opengl.GL15.glBufferData
-import org.lwjgl.opengl.GL15.glBufferSubData
-import org.lwjgl.opengl.GL15.glGenBuffers
+import org.lwjgl.opengl.GL11.*
+import org.lwjgl.opengl.GL15.*
 import org.lwjgl.opengl.GL20.glEnableVertexAttribArray
 import org.lwjgl.opengl.GL20.glVertexAttribPointer
-import org.lwjgl.opengl.GL30.glBindVertexArray
-import org.lwjgl.opengl.GL30.glGenVertexArrays
-import org.lwjgl.opengl.GL30.glEnable
-import org.lwjgl.opengl.GL30.glDepthFunc
-import org.lwjgl.opengl.GL30.glClear
-import org.lwjgl.opengl.GL30.GL_DEPTH_BUFFER_BIT
+import org.lwjgl.opengl.GL30.*
 import org.lwjgl.opengl.GL31.glDrawArraysInstanced
 import org.lwjgl.opengl.GL33.glVertexAttribDivisor
+import kotlin.collections.component1
+import kotlin.collections.component2
+import kotlin.collections.iterator
+import kotlin.math.floor
 import kotlin.math.round
+
 //todo Пофиксить артефакты
 object Renderer {
 
     const val MAX_SPRITES = 64000
-    const val FLOATS_PER_SPRITE = 17  // x, y, width, height, uvX, uvY, uvMX, uvMY, zIndex, r, g, b, a, thickness, rotation, ignoreCamera, renderType
+
+    // x, y, width, height, uvX, uvY, uvMX, uvMY, zIndex, r, g, b, a, thickness, rotation, ignoreZoom, renderType
+    const val FLOATS_PER_SPRITE = 17
+    const val FLOATS_PER_SPRITE_BYTES = FLOATS_PER_SPRITE * Float.SIZE_BYTES
 
     const val BUFFER_SIZE = MAX_SPRITES * FLOATS_PER_SPRITE
     const val BUFFER_SIZE_BYTES = BUFFER_SIZE * Float.SIZE_BYTES
 
-    private val shader = BatchShader()
+    val shader = BatchShader()
     private var vao = glGenVertexArrays()
     private var vbo = glGenBuffers()
 
-    // Добавляем параметры камеры
     private var cameraScale = 1.0f
 
     init {
@@ -64,32 +47,25 @@ object Renderer {
 
         glBufferData(GL_ARRAY_BUFFER, BUFFER_SIZE_BYTES.toLong(), GL_STREAM_DRAW)
 
-        // 4 флоата для xy координат x, y, width, height
-        glVertexAttribPointer(0, 4, GL_FLOAT, false, FLOATS_PER_SPRITE * Float.SIZE_BYTES, 0L)
+        glVertexAttribPointer(0, 4, GL_FLOAT, false, FLOATS_PER_SPRITE_BYTES, 0L)
         glEnableVertexAttribArray(0)
 
-        // 4 флоата для uv координат uvX, uvY, uvMX, uvMY
-        glVertexAttribPointer(1, 4, GL_FLOAT, false, FLOATS_PER_SPRITE * Float.SIZE_BYTES, 4 * Float.SIZE_BYTES.toLong())
+        glVertexAttribPointer(1, 4, GL_FLOAT, false, FLOATS_PER_SPRITE_BYTES, 4 * Float.SIZE_BYTES.toLong())
         glEnableVertexAttribArray(1)
 
-        // 1 флоат для z индекса
-        glVertexAttribPointer(2, 1, GL_FLOAT, false, FLOATS_PER_SPRITE * Float.SIZE_BYTES, 8 * Float.SIZE_BYTES.toLong())
+        glVertexAttribPointer(2, 1, GL_FLOAT, false, FLOATS_PER_SPRITE_BYTES, 8 * Float.SIZE_BYTES.toLong())
         glEnableVertexAttribArray(2)
 
-        // 4 флоата для цвета r, g, b, a
-        glVertexAttribPointer(3, 4, GL_FLOAT, false, FLOATS_PER_SPRITE * Float.SIZE_BYTES, 9 * Float.SIZE_BYTES.toLong())
+        glVertexAttribPointer(3, 4, GL_FLOAT, false, FLOATS_PER_SPRITE_BYTES, 9 * Float.SIZE_BYTES.toLong())
         glEnableVertexAttribArray(3)
 
-        // 2 флоата для трансформации thickness, rotation
-        glVertexAttribPointer(4, 2, GL_FLOAT, false, FLOATS_PER_SPRITE * Float.SIZE_BYTES, 13 * Float.SIZE_BYTES.toLong())
+        glVertexAttribPointer(4, 2, GL_FLOAT, false, FLOATS_PER_SPRITE_BYTES, 13 * Float.SIZE_BYTES.toLong())
         glEnableVertexAttribArray(4)
 
-        // 1 флоат для флага ignoreCamera
-        glVertexAttribPointer(5, 1, GL_FLOAT, false, FLOATS_PER_SPRITE * Float.SIZE_BYTES, 15 * Float.SIZE_BYTES.toLong())
+        glVertexAttribPointer(5, 1, GL_FLOAT, false, FLOATS_PER_SPRITE_BYTES, 15 * Float.SIZE_BYTES.toLong())
         glEnableVertexAttribArray(5)
 
-        // 1 флоат для типа рендеринга
-        glVertexAttribPointer(6, 1, GL_FLOAT, false, FLOATS_PER_SPRITE * Float.SIZE_BYTES, 16 * Float.SIZE_BYTES.toLong())
+        glVertexAttribPointer(6, 1, GL_FLOAT, false, FLOATS_PER_SPRITE_BYTES, 16 * Float.SIZE_BYTES.toLong())
         glEnableVertexAttribArray(6)
 
         glVertexAttribDivisor(0, 1)
@@ -101,66 +77,52 @@ object Renderer {
         glVertexAttribDivisor(6, 1)
 
         glBindBuffer(GL_ARRAY_BUFFER, 0)
-        glBindVertexArray(0)
 
         glEnable(GL_DEPTH_TEST)
         glDepthFunc(GL_LEQUAL)
 
         glEnable(GL_BLEND)
+//        glDisable(GL_MULTISAMPLE)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
     }
 
     fun render(
         texture: Texture,
         model: Model,
-        x: Float,
-        y: Float,
-        width: Float,
-        height: Float,
+        x: Float, y: Float,
+        width: Float, height: Float,
+        layer: Layer, dim: RenderDimension,
         angle: Float = 0f,
         color: Color = Color.WHITE,
-        zIndex: Float,
-        dim: RenderDimension,
         thickness: Float = 1f,
-        ignoreCamera: Boolean = true
+        ignoreZoom: Boolean = true
     ) {
-        texture.addToBatch(
-            dim.offset().x + x,
-            dim.offset().y + y,
-            width,
-            height,
-            model.uvX,
-            model.uvY,
-            model.uvMX,
-            model.uvMY,
-            zIndex,
-            color.r,
-            color.g,
-            color.b,
-            color.a,
-            thickness,
-            angle,
-            if (ignoreCamera) 1f else 0f,
-            0f
+        render(
+            texture,
+            dim.offset().x + x, dim.offset().y + y, width, height,
+            model.uvX, model.uvY, model.uvMX, model.uvMY,
+            layer,
+            color.r, color.g, color.b, color.a,
+            thickness, angle,
+            ignoreZoom,
+            RenderType.TEXTURE
         )
     }
 
     fun renderText(
         text: String,
-        x: Float,
-        y: Float,
+        x: Float, y: Float,
         fontSize: Int,
-        font: CFont = GamePanel.font,
-        textHorAligment: TextHorAligment = TextHorAligment.LEFT,
-        textHorPosition: TextHorPosition = TextHorPosition.LEFT,
-        textVerAlignment: TextVerAlignment = TextVerAlignment.BOTTOM,
-        textVerPosition: TextVerPosition = TextVerPosition.BOTTOM,
-        color: Color = Color.WHITE,
-        zIndex: Float,
+        layer: Layer,
         dim: RenderDimension,
-        angle: Float = 0f,
-        scaleX: Float = 1f,
-        ignoreCamera: Boolean = true
+        horAlign: TextHorAligment = TextHorAligment.LEFT,
+        horPos: TextHorPosition = TextHorPosition.LEFT,
+        verAlign: TextVerAlignment = TextVerAlignment.BOTTOM,
+        verPos: TextVerPosition = TextVerPosition.BOTTOM,
+        color: Color = Color.WHITE,
+        angle: Float = 0f, thickness: Float = 1f,
+        ignoreZoom: Boolean = true,
+        font: CFont = GamePanel.font
     ) {
         val scale = fontSize.toFloat() / font.size
         if (text.isBlank()) return
@@ -169,13 +131,13 @@ object Renderer {
         val maxWidth = lines.maxOf { getTextWidth(it, font) * scale }
         val maxHeight = lines.size * font.size * scale
 
-        val startX = x - round(maxWidth * textHorPosition.offset)
-        val startY = y - round(maxHeight * textVerPosition.offset)
+        val startX = x - round(maxWidth * horPos.offset)
+        val startY = y - round(maxHeight * verPos.offset)
 
         lines.forEachIndexed { index, line ->
             val lineWidth = getTextWidth(line, font) * scale
-            val alignedX = startX + round((maxWidth - lineWidth) * textHorAligment.offset)
-            val alignedY = startY + round(index * font.size * scale * textVerAlignment.offset)
+            val alignedX = startX + round((maxWidth - lineWidth) * horAlign.offset)
+            val alignedY = startY + round(index * font.size * scale * verAlign.offset)
             var cursorX = alignedX
 
             for (char in line) {
@@ -188,14 +150,120 @@ object Renderer {
                     charInfo.inAtlasHeight * scale,
                     angle = angle,
                     color = color,
-                    zIndex = zIndex,
+                    layer = layer,
                     dim = dim,
-                    thickness = scaleX,
-                    ignoreCamera = ignoreCamera
+                    thickness = thickness,
+                    ignoreZoom = ignoreZoom
                 )
                 cursorX += charInfo.advanceWidth * scale
             }
         }
+    }
+
+    fun renderRectangle(
+        x: Float,
+        y: Float,
+        width: Float,
+        height: Float,
+        layer: Layer,
+        dim: RenderDimension,
+        color: Color = Color.WHITE,
+        angle: Float = 0f,
+        thickness: Float = 1f,
+        ignoreZoom: Boolean = true
+    ) {
+        render(
+            Texture.whiteTexture,
+            dim.offset().x + x, dim.offset().y + y, width, height,
+            0f, 0f, 1f, 1f,
+            layer,
+            color.r, color.g, color.b, color.a,
+            thickness, angle,
+            ignoreZoom,
+            RenderType.HOLL_RECT
+        )
+    }
+
+    fun renderFilledRectangle(
+        x: Float,
+        y: Float,
+        width: Float,
+        height: Float,
+        layer: Layer,
+        dim: RenderDimension,
+        color: Color = Color.WHITE,
+        angle: Float = 0f,
+        ignoreZoom: Boolean = true
+    ) {
+        render(
+            Texture.whiteTexture,
+            dim.offset().x + x, dim.offset().y + y, width, height,
+            0f, 0f, 1f, 1f,
+            layer,
+            color.r, color.g, color.b, color.a,
+            1f, angle,
+            ignoreZoom,
+            RenderType.FILL_RECT
+        )
+    }
+
+    fun renderLine(
+        x1: Float,
+        y1: Float,
+        x2: Float,
+        y2: Float,
+        layer: Layer,
+        dim: RenderDimension,
+        thickness: Float = 1f,
+        color: Color = Color.WHITE,
+        ignoreZoom: Boolean = true
+    ) {
+        render(
+            Texture.whiteTexture,
+            dim.offset().x + x1, dim.offset().y + y1,
+            dim.offset().x + x2, dim.offset().y + y2,
+            0f, 0f, 1f, 1f,
+            layer,
+            color.r, color.g, color.b, color.a,
+            thickness, 0f,
+            ignoreZoom,
+            RenderType.LINE
+        )
+    }
+
+    private fun render(
+        texture: Texture,
+        x: Float, y: Float, width: Float, height: Float,
+        uvX: Float, uvY: Float, uvMX: Float, uvMY: Float,
+        layer: Layer,
+        r: Float, g: Float, b: Float, a: Float,
+        thickness: Float, rotation: Float,
+        ignoreZoom: Boolean,
+        renderType: RenderType
+    ) {
+        texture.cache.update(layer)
+        val buffer = texture.cache.currentBuffer
+        buffer.put(floor(x))
+        buffer.put(floor(y))
+        buffer.put(floor(width))
+        buffer.put(floor(height))
+
+        buffer.put(uvX)
+        buffer.put(uvY)
+        buffer.put(uvMX)
+        buffer.put(uvMY)
+
+        buffer.put(layer.value)
+
+        buffer.put(r)
+        buffer.put(g)
+        buffer.put(b)
+        buffer.put(a)
+
+        buffer.put(thickness)
+        buffer.put(rotation)
+        buffer.put(if (ignoreZoom) 1f else 0f)
+        buffer.put(renderType.value)
     }
 
     fun render() {
@@ -203,19 +271,24 @@ object Renderer {
         glBindVertexArray(vao)
 
         glClear(GL_DEPTH_BUFFER_BIT)
-        Texture.cache.values.forEach { texture ->
-            val group = texture.batchGroup
-            if (group.count > 0) {
-                texture.bind()
 
-                group.vertexData.flip()
+        for (layer in Layer.entries) {
+            renderLayer(layer)
+        }
+        DebugDisplay.bgp = TextureCache.layerGetCalls
+        TextureCache.layerGetCalls = 0
+    }
 
+    private fun renderLayer(layer: Layer) {
+        for ((textureId, buffer) in layer.textures) {
+            Texture.bind(textureId)
+            val batchCount = buffer.position() / 17
+            if (batchCount > 0) {
+                buffer.flip()
                 glBindBuffer(GL_ARRAY_BUFFER, vbo)
-                glBufferSubData(GL_ARRAY_BUFFER, 0, group.vertexData)
-
-                glDrawArraysInstanced(GL_TRIANGLES, 0, 6, group.count)
-
-                texture.clearBatch()
+                glBufferSubData(GL_ARRAY_BUFFER, 0, buffer)
+                glDrawArraysInstanced(GL_TRIANGLES, 0, 6, batchCount)
+                buffer.clear()
             }
         }
     }
@@ -238,99 +311,5 @@ object Renderer {
         shader.setCameraScale(cameraScale, cameraScale)
     }
 
-    fun setCameraCenter(x: Float, y: Float) {
-        shader.bind()
-        shader.setCameraCenter(x, y)
-    }
-
-    fun renderRectangle(
-        x: Float,
-        y: Float,
-        width: Float,
-        height: Float,
-        color: Color = Color.WHITE,
-        zIndex: Float,
-        dim: RenderDimension,
-        angle: Float = 0f,
-        thickness: Float = 1f,
-        ignoreCamera: Boolean = true
-    ) {
-        Texture.whiteTexture.addToBatch(
-            dim.offset().x + x,
-            dim.offset().y + y,
-            width,
-            height,
-            0f, 0f, 1f, 1f,
-            zIndex,
-            color.r,
-            color.g,
-            color.b,
-            color.a,
-            thickness,
-            angle,
-            if (ignoreCamera) 1f else 0f,
-            2f
-        )
-    }
-
-    fun renderFilledRectangle(
-        x: Float,
-        y: Float,
-        width: Float,
-        height: Float,
-        color: Color = Color.WHITE,
-        zIndex: Float,
-        dim: RenderDimension,
-        angle: Float = 0f,
-        ignoreCamera: Boolean = true
-    ) {
-        Texture.whiteTexture.addToBatch(
-            dim.offset().x + x,
-            dim.offset().y + y,
-            width,
-            height,
-            0f, 0f, 1f, 1f,
-            zIndex,
-            color.r,
-            color.g,
-            color.b,
-            color.a,
-            1f,
-            angle,
-            if (ignoreCamera) 1f else 0f,
-            1f
-        )
-    }
-
-    fun renderLine(
-        x1: Float,
-        y1: Float,
-        x2: Float,
-        y2: Float,
-        thickness: Float = 1f,
-        color: Color = Color.WHITE,
-        zIndex: Float,
-        dim: RenderDimension,
-        ignoreCamera: Boolean = true
-    ) {
-        val offsetX = dim.offset().x
-        val offsetY = dim.offset().y
-        
-        Texture.whiteTexture.addToBatch(
-            offsetX + x1,
-            offsetY + y1,
-            offsetX + x2,
-            offsetY + y2,
-            0f, 0f, 1f, 1f,
-            zIndex,
-            color.r,
-            color.g,
-            color.b,
-            color.a,
-            thickness,
-            0f,
-            if (ignoreCamera) 1f else 0f,
-            3f
-        )
-    }
+    private fun Boolean.toFloat() = if (this) 1f else 0f
 }

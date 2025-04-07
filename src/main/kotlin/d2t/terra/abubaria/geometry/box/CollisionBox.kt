@@ -1,13 +1,18 @@
 package d2t.terra.abubaria.geometry.box
 
+import d2t.terra.abubaria.blockChunkShiftBits
+import d2t.terra.abubaria.blockShiftBits
+import d2t.terra.abubaria.chunkShiftBits
 import d2t.terra.abubaria.tileSizeF
 import org.joml.Vector2f
 import d2t.terra.abubaria.location.Location
 import d2t.terra.abubaria.util.for2d
 import d2t.terra.abubaria.util.square
+import d2t.terra.abubaria.world.Chunk
 import d2t.terra.abubaria.world.World
 import d2t.terra.abubaria.world.block.Position
 import kotlin.math.abs
+import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.sqrt
 
@@ -19,6 +24,8 @@ open class CollisionBox(
 ) : Cloneable {
 
     companion object {
+        private val EMPTY_CHUNK_LIST = listOf<Chunk>()
+
         fun of(minPoint: Position, maxPoint: Position): CollisionBox {
             val sizeX = maxPoint.x - minPoint.x
             val sizeY = maxPoint.y - minPoint.y
@@ -105,7 +112,27 @@ open class CollisionBox(
     }
 
     fun expand(vec: Vector2f): CollisionBox {
-        expandX(vec.x);expandY(vec.y)
+        expand(vec.x, vec.y)
+        return this
+    }
+
+    fun extendX(delta: Float): CollisionBox {
+        expandX(delta); expandX(-delta)
+        return this
+    }
+
+    fun extendY(delta: Float): CollisionBox {
+        expandY(delta); expandY(-delta)
+        return this
+    }
+
+    fun extend(dX: Float = 0F, dY: Float = 0F): CollisionBox {
+        extendX(dX);extendY(dY)
+        return this
+    }
+
+    fun extend(vec: Vector2f): CollisionBox {
+        extend(vec.x, vec.y)
         return this
     }
 
@@ -199,15 +226,30 @@ open class CollisionBox(
         list: MutableList<CollisionBox> = mutableListOf(),
         onlyCollideable: Boolean = true
     ): MutableList<CollisionBox> {
-        val startX = floor(x / tileSizeF).toInt()
-        val endX = floor((x + sizeX) / tileSizeF).toInt()
-        val startY = floor(y / tileSizeF).toInt()
-        val endY = floor((y + sizeY) / tileSizeF).toInt()
+        val startX = floor(x).toInt() shr blockShiftBits
+        val endX = ceil(x + sizeX).toInt() shr blockShiftBits
+        val startY = floor(y).toInt() shr blockShiftBits
+        val endY = ceil(y + sizeY).toInt() shr blockShiftBits
         return list.apply {
             for2d(startX, endX, startY, endY) { x, y ->
                 takeBoxes(x, y, world, onlyCollideable)
             }
         }
+    }
+
+    fun getCollidingChunks(world: World): List<Chunk> {
+        val startX = floor(x).toInt() shr blockChunkShiftBits
+        val endX = ceil(x + sizeX).toInt() shr blockChunkShiftBits
+        val startY = floor(y).toInt() shr blockChunkShiftBits
+        val endY = ceil(y + sizeY).toInt() shr blockChunkShiftBits
+        var list: MutableList<Chunk>? = null
+        for2d(startX, endX, startY, endY) { x, y ->
+            world.getChunk(x, y)?.let {
+                if (list == null) list = mutableListOf<Chunk>()
+                list?.add(it)
+            }
+        }
+        return list ?: EMPTY_CHUNK_LIST
     }
 
     private fun MutableList<CollisionBox>.takeBoxes(
@@ -263,5 +305,4 @@ open class CollisionBox(
         result = 31 * result + sizeY.hashCode()
         return result
     }
-
 }

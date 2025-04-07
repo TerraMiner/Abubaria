@@ -12,7 +12,6 @@ import d2t.terra.abubaria.geometry.toVector2f
 import d2t.terra.abubaria.location.Direction
 import d2t.terra.abubaria.location.Location
 import d2t.terra.abubaria.util.none
-import d2t.terra.abubaria.util.print
 import d2t.terra.abubaria.world.block.BlockFace
 import org.joml.Vector2f
 import kotlin.math.ceil
@@ -269,5 +268,18 @@ abstract class PhysicalEntity(type: EntityType, location: Location) : Entity(typ
     override fun remove() {
         if (isRemoved) return
         location.world.removeEntity(this)
+    }
+
+    inline fun <reified T : PhysicalEntity> getNearbyEntities(dx: Float, dy: Float): Set<T> {
+        val world = location.world
+        val box = collisionBox.clone().extend(dx,dy)
+        val chunks = box.getCollidingChunks(world)
+        val entities = mutableSetOf<T>()
+        chunks.forEach {
+            it.entities.asSequence().filterIsInstance<T>().forEach {
+                if (it !== this && it.collisionBox.intersects(box)) entities.add(it)
+            }
+        }
+        return entities
     }
 }

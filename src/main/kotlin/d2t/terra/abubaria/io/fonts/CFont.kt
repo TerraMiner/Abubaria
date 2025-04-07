@@ -1,8 +1,8 @@
 package d2t.terra.abubaria.io.fonts
 
-import d2t.terra.abubaria.io.graphics.Texture
+import d2t.terra.abubaria.io.graphics.texture.Texture
 import d2t.terra.abubaria.util.getCoords
-import org.lwjgl.opengl.GL11
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import java.awt.*
 import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_ARGB
@@ -14,7 +14,7 @@ import kotlin.math.sqrt
 
 class CFont(path: String, val size: Int, val fontType: Int = Font.BOLD) {
     var lineHeight: Int = 0
-    val characterMap: MutableMap<Int, CharInfo> = mutableMapOf()
+    val characterMap = Int2ObjectOpenHashMap<CharInfo>()
     private val ge: GraphicsEnvironment = GraphicsEnvironment.getLocalGraphicsEnvironment()
     private val atlasSize: Int
     val atlasSquareSize: Int

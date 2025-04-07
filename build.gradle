@@ -40,6 +40,7 @@ dependencies {
     implementation "org.lwjgl:lwjgl-stb"
     implementation "org.joml:joml:${jomlVersion}"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.1"
+    implementation("it.unimi.dsi:fastutil:8.5.15")
 
     runtimeOnly "org.lwjgl:lwjgl::$lwjglNatives"
     runtimeOnly "org.lwjgl:lwjgl-assimp::$lwjglNatives"

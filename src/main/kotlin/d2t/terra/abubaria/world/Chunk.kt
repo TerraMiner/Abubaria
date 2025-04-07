@@ -16,9 +16,6 @@ class Chunk(
     val y: Int = 0,
     val blockMap: Array<Block> = Array(chunkSize * chunkSize) { Block() }
 ) {
-    val hitBox = CollisionBox(x.toFloat(), y.toFloat(), chunkSize * tileSizeF, chunkSize * tileSizeF)
-    val worldSizeX = x * chunkSize
-    val worldSizeY = y * chunkSize
 
     val entities = concurrentSetOf<Entity>()
 
@@ -34,8 +31,6 @@ class Chunk(
         entities.forEach(Entity::draw)
     }
 
-//    val lighed get() = blockMap.flatten().any { it.lighted }
-
     fun initBlocks() {
         blockMap.forEachIndexed { index, block ->
             val position = BlockInChunkPosition(index.toByte())
@@ -47,31 +42,7 @@ class Chunk(
 
     fun drawBlocks() {
         blockMap.forEach(Block::drawTexture)
-
-//        if (Client.debugMode) {
-//            val screenX = Camera.worldScreenPosX(worldSizeX * tileSize, location)
-//            val screenY = Camera.worldScreenPosY(worldSizeY * tileSize, location)
-//            drawString("x: $x, y: $y", screenX + 3, screenY + 14, 4, Color.BLACK)
-//
-//            safetyDraw(GL_LINE_LOOP) {
-//                glLineWidth(1f)
-//                drawRect(screenX, screenY, hitBox.width, hitBox.height)
-//            }
-//        }
     }
-
-//    fun drawLights(location: Location) {
-//        val worldSizeX = x * chunkSize
-//        val worldSizeY = y * chunkSize
-//
-//        blockMap.forEachIndexed { index, block ->
-//            val position = BlockInChunkPosition(index.toByte())
-//            val screenX = Camera.worldScreenPosX((worldSizeX + position.x) * tileSize, location)
-//            val screenY = Camera.worldScreenPosY((worldSizeY + position.y) * tileSize, location) + tileSizeF * block.type.state.offset
-//            block.drawLight(screenX, screenY)
-//        }
-//    }
-
 
     fun applyForBlocks(action: (x: Int, y: Int) -> Unit) {
         loopWhile(0, chunkSize) { x ->

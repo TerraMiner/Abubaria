@@ -3,15 +3,10 @@ package d2t.terra.abubaria.io.devices
 import d2t.terra.abubaria.Client
 import d2t.terra.abubaria.GamePanel
 import d2t.terra.abubaria.entity.impl.ClientPlayer
-import d2t.terra.abubaria.io.fonts.TextHorAligment
-import d2t.terra.abubaria.io.fonts.TextHorPosition
-import d2t.terra.abubaria.io.fonts.TextVerAlignment
-import d2t.terra.abubaria.io.fonts.TextVerPosition
 import d2t.terra.abubaria.io.graphics.Window
 import d2t.terra.abubaria.world.Camera
 import org.lwjgl.glfw.GLFW.GLFW_PRESS
 import org.lwjgl.glfw.GLFW.GLFW_RELEASE
-import java.util.concurrent.ConcurrentHashMap
 
 object KeyHandler {
     private val keyPressed = BooleanArray(350)
@@ -60,8 +55,8 @@ object KeyHandler {
         onKeyPress(Keys.VK_DOWN) {
             Window.vsync = !Window.vsync
         }
-        onKeyPress(Keys.VK_F3) { Client.debugMode = !Client.debugMode }
-        onKeyPress(Keys.VK_F9) { GamePanel.debug = true }
+        onKeyPress(Keys.VK_F3) { Client.showDebugDisplay = !Client.showDebugDisplay }
+        onKeyPress(Keys.VK_F4) { Client.showWorldGrid = !Client.showWorldGrid }
         onKeyPress(Keys.VK_B) { Client.lightMode = !Client.lightMode }
 
         onKeyPressed(Keys.VK_A, ClientPlayer::moveLeft)

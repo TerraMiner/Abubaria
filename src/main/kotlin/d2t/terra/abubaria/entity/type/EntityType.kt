@@ -9,6 +9,6 @@ enum class EntityType(
     val height: Float,
     val clazz: Class<out Entity>
 ) {
-    PLAYER(22.4f, 46.4f, ClientPlayer::class.java),
+    PLAYER(22f, 46f, ClientPlayer::class.java),
     ITEM(12.0f, 12.0f, ItemEntity::class.java)
 }

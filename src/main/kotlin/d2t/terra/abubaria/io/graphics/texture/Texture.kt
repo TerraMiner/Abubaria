@@ -1,9 +1,14 @@
-package d2t.terra.abubaria.io.graphics
+package d2t.terra.abubaria.io.graphics.texture
 
+import d2t.terra.abubaria.io.graphics.render.Layer
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL11.*
+import org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE
 import org.lwjgl.stb.STBImage
+import java.io.File
+import java.io.FileOutputStream
 import java.nio.ByteBuffer
+import java.nio.FloatBuffer
 import kotlin.collections.set
 
 class Texture {
@@ -11,8 +16,14 @@ class Texture {
     val width: Int
     val height: Int
     val channels: Int
+    val cache = TextureCache(this)
 
-    val batchGroup by lazy { TextureGroup() }
+    constructor(id: Int) {
+        this.id = id
+        this.width = 0
+        this.height = 0
+        this.channels = 4
+    }
 
     private constructor(fileName: String) {
         val widthBuffer = BufferUtils.createIntBuffer(1)
@@ -27,8 +38,13 @@ class Texture {
         amount++
 
         glBindTexture(GL_TEXTURE_2D, id)
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
+
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
+
         val format = if (channels == 4) GL_RGBA else GL_RGB
         glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data)
         glBindTexture(GL_TEXTURE_2D, 0)
@@ -44,8 +60,15 @@ class Texture {
         amount++
 
         glBindTexture(GL_TEXTURE_2D, id)
+
+        // Здесь устанавливаем параметры обёртывания
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
+
+        // Параметры фильтрации (уже есть в вашем коде)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
+
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data)
         glBindTexture(GL_TEXTURE_2D, 0)
     }
@@ -53,50 +76,6 @@ class Texture {
     fun bind() = bind(id)
 
     fun unbind() = Companion.unbind()
-
-    fun addToBatch(
-        x: Float, y: Float, width: Float, height: Float,
-        uvX: Float, uvY: Float, uvMX: Float, uvMY: Float,
-        zIndex: Float,
-        r: Float, g: Float, b: Float, a: Float,
-        thickness: Float,
-        rotation: Float,
-        ignoreCamera: Float,
-        renderType: Float = 0f,
-    ) {
-        val group = batchGroup
-        val buffer = group.vertexData
-
-        buffer.put(x)
-        buffer.put(y)
-        buffer.put(width)
-        buffer.put(height)
-
-        buffer.put(uvX)
-        buffer.put(uvY)
-        buffer.put(uvMX)
-        buffer.put(uvMY)
-
-        buffer.put(zIndex)
-
-        buffer.put(r)
-        buffer.put(g)
-        buffer.put(b)
-        buffer.put(a)
-
-        buffer.put(thickness)
-        buffer.put(rotation)
-
-        buffer.put(ignoreCamera)
-        
-        buffer.put(renderType)
-
-        group.count++
-    }
-
-    fun clearBatch() {
-        batchGroup.clear()
-    }
 
     companion object {
         var binded: Int = -1
@@ -131,11 +110,11 @@ class Texture {
                 val resourceStream = javaClass.getResourceAsStream("/${cleanPath}")
                     ?: throw IllegalArgumentException("Resource not found: /${cleanPath}")
 
-                val tempFile = java.io.File.createTempFile("texture", ".png")
+                val tempFile = File.createTempFile("texture", ".png")
                 tempFile.deleteOnExit()
 
                 resourceStream.use { input ->
-                    java.io.FileOutputStream(tempFile).use { output ->
+                    FileOutputStream(tempFile).use { output ->
                         input.copyTo(output)
                     }
                 }

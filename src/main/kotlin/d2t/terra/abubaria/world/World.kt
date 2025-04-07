@@ -1,7 +1,7 @@
 package d2t.terra.abubaria.world
 
 import d2t.terra.abubaria.Client
-import d2t.terra.abubaria.GamePanel
+import d2t.terra.abubaria.blockChunkShiftBits
 import d2t.terra.abubaria.blockIndexMask
 import d2t.terra.abubaria.blockShiftBits
 import d2t.terra.abubaria.chunkShiftBits
@@ -15,25 +15,24 @@ import d2t.terra.abubaria.geometry.position
 import d2t.terra.abubaria.io.fonts.TextVerPosition
 import d2t.terra.abubaria.io.graphics.Color
 import d2t.terra.abubaria.io.graphics.Window
+import d2t.terra.abubaria.io.graphics.render.Layer
 import d2t.terra.abubaria.io.graphics.render.RenderDimension
 import d2t.terra.abubaria.io.graphics.render.Renderer
-import d2t.terra.abubaria.io.graphics.render.UI_DEBUG_LAYER
-import d2t.terra.abubaria.io.graphics.render.WORLD_DEBUG_LAYER
 import d2t.terra.abubaria.location.Direction
 import d2t.terra.abubaria.location.Location
 import d2t.terra.abubaria.tileSizeF
 import d2t.terra.abubaria.util.getIndex
 import d2t.terra.abubaria.util.loopIndicy
-import d2t.terra.abubaria.util.loopWhile
 import d2t.terra.abubaria.world.block.Block
 import d2t.terra.abubaria.world.block.BlockInChunkPosition
 import d2t.terra.abubaria.world.block.Position
 import d2t.terra.abubaria.world.material.Material
 import java.util.concurrent.ConcurrentHashMap
 
-class World {
-    val worldChunkWidth = 16
-    val worldChunkHeight = 16
+class World(
+    val worldChunkWidth: Int = 16,
+    val worldChunkHeight: Int = 16
+) {
 
     val width = tileSize * chunkSize * worldChunkWidth
     val height = tileSize * chunkSize * worldChunkHeight
@@ -68,107 +67,71 @@ class World {
         }
     }
 
-    fun generateWorldLight() {
-        chunkMap.forEach { chunk ->
-            chunk.applyForBlocks { x, y ->
-                val block = GamePanel.world.getBlockAt(x, y) ?: return@applyForBlocks
-                block.initLightMap()
+
+    fun renderBlocks() {
+        val minVisibleChunkX = Camera.getWorldChunkX(0f).coerceAtLeast(0)
+        val minVisibleChunkY = Camera.getWorldChunkY(0f).coerceAtLeast(0)
+        val maxVisibleChunkX = Camera.getWorldChunkX(Window.width.toFloat()).coerceAtMost(worldChunkWidth - 1)
+        val maxVisibleChunkY = Camera.getWorldChunkY(Window.height.toFloat()).coerceAtMost(worldChunkHeight - 1)
+        loopIndicy(minVisibleChunkX, maxVisibleChunkX) { chunkX ->
+            loopIndicy(minVisibleChunkY, maxVisibleChunkY) { chunkY ->
+                getChunk(chunkX, chunkY)?.drawBlocks()
             }
         }
     }
 
-    fun draw() {
+    fun renderEntities() {
         val minVisibleChunkX = Camera.getWorldChunkX(0f).coerceAtLeast(0)
         val minVisibleChunkY = Camera.getWorldChunkY(0f).coerceAtLeast(0)
-
         val maxVisibleChunkX = Camera.getWorldChunkX(Window.width.toFloat()).coerceAtMost(worldChunkWidth - 1)
         val maxVisibleChunkY = Camera.getWorldChunkY(Window.height.toFloat()).coerceAtMost(worldChunkHeight - 1)
-
-        val worldMinX = (minVisibleChunkX shl chunkShiftBits shl blockShiftBits).toFloat()
-        val worldMinY = (minVisibleChunkY shl chunkShiftBits shl blockShiftBits).toFloat()
-        val worldMaxX = ((maxVisibleChunkX + 1) shl chunkShiftBits shl blockShiftBits).toFloat()
-        val worldMaxY = ((maxVisibleChunkY + 1) shl chunkShiftBits shl blockShiftBits).toFloat()
-
         loopIndicy(minVisibleChunkX, maxVisibleChunkX) { chunkX ->
             loopIndicy(minVisibleChunkY, maxVisibleChunkY) { chunkY ->
-                if (Client.debugMode) {
-                    val chunkWorldX = (chunkX shl chunkShiftBits shl blockShiftBits).toFloat()
-                    val chunkWorldY = (chunkY shl chunkShiftBits shl blockShiftBits).toFloat()
+                getChunk(chunkX, chunkY)?.drawEntities()
+            }
+        }
+    }
 
-                    Renderer.renderText("$chunkX, $chunkY", chunkWorldX, chunkWorldY, 16,
-                        zIndex = WORLD_DEBUG_LAYER + .005f,
-                        dim = RenderDimension.WORLD,
-                        textVerPosition = TextVerPosition.CENTER,
-                        ignoreCamera = false)
+    fun renderGrid() {
+        if (Client.showWorldGrid) {
+            val minVisibleChunkX = Camera.getWorldChunkX(0f).coerceAtLeast(0)
+            val minVisibleChunkY = Camera.getWorldChunkY(0f).coerceAtLeast(0)
+            val maxVisibleChunkX = Camera.getWorldChunkX(Window.width.toFloat()).coerceAtMost(worldChunkWidth - 1)
+            val maxVisibleChunkY = Camera.getWorldChunkY(Window.height.toFloat()).coerceAtMost(worldChunkHeight - 1)
 
-                    Renderer.renderLine(
-                        chunkWorldX, worldMinY,
-                        chunkWorldX, worldMaxY,
-                        2f, Color.YELLOW,
-                        WORLD_DEBUG_LAYER,
-                        RenderDimension.WORLD,
-                        false
-                    )
+            val wmx = (minVisibleChunkX shl blockChunkShiftBits).toFloat()
+            val wmy = (minVisibleChunkY shl blockChunkShiftBits).toFloat()
+            val wmxx = ((maxVisibleChunkX + 1) shl blockChunkShiftBits).toFloat()
+            val wmxy = ((maxVisibleChunkY + 1) shl blockChunkShiftBits).toFloat()
 
-                    Renderer.renderLine(
-                        worldMinX, chunkWorldY,
-                        worldMaxX, chunkWorldY,
-                        2f, Color.YELLOW,
-                        WORLD_DEBUG_LAYER,
-                        RenderDimension.WORLD,
-                        false
-                    )
+            val dim = RenderDimension.WORLD
+            val layer = Layer.WORLD_DEBUG_LAYER
 
-                    if (chunkX == maxVisibleChunkX) {
-                        val rightEdge = chunkWorldX + (1 shl chunkShiftBits shl blockShiftBits).toFloat()
-                        Renderer.renderLine(
-                            rightEdge, worldMinY,
-                            rightEdge, worldMaxY,
-                            2f, Color.YELLOW,
-                            WORLD_DEBUG_LAYER,
-                            RenderDimension.WORLD,
-                            false
-                        )
+            loopIndicy(minVisibleChunkX, maxVisibleChunkX) { x ->
+                loopIndicy(minVisibleChunkY, maxVisibleChunkY) { y ->
+                    val wx = (x shl blockChunkShiftBits).toFloat()
+                    val wy = (y shl blockChunkShiftBits).toFloat()
+
+                    Renderer.renderText("$x, $y", wx, wy, 16, layer, dim, verPos = TextVerPosition.CENTER, ignoreZoom = false)
+                    Renderer.renderLine(wx, wmy, wx, wmxy, layer, dim, 2f, Color.YELLOW, false)
+                    Renderer.renderLine(wmx, wy, wmxx, wy, layer, dim, 2f, Color.YELLOW, false)
+
+                    if (x == maxVisibleChunkX) {
+                        val redge = wx + (1 shl blockChunkShiftBits).toFloat()
+                        Renderer.renderLine(redge, wmy, redge, wmxy, layer, dim, 2f, Color.YELLOW, false)
                     }
 
-                    if (chunkY == maxVisibleChunkY) {
-                        val bottomEdge = chunkWorldY + (1 shl chunkShiftBits shl blockShiftBits).toFloat()
-                        Renderer.renderLine(
-                            worldMinX, bottomEdge,
-                            worldMaxX, bottomEdge,
-                            2f, Color.YELLOW,
-                            WORLD_DEBUG_LAYER,
-                            RenderDimension.WORLD,
-                            false
-                        )
+                    if (y == maxVisibleChunkY) {
+                        val bottomEdge = wy + (1 shl chunkShiftBits shl blockShiftBits).toFloat()
+                        Renderer.renderLine(wmx, bottomEdge, wmxx, bottomEdge, layer, dim, 2f, Color.YELLOW, false)
                     }
 
                     repeat(7) {
                         val offset = (it + 1) * tileSizeF
-
-                        Renderer.renderLine(
-                            chunkWorldX + offset, worldMinY,
-                            chunkWorldX + offset, worldMaxY,
-                            1f, Color.GRAY,
-                            WORLD_DEBUG_LAYER,
-                            RenderDimension.WORLD,
-                            false
-                        )
-
-                        Renderer.renderLine(
-                            worldMinX, chunkWorldY + offset,
-                            worldMaxX, chunkWorldY + offset,
-                            1f, Color.GRAY,
-                            WORLD_DEBUG_LAYER,
-                            RenderDimension.WORLD,
-                            false
-                        )
+                        Renderer.renderLine(wx + offset, wmy, wx + offset, wmxy, layer, dim, 1f, Color.GRAY, false)
+                        Renderer.renderLine(wmx, wy + offset, wmxx, wy + offset, layer, dim, 1f, Color.GRAY, false)
                     }
                 }
-
-                val chunk = getChunk(chunkX, chunkY) ?: return@loopIndicy
-                chunk.drawBlocks()
-                chunk.drawEntities()
             }
         }
     }

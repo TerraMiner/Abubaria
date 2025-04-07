@@ -29,11 +29,7 @@ void main() {
         } else {
             discard;
         }
-    }
-    else if (fragRenderType == 3.0) {
-        color = vertexColor;
-    }
-    else {
+    } else {
         color = vertexColor;
     }
 

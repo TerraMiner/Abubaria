@@ -1,6 +1,6 @@
 package d2t.terra.abubaria.io.fonts
 
-import d2t.terra.abubaria.io.graphics.Model
+import d2t.terra.abubaria.io.graphics.texture.Model
 
 class CharInfo(
     val inAtlasX: Int,
